@@ -1,0 +1,464 @@
+<!doctype html><html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Interfoane Sibiu</title>
+<meta name="description" content="Reparații și montaj interfoane, videointerfoane și control acces în Sibiu. Copiem cartele de interfon de orice marcă. Peste 15 ani experiență. 0799 554 433.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: o placă de interfon pe stâlpul blocului — erou cu panou funcțional, apoi secțiuni ca etichete de sonerie, totul pe metal periat și lumina tastaturii. */
+:root{
+  --bg:#E9ECEC; --panel:#F7F8F8; --ink:#14181B; --muted:#5A6268; --line:#CDD3D5;
+  --steel:#2A3035; --steel-2:#1C2125; --steel-ink:#E8ECEE;
+  --led:#FFB000; --led-ink:#8A5A00; --led-soft:rgba(255,176,0,.16);
+  --ok:#2BB673; --lcd:#B9F27A; --lcd-bg:#16210F;
+  --fd:'Archivo','Arial Narrow',system-ui,sans-serif;
+  --fb:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fm:'Share Tech Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1214; --panel:#171B1F; --ink:#E8ECEE; --muted:#9AA3A9; --line:#2A3137;
+  --steel:#22282D; --steel-2:#161A1E; --steel-ink:#E8ECEE;
+  --led:#FFB000; --led-ink:#FFC94D; --led-soft:rgba(255,176,0,.14); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1214; --panel:#171B1F; --ink:#E8ECEE; --muted:#9AA3A9; --line:#2A3137;
+  --steel:#22282D; --steel-2:#161A1E; --steel-ink:#E8ECEE;
+  --led:#FFB000; --led-ink:#FFC94D; --led-soft:rgba(255,176,0,.14); color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1.02rem/1.6 var(--fb);font-stretch:100%;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+h1,h2,h3{font-family:var(--fd);font-stretch:118%;font-weight:850;line-height:1.04;letter-spacing:-.01em;margin:0;text-wrap:balance}
+p{margin:0}
+:focus-visible{outline:3px solid var(--led);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1160px;margin:0 auto;padding-inline:20px}
+.eyebrow{font:400 .82rem var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--led-ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 22px;border-radius:999px;border:0;font:800 1rem var(--fb);font-stretch:110%;text-decoration:none;cursor:pointer;transition:transform .15s,box-shadow .2s,background .2s}
+.btn:active{transform:scale(.97)}
+.btn-led{background:var(--led);color:#1A1300;box-shadow:0 0 0 0 rgba(255,176,0,.5),0 10px 30px -10px rgba(255,176,0,.7)}
+.btn-led:hover{box-shadow:0 0 0 6px rgba(255,176,0,.18),0 10px 30px -10px rgba(255,176,0,.8)}
+.btn-ghost{background:transparent;color:inherit;border:1.5px solid currentColor;opacity:.92}
+.btn-ghost:hover{opacity:1;background:var(--led-soft)}
+.num{font-family:var(--fm);letter-spacing:.04em}
+
+/* concept */
+.concept{background:var(--led);color:#1A1300;font-size:.86rem;text-align:center;padding:8px 16px;font-weight:600}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:18px;height:66px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:850 1.12rem var(--fd);font-stretch:115%;letter-spacing:-.01em;white-space:nowrap}
+.brand svg{width:34px;height:34px;flex:none}
+.brand small{display:block;font:400 .66rem var(--fm);letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-top:1px}
+.top nav{display:flex;gap:22px;margin-left:auto}
+.top nav a{text-decoration:none;font-weight:600;font-size:.94rem;color:var(--muted)}
+.top nav a:hover{color:var(--ink)}
+.top .call{min-height:42px;padding:0 16px;font-size:.92rem}
+@media (max-width:860px){.top nav{display:none}.top .call{margin-left:auto}}
+@media (max-width:420px){.brand small{display:none}.top .call span{display:none}}
+
+/* hero */
+.hero{padding-block:56px 72px;position:relative;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
+.hero h1{font-size:clamp(2.7rem,6.6vw,5.4rem);font-stretch:125%;text-transform:uppercase}
+.hero h1 em{font-style:normal;color:var(--led-ink);display:block}
+.hero .lead{font-size:1.18rem;color:var(--muted);max-width:34ch;margin-top:22px}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.hero .facts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:34px;padding-top:24px;border-top:1px dashed var(--line)}
+.hero .facts div{display:grid;gap:2px}
+.hero .facts b{font:850 1.9rem var(--fd);font-stretch:125%;line-height:1}
+.hero .facts span{font-size:.86rem;color:var(--muted)}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr;gap:40px}.hero{padding-block:36px 56px}}
+
+/* the intercom panel */
+.plate{justify-self:center;width:min(100%,380px);background:linear-gradient(160deg,#4A5258 0%,#2B3237 38%,#1C2226 100%);border-radius:26px;padding:22px 22px 26px;color:#E8ECEE;position:relative;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -2px 0 rgba(0,0,0,.4),0 40px 70px -30px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.25)}
+.plate::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.35;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 3px)}
+.screw{position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#9AA3A9,#4A5258 60%);box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.screw::after{content:"";position:absolute;left:2px;right:2px;top:5px;height:2px;background:rgba(0,0,0,.45);transform:rotate(35deg)}
+.s1{top:12px;left:12px}.s2{top:12px;right:12px}.s3{bottom:12px;left:12px}.s4{bottom:12px;right:12px}
+.ptop{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;padding:6px 8px 0}
+.cam{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#0B2340 0 22%,#050708 24% 46%,#1B2024 48%);box-shadow:inset 0 0 0 3px #111,0 0 0 2px rgba(255,255,255,.07);position:relative}
+.cam::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.55);top:13px;left:15px;filter:blur(.5px)}
+.grill{display:grid;grid-template-columns:repeat(11,1fr);gap:5px}
+.grill i{aspect-ratio:1;border-radius:50%;background:#0D1012;box-shadow:inset 0 1px 1px rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.08)}
+.lcd{margin-top:18px;background:var(--lcd-bg);border-radius:10px;padding:12px 14px;min-height:82px;font:400 1.08rem/1.35 var(--fm);color:var(--lcd);letter-spacing:.08em;text-transform:uppercase;
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.8),0 0 0 2px #0A0D0B;text-shadow:0 0 8px rgba(185,242,122,.55);position:relative;overflow:hidden}
+.lcd::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);pointer-events:none}
+.lcd .l2{font-size:1.5rem;letter-spacing:.14em;min-height:1.6em;display:block}
+.lcd .cur{display:inline-block;width:.6em;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.key{height:52px;border-radius:12px;border:0;cursor:pointer;color:#F2F4F5;font:600 1.35rem var(--fm);
+  background:linear-gradient(180deg,#3D454B,#262C30);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 0 #101315,0 6px 10px -4px rgba(0,0,0,.6);transition:transform .06s,box-shadow .06s}
+.key small{display:block;font-size:.5rem;letter-spacing:.2em;color:var(--led);opacity:.85;margin-top:-4px}
+.key:active,.key.down{transform:translateY(3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 0 #101315}
+.prow{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin-top:12px}
+.bell{height:58px;border-radius:12px;border:0;cursor:pointer;background:linear-gradient(180deg,#FFC23A,#E59A00);color:#1A1300;font:850 1rem var(--fb);font-stretch:115%;letter-spacing:.04em;text-transform:uppercase;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 3px 0 #8A5A00,0 0 24px -4px rgba(255,176,0,.65);display:flex;align-items:center;justify-content:center;gap:8px}
+.bell:active{transform:translateY(3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 0 0 #8A5A00,0 0 18px -4px rgba(255,176,0,.6)}
+.reader{height:58px;border-radius:12px;border:1px dashed rgba(255,255,255,.22);background:rgba(0,0,0,.22);cursor:pointer;color:#C9D0D4;font:400 .72rem var(--fm);letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
+.reader svg{width:26px;height:26px}
+.reader .rf{position:absolute;inset:0;border-radius:inherit;pointer-events:none}
+.reader.tap .rf{animation:rf .9s ease-out}
+@keyframes rf{0%{box-shadow:inset 0 0 0 0 rgba(43,182,115,.0)}30%{box-shadow:inset 0 0 0 30px rgba(43,182,115,.35)}100%{box-shadow:inset 0 0 0 0 rgba(43,182,115,0)}}
+.led-dot{position:absolute;right:22px;top:24px;width:8px;height:8px;border-radius:50%;background:#7A1F1F;box-shadow:0 0 0 2px rgba(0,0,0,.4)}
+.led-dot.on{background:var(--ok);box-shadow:0 0 0 2px rgba(0,0,0,.4),0 0 12px var(--ok)}
+.plate-cap{text-align:center;margin-top:14px;font:400 .78rem var(--fm);letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.callout{margin-top:14px;display:none;gap:8px;justify-items:center;text-align:center}
+.callout.on{display:grid}
+.callout .muted{color:var(--muted)}
+.callout .big{font:400 1.7rem var(--fm);letter-spacing:.06em}
+@media (prefers-reduced-motion:reduce){.lcd .cur{animation:none}.reader.tap .rf{animation:none}html{scroll-behavior:auto}}
+
+/* strip */
+.strip{background:var(--steel);color:var(--steel-ink);overflow:hidden;border-block:1px solid rgba(0,0,0,.2)}
+.strip .track{display:flex;gap:48px;padding-block:18px;width:max-content;animation:mq 38s linear infinite}
+.strip span{font:850 1.3rem var(--fd);font-stretch:125%;text-transform:uppercase;white-space:nowrap;display:flex;align-items:center;gap:48px}
+.strip span::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--led);box-shadow:0 0 10px var(--led)}
+@keyframes mq{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.strip .track{animation:none;flex-wrap:wrap;width:auto;padding-inline:20px}}
+
+section.sec{padding-block:88px}
+.sec-head{display:grid;grid-template-columns:1fr 1fr;gap:20px 56px;align-items:end;margin-bottom:44px}
+.sec-head h2{font-size:clamp(2.1rem,4.6vw,3.6rem);text-transform:uppercase}
+.sec-head p{color:var(--muted);font-size:1.08rem;max-width:46ch}
+@media (max-width:800px){.sec-head{grid-template-columns:1fr}section.sec{padding-block:64px}}
+
+/* services — like doorbell name tags */
+.svc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:var(--line);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+.svc article{background:var(--panel);padding:30px 28px 32px;display:grid;grid-template-columns:auto 1fr;gap:6px 20px;align-content:start;position:relative;transition:background .25s}
+.svc article:hover{background:color-mix(in srgb,var(--panel) 88%,var(--led))}
+.svc .ic{grid-row:span 3;width:60px;height:60px;border-radius:16px;background:var(--steel);display:grid;place-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.svc .ic svg{width:30px;height:30px;stroke:var(--led);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.svc h3{font-size:1.65rem;text-transform:uppercase}
+.svc p{color:var(--muted)}
+.svc ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.svc li{font:400 .78rem var(--fm);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--ink)}
+@media (max-width:760px){.svc{grid-template-columns:1fr}.svc article{padding:24px 20px}}
+
+/* cards */
+.cards{background:var(--steel-2);color:var(--steel-ink);border-radius:30px;padding:56px 48px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;position:relative;overflow:hidden}
+.cards .eyebrow{color:var(--led)}
+.cards h2{font-size:clamp(2.1rem,4.4vw,3.4rem);text-transform:uppercase;margin-top:10px}
+.cards p.lead{color:#B4BDC3;margin-top:16px;font-size:1.08rem;max-width:42ch}
+.steps{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:14px;counter-reset:s}
+.steps li{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:center;counter-increment:s}
+.steps li::before{content:counter(s);width:44px;height:44px;border-radius:50%;border:1.5px solid var(--led);color:var(--led);display:grid;place-items:center;font:400 1.1rem var(--fm)}
+.steps b{display:block;font-weight:750}
+.steps span{color:#B4BDC3;font-size:.94rem}
+.brandtags{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.brandtags span{font:850 .95rem var(--fd);font-stretch:120%;text-transform:uppercase;letter-spacing:.02em;padding:7px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+.fob-stage{position:relative;height:330px;display:grid;place-items:center}
+.fob{width:250px;max-width:80%;aspect-ratio:85.6/54;border-radius:14px;position:absolute;
+  background:linear-gradient(135deg,#F2F4F5,#C9D0D4);box-shadow:0 30px 50px -20px rgba(0,0,0,.7),inset 0 1px 0 #fff;color:#14181B;padding:16px 18px;display:flex;flex-direction:column;justify-content:space-between}
+.fob .chip{width:38px;height:28px;border-radius:6px;background:linear-gradient(135deg,#E9C46A,#B8892C);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.fob .wv{position:absolute;right:16px;top:14px;width:30px;height:30px;stroke:#5A6268;fill:none;stroke-width:2;stroke-linecap:round}
+.fob b{font:850 1.05rem var(--fd);font-stretch:120%;text-transform:uppercase}
+.fob small{font:400 .72rem var(--fm);letter-spacing:.14em;color:#5A6268}
+.fob.a{transform:rotate(-9deg) translate(-34px,-26px)}
+.fob.b{transform:rotate(7deg) translate(36px,30px);background:linear-gradient(135deg,#FFC23A,#E59A00)}
+.fob.b small,.fob.b .wv{color:#5A3B00;stroke:#5A3B00}
+.copyarrow{position:absolute;z-index:2;font:400 .8rem var(--fm);letter-spacing:.16em;background:var(--steel-2);color:var(--led);padding:6px 12px;border-radius:999px;border:1px solid rgba(255,176,0,.4)}
+@media (max-width:860px){.cards{grid-template-columns:1fr;padding:40px 22px;border-radius:24px}.fob-stage{height:240px}}
+
+/* diagnostic */
+.diag{display:grid;grid-template-columns:.9fr 1.1fr;gap:28px;align-items:start}
+.chips{display:grid;gap:10px}
+.chip-b{display:flex;align-items:center;gap:14px;text-align:left;width:100%;padding:16px 18px;border-radius:16px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);font:650 1.02rem var(--fb);cursor:pointer;transition:border-color .2s,background .2s}
+.chip-b:hover{border-color:var(--led)}
+.chip-b[aria-pressed="true"]{border-color:var(--led);background:var(--led-soft)}
+.chip-b .k{font:400 .82rem var(--fm);width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--steel);color:var(--led);flex:none}
+.answer{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px;display:grid;gap:16px;position:sticky;top:calc(86px + env(safe-area-inset-top,0px))}
+.answer h3{font-size:1.9rem;text-transform:uppercase}
+.answer .why{color:var(--muted)}
+.answer .msg{font:400 .95rem/1.5 var(--fm);background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:14px 16px;color:var(--ink)}
+.answer .row{display:flex;flex-wrap:wrap;gap:10px}
+@media (max-width:860px){.diag{grid-template-columns:1fr}.answer{position:static}}
+
+/* blocks */
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.flow div{padding:26px 22px;border-top:3px solid var(--ink);display:grid;gap:8px;align-content:start}
+.flow div:first-child{border-color:var(--led)}
+.flow .n{font:400 .85rem var(--fm);letter-spacing:.12em;color:var(--muted)}
+.flow h3{font-size:1.4rem;text-transform:uppercase}
+.flow p{color:var(--muted);font-size:.96rem}
+@media (max-width:860px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.flow{grid-template-columns:1fr}}
+
+/* faq */
+.faq{display:grid;gap:10px;max-width:820px}
+.faq details{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:0 22px}
+.faq summary{list-style:none;cursor:pointer;padding:20px 0;font:750 1.08rem var(--fb);display:flex;justify-content:space-between;gap:16px;align-items:center}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font:400 1.5rem var(--fm);color:var(--led-ink);transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{padding-bottom:20px;color:var(--muted);max-width:65ch}
+
+/* final */
+.final{background:var(--led);color:#1A1300;border-radius:30px;padding:60px 48px;display:grid;grid-template-columns:1.2fr .8fr;gap:30px;align-items:center}
+.final h2{font-size:clamp(2.2rem,5vw,4rem);text-transform:uppercase;font-stretch:125%}
+.final .ph{font:400 clamp(1.8rem,4.4vw,3rem) var(--fm);letter-spacing:.04em;display:block;margin-top:14px;user-select:all}
+.final .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.final .btn-dark{background:#1A1300;color:var(--led)}
+.final .btn-ghost{color:#1A1300}
+@media (max-width:820px){.final{grid-template-columns:1fr;padding:40px 24px}.final .row{justify-content:flex-start}}
+
+footer{padding-block:48px 64px;color:var(--muted);font-size:.92rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:16px 40px;justify-content:space-between;align-items:center}
+footer a{text-decoration:none;font-weight:650;color:var(--ink)}
+
+/* sticky mobile call bar */
+.mbar{display:none}
+@media (max-width:700px){
+  .mbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:50;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+  .mbar .btn{min-height:48px;padding:0 12px}
+  footer{padding-bottom:110px}
+}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);opacity:0;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:650;transition:.25s;z-index:90;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div class="concept" id="concept">Concept de site propus de Lucian pentru Interfoane Sibiu — nu este site-ul oficial al firmei.</div>
+
+<header class="top"><div class="wrap">
+  <a class="brand" href="#acasa" aria-label="Interfoane Sibiu, începutul paginii">
+    <svg viewBox="0 0 34 34" aria-hidden="true"><rect x="1" y="1" width="32" height="32" rx="9" fill="#2A3035"/><rect x="9" y="6" width="16" height="22" rx="3" fill="none" stroke="#FFB000" stroke-width="2"/><circle cx="17" cy="11" r="2" fill="#FFB000"/><path d="M13 17h8M13 20.5h8M13 24h8" stroke="#E8ECEE" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span>Interfoane Sibiu<small>Reparații · Montaj · Cartele</small></span>
+  </a>
+  <nav aria-label="Secțiuni"><a href="#servicii">Servicii</a><a href="#cartele">Cartele</a><a href="#problema">Ce nu merge?</a><a href="#blocuri">Asociații</a><a href="#intrebari">Întrebări</a></nav>
+  <a class="btn btn-led call" href="tel:0799554433"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span class="num">0799 554 433</span></a>
+</div></header>
+
+<main id="acasa">
+<section class="hero"><div class="wrap">
+  <div>
+    <p class="eyebrow">Sibiu · peste 15 ani de interfoane</p>
+    <h1 style="margin-top:14px">Interfonul nu răspunde? <em>Îl reparăm.</em></h1>
+    <p class="lead">Reparăm orice model de interfon sau videointerfon, montăm sisteme noi și copiem cartele de orice marcă. Pentru blocuri, vile și case din Sibiu.</p>
+    <div class="ctas">
+      <a class="btn btn-led" href="tel:0799554433">Sună acum · <span class="num">0799 554 433</span></a>
+      <a class="btn btn-ghost" href="#problema">Spune-ne ce nu merge</a>
+    </div>
+    <div class="facts">
+      <div><b>15+</b><span>ani de experiență</span></div>
+      <div><b>Orice</b><span>model și marcă</span></div>
+      <div><b>3 în 1</b><span>interfon · video · acces</span></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="plate" role="group" aria-label="Interfon demonstrativ: formează un apartament sau apasă pe cititorul de cartelă">
+      <span class="screw s1"></span><span class="screw s2"></span><span class="screw s3"></span><span class="screw s4"></span>
+      <span class="led-dot" id="led" aria-hidden="true"></span>
+      <div class="ptop"><span class="cam" aria-hidden="true"></span><div class="grill" aria-hidden="true" id="grill"></div></div>
+      <div class="lcd" aria-live="polite"><span id="l1">Bine ați venit</span><span class="l2"><span id="l2">Formați ap.</span><span class="cur">_</span></span></div>
+      <div class="keys" id="keys"></div>
+      <div class="prow">
+        <button class="reader" id="reader" type="button" aria-label="Apropie cartela"><span class="rf"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8.5 8.5a5 5 0 0 1 0 7M5.5 5.5a9 9 0 0 1 0 13M11.5 11.5a.8.8 0 0 1 0 1"/><rect x="14" y="5" width="7" height="14" rx="1.5"/></svg>Cartela</button>
+        <button class="bell" id="bell" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>Sună</button>
+      </div>
+    </div>
+    <p class="plate-cap">Încearcă: formează un număr și apasă „Sună”</p>
+    <div class="callout" id="callout">
+      <span class="muted">Ne găsești direct la</span>
+      <span class="big num">0799 554 433</span>
+      <a class="btn btn-led" href="tel:0799554433">Sună la Interfoane Sibiu</a>
+    </div>
+  </div>
+</div></section>
+
+<div class="strip" aria-hidden="true"><div class="track" id="track"></div></div>
+
+<section class="sec" id="servicii"><div class="wrap">
+  <div class="sec-head"><div><p class="eyebrow">Ce facem</p><h2 style="margin-top:12px">De la sonerie la ușa care se deschide</h2></div><p>Un singur număr pentru tot ce ține de intrarea în bloc sau în casă: diagnosticăm, reparăm, montăm și facem cartele.</p></div>
+  <div class="svc">
+    <article>
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg></span>
+      <h3>Reparații</h3>
+      <p>Reparăm orice model de interfon sau videointerfon: nu se aude, nu sună, nu deschide ușa, ecran negru.</p>
+      <ul><li>Interfon</li><li>Videointerfon</li><li>Yală electromagnetică</li></ul>
+    </article>
+    <article>
+      <span class="ic"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2"/><circle cx="12" cy="7" r="1.6"/><path d="M9 12h6M9 15h6M9 18h6"/></svg></span>
+      <h3>Montaj interfoane</h3>
+      <p>Instalăm sisteme noi de interfon și videointerfon pentru blocuri, vile și case, cu posturi în fiecare apartament.</p>
+      <ul><li>Blocuri</li><li>Vile</li><li>Case</li></ul>
+    </article>
+    <article>
+      <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M8 20h8M12 16v4"/></svg></span>
+      <h3>Videointerfoane</h3>
+      <p>Vezi cine sună înainte să deschizi. Montăm și înlocuim videointerfoane, inclusiv peste instalații mai vechi.</p>
+      <ul><li>Ecran color</li><li>Cameră exterioară</li></ul>
+    </article>
+    <article>
+      <span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14.5v2.5"/></svg></span>
+      <h3>Control acces</h3>
+      <p>Cititoare de cartele, coduri și sisteme de acces pentru intrări, porți și spații comune.</p>
+      <ul><li>Cartele</li><li>Cod</li><li>Porți</li></ul>
+    </article>
+  </div>
+</div></section>
+
+<section id="cartele" style="padding-block:20px 88px"><div class="wrap">
+  <div class="cards">
+    <div>
+      <p class="eyebrow">Cartele interfon Sibiu</p>
+      <h2>Ai nevoie de încă o cartelă?</h2>
+      <p class="lead">Copiem și vindem cartele de interfon de orice marcă și model. Pentru un membru nou al familiei, pentru chiriaș sau ca rezervă.</p>
+      <ol class="steps">
+        <li><span><b>Ne suni</b><span>Ne spui ce cartelă ai și câte copii vrei.</span></span></li>
+        <li><span><b>Aduci cartela</b><span>Ne trebuie cartela care funcționează acum la ușa ta.</span></span></li>
+        <li><span><b>Primești copia</b><span>Copia deschide ușa exact ca originalul.</span></span></li>
+      </ol>
+      <div class="brandtags"><span>Electra</span><span>Genway</span><span>Resel</span><span>Commax</span><span>Kim</span><span>Pam</span><span>și altele</span></div>
+    </div>
+    <div class="fob-stage" aria-hidden="true">
+      <div class="fob a"><svg class="wv" viewBox="0 0 24 24"><path d="M8.5 8.5a5 5 0 0 1 0 7M5.5 5.5a9 9 0 0 1 0 13M11.5 11.5a.8.8 0 0 1 0 1"/></svg><span class="chip"></span><span><b>Originalul</b><br><small>AP. 24 · SC. B</small></span></div>
+      <span class="copyarrow">COPIE ⟶</span>
+      <div class="fob b"><svg class="wv" viewBox="0 0 24 24"><path d="M8.5 8.5a5 5 0 0 1 0 7M5.5 5.5a9 9 0 0 1 0 13M11.5 11.5a.8.8 0 0 1 0 1"/></svg><span class="chip"></span><span><b>Copia ta</b><br><small>AP. 24 · SC. B</small></span></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="sec" id="problema" style="padding-top:0"><div class="wrap">
+  <div class="sec-head"><div><p class="eyebrow">Ce nu merge?</p><h2 style="margin-top:12px">Alege problema, noi venim cu soluția</h2></div><p>Apasă pe ce se întâmplă la tine. Îți pregătim mesajul, ca să știm de la primul telefon ce piese să luăm.</p></div>
+  <div class="diag">
+    <div class="chips" id="chips" role="group" aria-label="Probleme frecvente"></div>
+    <div class="answer" aria-live="polite">
+      <p class="eyebrow" id="aTag"></p>
+      <h3 id="aTitle"></h3>
+      <p class="why" id="aWhy"></p>
+      <p class="msg" id="aMsg"></p>
+      <div class="row">
+        <a class="btn btn-led" href="tel:0799554433">Sună · <span class="num">0799 554 433</span></a>
+        <a class="btn btn-ghost" id="aSms" href="sms:0799554433">Trimite SMS</a>
+        <button class="btn btn-ghost" id="aCopy" type="button">Copiază mesajul</button>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section class="sec" id="blocuri" style="background:var(--panel);border-block:1px solid var(--line)"><div class="wrap">
+  <div class="sec-head"><div><p class="eyebrow">Pentru asociații de proprietari</p><h2 style="margin-top:12px">Interfonul blocului, rezolvat cap-coadă</h2></div><p>Administratorul sună o dată. Noi ne ocupăm de diagnostic, piese și de fiecare post din apartamente.</p></div>
+  <div class="flow">
+    <div><span class="n">PASUL 1</span><h3>Suni</h3><p>Ne spui adresa blocului și ce nu funcționează.</p></div>
+    <div><span class="n">PASUL 2</span><h3>Verificăm</h3><p>Venim la bloc și găsim cauza: placa de la intrare, cablajul sau posturile.</p></div>
+    <div><span class="n">PASUL 3</span><h3>Îți spunem prețul</h3><p>Afli ce trebuie făcut și cât costă, înainte să începem.</p></div>
+    <div><span class="n">PASUL 4</span><h3>Funcționează</h3><p>Reparăm sau montăm sistemul nou și facem cartelele pentru locatari.</p></div>
+  </div>
+</div></section>
+
+<section class="sec" id="intrebari"><div class="wrap">
+  <div class="sec-head"><div><p class="eyebrow">Întrebări frecvente</p><h2 style="margin-top:12px">Ce ne întreabă lumea</h2></div><p>Nu găsești răspunsul? Sună la <span class="num" style="color:var(--ink)">0799 554 433</span>.</p></div>
+  <div class="faq">
+    <details open><summary>Reparați și interfoane vechi?</summary><p>Da. Reparăm orice model de interfon sau videointerfon. Dacă un model nu mai merită reparat, îți spunem sincer și îți propunem o variantă nouă.</p></details>
+    <details><summary>Ce mărci de cartele copiați?</summary><p>Copiem cartele de orice marcă și model: Electra, Genway, Resel, Commax și altele. Adu cartela care funcționează acum la ușa ta.</p></details>
+    <details><summary>Lucrați și pentru case și vile, nu doar pentru blocuri?</summary><p>Da. Montăm interfoane și videointerfoane la blocuri, vile și case, plus control acces pentru porți și intrări.</p></details>
+    <details><summary>Cât costă o reparație?</summary><p>Depinde de model și de defect. Sună și descrie problema. Îți spunem prețul înainte să începem lucrul.</p></details>
+    <details><summary>În ce zone veniți?</summary><p>În Sibiu și în localitățile din jur. Pentru alte zone din județ, sună și stabilim.</p></details>
+  </div>
+</div></section>
+
+<section style="padding-block:0 40px"><div class="wrap">
+  <div class="final">
+    <div><h2>Un telefon și ușa se deschide din nou.</h2><span class="ph num" id="finalPh">0799 554 433</span></div>
+    <div class="row">
+      <a class="btn btn-dark" href="tel:0799554433">Sună acum</a>
+      <button class="btn btn-ghost" id="copyPh" type="button">Copiază numărul</button>
+    </div>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <span><b style="color:var(--ink)">Interfoane Sibiu</b> · Casa Inteligentă SRL</span>
+  <span>Reparații și montaj interfoane, videointerfoane, control acces · Cartele interfon</span>
+  <a href="https://www.facebook.com/interfoanesibiu" target="_blank" rel="noopener">Facebook ↗</a>
+</div></footer>
+
+<div class="mbar"><a class="btn btn-led" href="tel:0799554433">📞 Sună</a><a class="btn btn-ghost" href="#problema">Ce nu merge?</a></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const PHONE = '0799 554 433';
+  const toast = (m) => { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2200); };
+  const copy = async (text, el) => {
+    try { await navigator.clipboard.writeText(text); toast('Copiat'); }
+    catch { if (el) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } toast('Selectat. Copiază cu Ctrl+C'); }
+  };
+
+  /* grila difuzorului */
+  $('#grill').innerHTML = '<i></i>'.repeat(33);
+
+  /* banda cu mărci */
+  const items = ['Electra', 'Genway', 'Resel', 'Commax', 'Cartele Kim', 'Pam 255', 'Videointerfoane', 'Control acces'];
+  $('#track').innerHTML = [...items, ...items].map((x) => `<span>${x}</span>`).join('');
+
+  /* interfonul demonstrativ */
+  const KEYS = [['1',''],['2','ABC'],['3','DEF'],['4','GHI'],['5','JKL'],['6','MNO'],['7','PQRS'],['8','TUV'],['9','WXYZ'],['C','ȘTERGE'],['0',''],['#','']];
+  $('#keys').innerHTML = KEYS.map(([k, s]) => `<button class="key" type="button" data-k="${k}" aria-label="${k === 'C' ? 'Șterge' : 'Tasta ' + k}">${k}${s ? `<small>${s}</small>` : ''}</button>`).join('');
+  let ap = '', timer = null, ctx = null;
+  const l1 = $('#l1'), l2 = $('#l2');
+  const show = (a, b) => { l1.textContent = a; l2.textContent = b; };
+  const reset = () => { ap = ''; show('Bine ați venit', 'Formați ap.'); $('#led').classList.remove('on'); };
+  const beep = (f = 880, d = 0.07) => {
+    try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f; o.type = 'square'; g.gain.value = 0.03; o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime + d); } catch {}
+  };
+  const press = (k) => {
+    clearTimeout(timer);
+    beep(k === 'C' ? 440 : 880);
+    if (k === 'C') { reset(); return; }
+    if (k === '#') { ring(); return; }
+    if (ap.length >= 4) ap = '';
+    ap += k; show('Apartament', ap);
+    timer = setTimeout(reset, 9000);
+  };
+  const ring = () => {
+    clearTimeout(timer);
+    if (!ap) { show('Formați ap.', 'apoi Sună'); timer = setTimeout(reset, 2500); return; }
+    let n = 0; show(`Apelez ap. ${ap}`, '· · ·');
+    const tick = setInterval(() => { n++; l2.textContent = '· · · '.slice(0, (n % 3 + 1) * 2); beep(n % 2 ? 660 : 520, 0.18); }, 520);
+    setTimeout(() => { clearInterval(tick); show('Interfon defect?', PHONE); $('#callout').classList.add('on'); timer = setTimeout(reset, 12000); }, 2100);
+  };
+  $('#keys').addEventListener('click', (e) => { const b = e.target.closest('[data-k]'); if (b) press(b.dataset.k); });
+  $('#bell').onclick = ring;
+  $('#reader').onclick = () => {
+    const r = $('#reader'); r.classList.remove('tap'); void r.offsetWidth; r.classList.add('tap');
+    clearTimeout(timer); beep(1320, 0.12); setTimeout(() => beep(1760, 0.12), 140);
+    $('#led').classList.add('on'); show('Cartelă citită', 'Acces ✓');
+    timer = setTimeout(() => { show('Vrei o copie?', 'Sună-ne'); timer = setTimeout(reset, 4000); $('#led').classList.remove('on'); }, 1800);
+  };
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('input,textarea') || !$('.plate').matches(':hover')) return;
+    if (/^[0-9]$/.test(e.key)) press(e.key); else if (e.key === 'Enter') ring(); else if (e.key === 'Backspace') press('C');
+  });
+
+  /* diagnostic */
+  const P = [
+    { k: '01', t: 'Nu se aude nimic', tag: 'Sunet', why: 'De obicei e difuzorul sau microfonul de la placa de la intrare, ori un fir desprins până la post. Se verifică la fața locului și de multe ori se rezolvă fără schimbarea întregului sistem.', msg: 'Bună ziua! La interfonul de la noi nu se aude nimic când sună cineva.' },
+    { k: '02', t: 'Nu deschide ușa', tag: 'Ușă', why: 'Problema poate fi la yala electromagnetică, la sursa de alimentare sau la butonul din apartament. Verificăm întâi ce e ieftin de reparat.', msg: 'Bună ziua! Interfonul sună, dar butonul nu mai deschide ușa de la intrare.' },
+    { k: '03', t: 'Cartela nu mai merge', tag: 'Cartelă', why: 'Cartela se poate demagnetiza sau strica, iar uneori cititorul de la ușă are nevoie de reglaj. Dacă ai o cartelă care funcționează, îți putem face copii.', msg: 'Bună ziua! Cartela de interfon nu mai deschide ușa. Aș vrea să o verificați sau să-mi faceți una nouă.' },
+    { k: '04', t: 'Ecran negru la videointerfon', tag: 'Video', why: 'Poate fi camera de afară, alimentarea monitorului sau o conexiune. Reparăm videointerfoane de orice marcă.', msg: 'Bună ziua! Videointerfonul sună, dar ecranul rămâne negru.' },
+    { k: '05', t: 'Vreau o cartelă în plus', tag: 'Copie', why: 'Copiem cartele de orice marcă și model: Electra, Genway, Resel, Commax și altele. Ai nevoie doar de cartela care funcționează acum.', msg: 'Bună ziua! Aș vrea o copie după cartela de interfon. Câte bucăți: ' },
+    { k: '06', t: 'Vreau sistem nou', tag: 'Montaj', why: 'Montăm interfoane, videointerfoane și control acces pentru blocuri, vile și case. Venim, vedem intrarea și îți spunem variantele.', msg: 'Bună ziua! Aș vrea să montez un interfon nou. Adresa și tipul clădirii: ' },
+  ];
+  $('#chips').innerHTML = P.map((p, i) => `<button class="chip-b" type="button" data-i="${i}" aria-pressed="false"><span class="k">${p.k}</span>${p.t}</button>`).join('');
+  const pick = (i) => {
+    const p = P[i];
+    document.querySelectorAll('.chip-b').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.i === i)));
+    $('#aTag').textContent = p.tag; $('#aTitle').textContent = p.t; $('#aWhy').textContent = p.why; $('#aMsg').textContent = p.msg;
+    $('#aSms').href = 'sms:0799554433?body=' + encodeURIComponent(p.msg);
+  };
+  $('#chips').addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (b) pick(+b.dataset.i); });
+  pick(1);
+  $('#aCopy').onclick = () => copy($('#aMsg').textContent, $('#aMsg'));
+  $('#copyPh').onclick = () => copy('0799554433', $('#finalPh'));
+})();
+</script>
+</body></html>
