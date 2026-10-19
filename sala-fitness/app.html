@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sala mea</title>
+<meta name="theme-color" content="#0A0A0C">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Fraunces:ital,wght@1,500;1,600&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="app.css?v=3">
+<style>
+body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--acc) 9%,transparent),transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px calc(120px + env(safe-area-inset-bottom))}
+/* splash */
+#splash{position:fixed;inset:0;z-index:500;background:var(--bg);display:grid;place-content:center;justify-items:center;gap:16px;transition:opacity .45s,visibility .45s}
+#splash.out{opacity:0;visibility:hidden}
+#splash .lg{width:84px;height:84px;border-radius:26px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;animation:pulse 1.4s ease-in-out infinite;box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 50%,transparent)}
+#splash b{font-family:var(--fd);font-weight:900;font-size:1.3rem;letter-spacing:.06em;text-transform:uppercase}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 45%,transparent);transform:scale(1)}60%{box-shadow:0 0 0 26px transparent;transform:scale(1.04)}100%{box-shadow:0 0 0 0 transparent;transform:scale(1)}}
+/* antet */
+.top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);padding:calc(10px + env(safe-area-inset-top)) 16px 10px}
+.top .in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--fd);font-weight:900;font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em;flex:1;min-width:0}
+.brand i{width:34px;height:34px;border-radius:11px;background:var(--acc);display:grid;place-items:center;color:var(--acc-ink);flex:none}
+.brand b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iconbtn{position:relative;width:42px;height:42px;border-radius:14px;border:1px solid var(--line2);background:var(--card);display:grid;place-items:center;cursor:pointer;color:var(--ink);flex:none}
+.iconbtn .bd{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--red);color:#fff;font-size:.68rem;font-weight:800;display:grid;place-items:center;border:2px solid var(--bg)}
+/* bara de jos */
+.tabs{position:fixed;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom));z-index:50;max-width:536px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,#1A1A20 82%,transparent);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border:1px solid var(--line2);border-radius:26px;padding:6px;box-shadow:0 20px 40px -12px rgba(0,0,0,.8)}
+.tabs .ind{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/5);border-radius:20px;background:color-mix(in srgb,var(--acc) 14%,transparent);transition:transform .45s cubic-bezier(.3,1.3,.5,1);pointer-events:none}
+.tabs button{position:relative;border:0;background:none;color:var(--faint);display:grid;justify-items:center;gap:3px;padding:8px 2px 6px;font-size:.66rem;font-weight:800;letter-spacing:.02em;cursor:pointer;border-radius:20px;transition:color .25s}
+.tabs button .ic{transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
+.tabs button.on{color:var(--acc)}
+.tabs button.on .ic{transform:translateY(-1px) scale(1.12)}
+.hello{padding:14px 0 10px}
+.hello small{color:var(--muted);font-weight:600;text-transform:capitalize}
+.hello h1{font-size:2.05rem;line-height:1.04;margin-top:4px;text-wrap:balance}
+/* card de membru 3D */
+.mc3{perspective:1200px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.mc-in{position:relative;transition:transform .8s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d;min-height:206px}
+.mc3.flip .mc-in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:26px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--line2)}
+.mc-f{background:radial-gradient(120% 120% at 100% 0%,color-mix(in srgb,var(--acc) 34%,transparent) 0%,transparent 55%),linear-gradient(140deg,#24242C 0%,#121217 70%)}
+.mc-f::after{content:"";position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.07) 50%,transparent 60%);animation:sheen 6s ease-in-out infinite;pointer-events:none}
+@keyframes sheen{0%,60%{transform:translateX(-60%)}100%{transform:translateX(60%)}}
+.mc-f.exp{background:radial-gradient(120% 120% at 100% 0%,rgba(255,90,110,.32),transparent 55%),linear-gradient(140deg,#24242C,#121217 70%)}
+.mc-f.warn{background:radial-gradient(120% 120% at 100% 0%,rgba(255,194,61,.3),transparent 55%),linear-gradient(140deg,#24242C,#121217 70%)}
+.mc-top{display:flex;align-items:center;gap:10px;position:relative}
+.mc-top b{font-family:var(--fd);text-transform:uppercase;letter-spacing:.08em;font-size:.86rem;flex:1}
+.mc-logo{width:28px;height:28px;border-radius:9px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center}
+.mc-mid{display:flex;justify-content:space-between;align-items:center;gap:12px;position:relative}
+.mc-mid .k{font-size:.7rem;font-weight:800;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.mc-mid .plan{font-family:var(--fd);font-size:1.55rem;font-weight:900;line-height:1.1;margin-top:2px}
+.mc-bot{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;position:relative;font-size:.8rem}
+.mc-bot .nm{font-family:var(--fd);font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.9rem}
+.mc-hint{color:var(--muted);display:flex;align-items:center;gap:5px;font-weight:700}
+.mc-b{transform:rotateY(180deg);background:linear-gradient(160deg,#F4F4F6,#DADAE0);color:#0A0A0C;flex-direction:row;align-items:center;gap:16px}
+.mc-b .qrbox{padding:8px;border-radius:14px;margin:0}
+.mc-b .qrbox svg{width:150px;height:150px}
+.mc-b b{font-family:var(--fd);font-size:1.15rem;display:block;line-height:1.15}
+.mc-b small{color:#55555F;font-weight:600}
+.mc3 .ring .ring-t b{font-size:1.6rem}
+/* acțiuni rapide */
+.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.qa button{position:relative;display:grid;justify-items:center;gap:7px;padding:12px 4px 10px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font-size:.74rem;font-weight:800;transition:transform .15s}
+.qa button:active{transform:scale(.95)}
+.qa .q{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;background:var(--card2)}
+.qa button:first-child .q{background:var(--acc);color:var(--acc-ink)}
+.qa button.done .q{background:rgba(61,220,151,.16);color:var(--green)}
+.qa .bd{position:absolute;top:6px;right:12px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:.66rem;display:grid;place-items:center}
+/* serie + săptămână */
+.duo{display:grid;grid-template-columns:1.25fr 1fr;gap:10px;margin-top:10px}
+.streak{position:relative;overflow:hidden;border-radius:22px;padding:16px;background:linear-gradient(150deg,rgba(255,122,61,.22),var(--card) 60%);border:1px solid var(--line)}
+.streak .fl{color:#FF8A3D;filter:drop-shadow(0 0 10px rgba(255,138,61,.6))}
+.streak b{font-family:var(--fd);font-size:2.4rem;line-height:1}
+.wd{display:flex;gap:5px;margin-top:12px}
+.wd span{flex:1;display:grid;justify-items:center;gap:4px;font-size:.62rem;font-weight:800;color:var(--faint)}
+.wd i{width:100%;max-width:22px;aspect-ratio:1;border-radius:7px;background:var(--card2);display:grid;place-items:center}
+.wd i.on{background:#FF8A3D;color:#1a0a00}
+.wd i.td{outline:2px solid var(--ink);outline-offset:1px}
+.weekc{border-radius:22px;padding:14px;background:var(--card);border:1px solid var(--line);display:grid;justify-items:center;align-content:center;gap:6px;text-align:center}
+.weekc small{color:var(--muted);font-weight:700;font-size:.74rem}
+/* aglomerație */
+.crowd{position:relative;overflow:hidden}
+.crowd .dot{width:12px;height:12px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 currentColor;animation:ping 2s infinite;color:var(--green);flex:none}
+.crowd.lv2 .dot{background:var(--amber);color:var(--amber)}.crowd.lv3 .dot{background:var(--red);color:var(--red)}.crowd.lv0 .dot{background:var(--faint);color:var(--faint);animation:none}
+@keyframes ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,currentColor 60%,transparent)}80%,100%{box-shadow:0 0 0 12px transparent}}
+.crowd small{font-size:.7rem;font-weight:800;letter-spacing:.14em;color:var(--muted)}
+.crowd .lvl{font-family:var(--fd);font-size:1.3rem;display:block}
+.hb{display:flex;align-items:flex-end;gap:3px;height:62px;margin-top:14px}
+.hb i{flex:1;background:var(--card2);border-radius:5px 5px 2px 2px;position:relative;min-height:4px}
+.hb i.on{background:var(--acc)}
+.hb em{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);font-style:normal;font-size:.58rem;color:var(--faint);font-weight:700}
+/* motivație */
+.quote{position:relative;border-radius:24px;padding:22px 20px;background:linear-gradient(160deg,color-mix(in srgb,var(--vio) 34%,var(--card)) 0%,var(--card) 72%);border:1px solid var(--line2);overflow:hidden}
+.quote::before{content:"„";position:absolute;right:10px;top:-34px;font:italic 600 9rem var(--fq);color:rgba(255,255,255,.06);line-height:1}
+.quote .q{font-family:var(--fq);font-style:italic;font-size:1.32rem;line-height:1.3;position:relative}
+.quote .a{color:var(--muted);font-size:.86rem;margin-top:8px}
+.chal{display:flex;align-items:center;gap:14px;margin-top:16px;padding:14px;border-radius:16px;background:rgba(0,0,0,.28);border:1px solid var(--line);cursor:pointer;text-align:left;width:100%;color:inherit}
+.chal .box{width:34px;height:34px;border-radius:11px;border:2.5px solid var(--line2);display:grid;place-items:center;flex:none;transition:.25s cubic-bezier(.3,1.5,.5,1);color:transparent}
+.chal.done .box{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);transform:scale(1.08) rotate(-6deg)}
+.chal small{display:block;font-size:.7rem;font-weight:800;letter-spacing:.12em;color:var(--acc);text-transform:uppercase}
+.chal.done b{text-decoration:line-through;opacity:.7}
+/* antrenamentul de azi */
+.today{display:grid;grid-template-columns:1fr 120px;gap:8px;align-items:center;border-radius:24px;padding:16px 10px 16px 18px;background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 13%,var(--card)),var(--card) 70%);border:1px solid var(--line2)}
+.today .k{font-size:.7rem;font-weight:800;letter-spacing:.14em;color:var(--acc);text-transform:uppercase}
+.today h3{font-size:1.3rem;margin:4px 0 6px}
+.figwrap{background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.06),transparent 70%);border-radius:18px}
+/* podium */
+.podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;align-items:end;gap:8px;margin:6px 0 12px}
+.podium div{display:grid;justify-items:center;gap:6px;text-align:center}
+.podium .av{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;font-family:var(--fd);font-weight:900;background:var(--card2)}
+.podium .p1 .av{width:58px;height:58px;background:linear-gradient(140deg,#FFD66B,#E9A100);color:#2a1a00}
+.podium .p2 .av{background:linear-gradient(140deg,#E8E8EE,#9A9AA8);color:#111}
+.podium .p3 .av{background:linear-gradient(140deg,#F0A36B,#B8642A);color:#1f0d00}
+.podium .st2{width:100%;border-radius:12px 12px 4px 4px;background:var(--card2);display:grid;place-items:center;font-family:var(--fd);font-weight:900;color:var(--muted)}
+.podium small{font-size:.74rem;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbrow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px}
+.lbrow.me{background:color-mix(in srgb,var(--acc) 14%,transparent);border:1px solid color-mix(in srgb,var(--acc) 40%,transparent)}
+.lbrow .n{width:26px;text-align:center;font-family:var(--fd);font-weight:900;color:var(--muted)}
+/* diverse */
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 12px;text-align:center}
+.st b{display:block;font-family:var(--fd);font-size:1.6rem;line-height:1.1}
+.st small{color:var(--muted);font-size:.74rem;font-weight:700}
+.next .ico{background:color-mix(in srgb,var(--acc) 16%,transparent);color:var(--acc)}
+.ann{border-left:4px solid var(--acc)}
+.ann.oferta{border-color:var(--amber)}.ann.eveniment{border-color:var(--vio)}.ann.program{border-color:var(--green)}
+.ann p{margin:6px 0 0;color:var(--muted);font-size:.94rem}
+.contact{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.contact a{display:grid;justify-items:center;gap:8px;padding:14px 8px;border-radius:18px;background:var(--card);border:1px solid var(--line);text-decoration:none;font-weight:700;font-size:.82rem}
+.contact a span{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:var(--card2);color:var(--acc)}
+.banner{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;background:linear-gradient(120deg,color-mix(in srgb,var(--acc) 22%,var(--card)),var(--card));border:1px solid var(--line2);margin-bottom:12px}
+.banner .bi{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:var(--acc);color:var(--acc-ink);flex:none}
+/* antrenament */
+.prog{border-radius:26px;padding:18px;background:radial-gradient(100% 100% at 100% 0%,color-mix(in srgb,var(--vio) 30%,transparent),transparent 60%),var(--card);border:1px solid var(--line2)}
+.day{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:var(--bg2);border:1px solid var(--line);cursor:pointer;width:100%;color:inherit;text-align:left}
+.day.next-up{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+.day .n{width:40px;height:40px;border-radius:12px;background:var(--card2);display:grid;place-items:center;font-family:var(--fd);font-weight:900;flex:none}
+.day.next-up .n{background:var(--acc);color:var(--acc-ink)}
+.ai{position:relative;overflow:hidden;border-radius:26px;padding:20px;background:linear-gradient(135deg,#2A1F5E 0%,#17171C 75%);border:1px solid rgba(139,108,255,.4)}
+.ai::before{content:"";position:absolute;width:220px;height:220px;right:-70px;top:-90px;background:radial-gradient(circle,rgba(139,108,255,.55),transparent 65%);animation:float 6s ease-in-out infinite}
+@keyframes float{50%{transform:translate(-20px,16px)}}
+.ai .sp{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(140deg,#B6A2FF,#7C5CFF);color:#fff;position:relative}
+.exgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.exg{display:grid;gap:4px;padding:10px 12px 12px;border-radius:18px;background:var(--card);border:1px solid var(--line);cursor:pointer;text-align:left;color:inherit;transition:transform .15s,border-color .2s}
+.exg:active{transform:scale(.97)}
+.exg .fig{background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.05),transparent 70%);border-radius:12px;aspect-ratio:1}
+.exg b{font-size:.9rem;line-height:1.25}
+.exg small{color:var(--muted);font-size:.74rem}
+.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.filters button{flex:none;border:1px solid var(--line2);background:var(--card);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.84rem;cursor:pointer;color:var(--muted)}
+.filters button.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.search{position:relative}
+.search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.search .input{padding-left:44px}
+.stage{border-radius:22px;background:radial-gradient(circle at 50% 65%,color-mix(in srgb,var(--acc) 12%,transparent),transparent 65%),var(--card);border:1px solid var(--line);padding:6px;margin:4px 0 14px}
+.stage .fig{max-height:250px}
+.pr{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;background:linear-gradient(120deg,rgba(255,194,61,.16),var(--card));border:1px solid var(--line)}
+/* asistent program */
+.wz-bar{height:6px;border-radius:6px;background:var(--card2);overflow:hidden;margin:6px 0 18px}
+.wz-bar i{display:block;height:100%;background:linear-gradient(90deg,#7C5CFF,var(--acc));transition:width .4s}
+.opts{display:grid;gap:10px}
+.opts.c2{grid-template-columns:1fr 1fr}
+.opt{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;border:1.5px solid var(--line2);background:var(--card);cursor:pointer;color:inherit;text-align:left;transition:.15s}
+.opt:hover{border-color:var(--acc)}
+.opt .oi{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--card2);flex:none;color:var(--acc)}
+.opt small{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
+.opt.big{justify-content:center;font-family:var(--fd);font-weight:900;font-size:1.5rem;padding:18px}
+.gen{display:grid;justify-items:center;gap:14px;padding:30px 0;text-align:center}
+.gen .sp{width:72px;height:72px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(140deg,#B6A2FF,#7C5CFF);color:#fff;animation:spin 1.6s cubic-bezier(.5,0,.5,1) infinite}
+@keyframes spin{50%{transform:rotate(180deg) scale(.9)}100%{transform:rotate(360deg)}}
+/* antrenament activ */
+.wo,.chat{position:fixed;inset:0;z-index:120;background:var(--bg);overflow:auto;animation:vin .3s}
+.wo{padding-bottom:140px}
+@keyframes vin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.wo-top,.chat-top{position:sticky;top:0;z-index:2;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:calc(12px + env(safe-area-inset-top)) 16px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.wo-top .tm{font-family:var(--fd);font-weight:900;font-size:1.4rem;color:var(--acc);font-variant-numeric:tabular-nums}
+.wex{margin:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px 16px}
+.wex.all{border-color:color-mix(in srgb,var(--green) 50%,transparent)}
+.wex .th{width:58px;height:58px;flex:none;border-radius:14px;background:var(--bg2)}
+.sets{display:grid;gap:8px;margin-top:12px}
+.set{display:grid;grid-template-columns:34px 1fr 1fr 48px;gap:8px;align-items:center}
+.set .no{font-family:var(--fd);font-weight:900;color:var(--faint);text-align:center}
+.set input{width:100%;background:var(--bg2);border:1.5px solid var(--line2);border-radius:12px;padding:11px 8px;text-align:center;font-weight:800;font-size:1.05rem;font-variant-numeric:tabular-nums}
+.set .lb{font-size:.68rem;color:var(--faint);text-align:center;font-weight:700}
+.set .ck{height:46px;border-radius:12px;border:2px solid var(--line2);background:var(--bg2);cursor:pointer;color:transparent;display:grid;place-items:center;transition:.2s}
+.set.done .ck{background:var(--green);border-color:var(--green);color:#04130b}
+.set.done input{opacity:.6}
+.rest{white-space:nowrap;position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:130;display:flex;align-items:center;gap:12px;background:var(--ink);color:#000;padding:8px 8px 8px 14px;border-radius:999px;font-weight:900;box-shadow:var(--sh)}
+.rest b{font-family:var(--fd);font-size:1.3rem;font-variant-numeric:tabular-nums}
+.rest .rr{width:34px;height:34px;flex:none}
+.rest .rr circle{fill:none;stroke-width:4}
+.wo-end{position:fixed;left:0;right:0;bottom:0;z-index:125;padding:12px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 35%)}
+/* chat */
+.chat{display:flex;flex-direction:column;overflow:hidden}
+.msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:6px;max-width:640px;width:100%;margin:0 auto}
+.bub{max-width:80%;padding:10px 14px;border-radius:20px;line-height:1.4;white-space:pre-wrap;word-wrap:break-word;animation:rise .3s both}
+.bub.g{align-self:flex-start;background:var(--card2);border-bottom-left-radius:6px}
+.bub.m{align-self:flex-end;background:var(--acc);color:var(--acc-ink);border-bottom-right-radius:6px;font-weight:500}
+.bub time{display:block;font-size:.68rem;opacity:.6;margin-top:3px}
+.dsep{align-self:center;font-size:.72rem;color:var(--faint);font-weight:700;margin:10px 0 4px}
+.cbar{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg2);max-width:640px;width:100%;margin:0 auto}
+.cbar textarea{flex:1;resize:none;min-height:46px;max-height:120px;border-radius:16px}
+.cbar .btn{width:50px;padding:0;border-radius:16px}
+/* progres */
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.cal .h{font-size:.7rem;color:var(--faint);font-weight:800}
+.cal .d{aspect-ratio:1;border-radius:11px;display:grid;place-items:center;font-size:.86rem;font-weight:700;background:var(--bg2);position:relative;color:var(--muted)}
+.cal .d.w{background:var(--acc);color:var(--acc-ink)}
+.cal .d.c{background:color-mix(in srgb,var(--acc) 40%,var(--card2));color:var(--ink)}
+.cal .d.p::after{content:"";position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--vio)}
+.cal .d.t{outline:2px solid var(--ink);outline-offset:-2px}
+.cal .d.o{opacity:.25}
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.bdg{display:grid;justify-items:center;gap:4px;text-align:center;padding:12px 4px;border-radius:16px;background:var(--card);border:1px solid var(--line);cursor:pointer;color:inherit}
+.bdg span{font-size:1.9rem;filter:grayscale(1);opacity:.3}
+.bdg small{font-size:.66rem;font-weight:800;color:var(--faint);line-height:1.2}
+.bdg.on{border-color:color-mix(in srgb,var(--acc) 40%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 10%,var(--card)),var(--card))}
+.bdg.on span{filter:none;opacity:1}.bdg.on small{color:var(--ink)}
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.photos button{aspect-ratio:3/4;border-radius:14px;overflow:hidden;border:0;padding:0;cursor:pointer;position:relative;background:var(--card2)}
+.photos img{width:100%;height:100%;object-fit:cover}
+.photos small{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.6);padding:2px 7px;border-radius:8px;font-size:.68rem;font-weight:700;color:#fff}
+.photos .add{aspect-ratio:3/4;border-radius:14px;border:2px dashed var(--line2);display:grid;place-content:center;justify-items:center;gap:6px;cursor:pointer;text-align:center;color:var(--muted);font-weight:800;font-size:.84rem}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cmp img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:14px}
+.mtab{width:100%;border-collapse:collapse;font-size:.9rem}
+.mtab th,.mtab td{padding:9px 6px;text-align:center;border-bottom:1px solid var(--line)}
+.mtab th{color:var(--faint);font-size:.72rem;font-weight:800}
+.hero-pts{display:flex;align-items:center;gap:16px;padding:18px;border-radius:22px;background:linear-gradient(135deg,color-mix(in srgb,var(--amber) 24%,var(--card)),var(--card));border:1px solid var(--line2)}
+.hero-pts b{font-family:var(--fd);font-size:2.4rem;line-height:1}
+.reward{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.goal{display:grid;gap:12px}
+.goal .row small{color:var(--muted);font-weight:700}
+/* nutriție */
+.meal{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--line);cursor:pointer;width:100%;text-align:left;color:inherit}
+.meal .box{width:30px;height:30px;border-radius:10px;border:2.5px solid var(--line2);flex:none;display:grid;place-items:center;color:transparent;margin-top:2px;transition:.2s}
+.meal.done{border-color:color-mix(in srgb,var(--green) 40%,transparent)}
+.meal.done .box{background:var(--green);border-color:var(--green);color:#04130b}
+.macro{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.macro div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px}
+.macro b{font-family:var(--fd);font-size:1.2rem}
+.macro div div{white-space:nowrap}
+.macro span{font-size:.8rem}
+.water{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:12px}
+.water button{aspect-ratio:3/4;border-radius:10px 10px 14px 14px;border:2px solid #2E5E8A;background:transparent;cursor:pointer;position:relative;overflow:hidden;padding:0}
+.water button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(180deg,#5FB8FF,#2E7DD1);transition:height .4s cubic-bezier(.3,1.3,.5,1)}
+.water button.on::after{height:82%}
+/* profil */
+.avatar{width:74px;height:74px;border-radius:24px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;font-family:var(--fd);font-weight:900;font-size:1.8rem;flex:none}
+.menu{display:grid;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.menu button,.menu a{display:flex;align-items:center;gap:12px;padding:15px 16px;border:0;background:none;border-bottom:1px solid var(--line);cursor:pointer;text-align:left;font-weight:600;text-decoration:none;color:inherit;width:100%}
+.menu > :last-child{border-bottom:0}
+.menu .mi{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--card2);color:var(--acc);flex:none}
+.menu .ar{margin-left:auto;color:var(--faint)}
+.toggle{width:52px;height:30px;border-radius:30px;background:var(--card2);position:relative;flex:none;margin-left:auto;transition:.2s}
+.toggle::after{content:"";position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.25s cubic-bezier(.3,1.4,.5,1)}
+.toggle.on{background:var(--acc)}
+.toggle.on::after{left:25px;background:var(--acc-ink)}
+/* login */
+.login{min-height:100vh;display:grid;align-content:center;padding:30px 20px;max-width:440px;margin:0 auto;position:relative}
+.login .logo{width:70px;height:70px;border-radius:22px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;margin-bottom:22px;box-shadow:0 20px 50px -10px color-mix(in srgb,var(--acc) 60%,transparent)}
+.login h1{font-size:2.6rem;line-height:1}
+.blobs{position:fixed;inset:0;overflow:hidden;z-index:-1;pointer-events:none}
+.blobs i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;animation:float 9s ease-in-out infinite}
+.code{display:flex;gap:10px;justify-content:center;margin:18px 0}
+.code input{width:62px;height:72px;text-align:center;font-family:var(--fd);font-weight:900;font-size:2rem;border-radius:16px;background:var(--bg2);border:2px solid var(--line2);outline:none}
+.code input:focus{border-color:var(--acc)}
+.cam{position:relative;border-radius:20px;overflow:hidden;background:#000;aspect-ratio:1;max-width:320px;margin:12px auto}
+.cam video{width:100%;height:100%;object-fit:cover}
+.cam::after{content:"";position:absolute;inset:18%;border:3px solid var(--acc);border-radius:18px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
+.or{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:.8rem;font-weight:700;margin:16px 0 4px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line2)}
+.steps{counter-reset:s;display:grid;gap:10px;padding:0;margin:14px 0;list-style:none}
+.steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;line-height:1.45}
+.steps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:9px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;font-weight:900;font-family:var(--fd)}
+.tip{padding:14px;border-radius:14px;background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 30%,transparent);font-size:.94rem}
+.notif{padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.notif.new{border-color:color-mix(in srgb,var(--acc) 50%,transparent)}
+.notif p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
+.small{font-size:.84rem}
+</style>
+</head>
+<body>
+<div id="splash"><div class="lg" id="spl"></div><b id="spn"></b></div>
+<div id="login" class="hide"></div>
+<div id="shell" class="hide">
+  <header class="top"><div class="in"><div class="brand"><i id="bLogo"></i><b id="gName"></b></div><button class="iconbtn" id="chatB" aria-label="Mesaje"></button><button class="iconbtn" id="bell" aria-label="Notificări"></button></div></header>
+  <main class="wrap" id="view"></main>
+  <nav class="tabs" aria-label="Meniu"><span class="ind" id="ind"></span>
+    <button data-t="home" data-i="home">Acasă</button>
+    <button data-t="train" data-i="dumbbell">Antrenament</button>
+    <button data-t="progress" data-i="chart">Progres</button>
+    <button data-t="food" data-i="food">Nutriție</button>
+    <button data-t="me" data-i="user">Profil</button>
+  </nav>
+</div>
+<script src="core.js?v=3"></script>
+<script src="seed.js?v=3"></script>
+<script src="env.js?v=3"></script>
+<script src="common.js?v=3"></script>
+<script src="fig.js?v=3"></script>
+<script src="qr.js?v=3"></script>
+<script>
+let CFG = null, H = null, EX = [], tab = 'home';
+const exById = (id) => EX.find((e) => e.id === id) || { id, name: id, muscle: '', steps: [] };
+const S = () => CFG.settings;
+const TABS = ['home', 'train', 'progress', 'food', 'me'];
+$('#spl').innerHTML = IC('bolt', 40); $('#bLogo').innerHTML = IC('bolt', 18);
+$$('.tabs button').forEach((b) => b.insertAdjacentHTML('afterbegin', IC(b.dataset.i, 24)));
+$('#bell').innerHTML = IC('bell', 20); $('#chatB').innerHTML = IC('chat', 20);
+const e1rm = (kg, reps) => (kg && reps ? kg * (1 + Math.min(reps, 15) / 30) : 0);
+const thumb = (ex) => GymFig.figure(ex, { still: true });
+
+/* ───────── pornire ───────── */
+async function boot() {
+  const t0 = performance.now();
+  CFG = await api('/api/config'); applyAccent(S().accent);
+  document.title = S().name; $('#gName').textContent = S().name; $('#spn').textContent = S().name;
+  try { H = await api('/api/me'); } catch (e) { if (e.status === 401) { hideSplash(t0); return showLogin(); } throw e; }
+  EX = (await api('/api/exercises')).exercises;
+  $('#login').classList.add('hide'); $('#shell').classList.remove('hide');
+  const h = location.hash.slice(1);
+  go(TABS.includes(h) ? h : 'home'); hideSplash(t0);
+  if (/^ci-\d{4}$/.test(h)) doCheckin(h.slice(3));
+  if (h === 'chat') openChat();
+}
+function hideSplash(t0) { setTimeout(() => $('#splash').classList.add('out'), Math.max(0, 650 - (performance.now() - t0))); }
+function showLogin() {
+  $('#shell').classList.add('hide'); const L = $('#login'); L.classList.remove('hide');
+  L.innerHTML = `<div class="blobs"><i style="width:340px;height:340px;background:var(--acc);top:-120px;right:-140px;opacity:.28"></i><i style="width:300px;height:300px;background:var(--vio);bottom:-80px;left:-120px;animation-delay:-4s"></i></div>
+    <div class="login stagger"><div class="logo">${IC('bolt', 36)}</div><h1>${esc(S().name)}</h1><p class="muted" style="margin:10px 0 26px">${esc(S().tagline || '')}</p>
+    <form id="lf"><div class="field"><label for="lp">Telefon</label><input class="input" id="lp" type="tel" inputmode="tel" autocomplete="tel" placeholder="07xx xxx xxx" required></div>
+    <div class="field"><label for="lw">Parola</label><input class="input" id="lw" type="password" autocomplete="current-password" required></div>
+    <p class="err" id="le"></p><button class="btn btn-acc btn-block" style="padding:15px">Intră în cont ${IC('arrow', 18)}</button></form>
+    <p class="muted" style="font-size:.88rem;margin-top:18px">Parola ți-o dă recepția când îți faci abonamentul. ${S().whatsapp ? `<a href="${waLink(S().whatsapp, 'Bună! Am nevoie de ajutor să intru în aplicația sălii.')}" target="_blank" rel="noopener" class="acc">Ai nevoie de ajutor?</a>` : ''}</p>
+    ${window.GymDemo ? '<p class="tip" style="margin-top:18px">Demo: telefon <b>0740000000</b>, parola <b>1234</b></p>' : ''}</div>`;
+  $('#lf').onsubmit = async (e) => {
+    e.preventDefault(); $('#le').textContent = '';
+    try { await api('/api/login', { method: 'POST', body: { phone: $('#lp').value, password: $('#lw').value } }); boot(); }
+    catch (er) { $('#le').textContent = er.message; }
+  };
+}
+function go(t) {
+  tab = TABS.includes(t) ? t : 'home';
+  history.replaceState(null, '', '#' + tab);
+  $$('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.t === tab));
+  $('#ind').style.transform = `translateX(${TABS.indexOf(tab) * 100}%)`;
+  render(true); scrollTo(0, 0);
+}
+$$('.tabs button').forEach((b) => (b.onclick = () => go(b.dataset.t)));
+addEventListener('hashchange', () => { const h = location.hash.slice(1); if (!H) return; if (/^ci-\d{4}$/.test(h)) return doCheckin(h.slice(3)); if (h === 'chat') return openChat(); if (TABS.includes(h) && h !== tab) go(h); });
+$('#bell').onclick = openNotifs; $('#chatB').onclick = () => openChat();
+function render(anim) {
+  const v = $('#view'); v.className = 'wrap' + (anim ? ' stagger' : '');
+  ({ home: vHome, train: vTrain, progress: vProgress, food: vFood, me: vMe })[tab](v);
+  const n = H.unread, c = H.chatUnread;
+  $('#bell').innerHTML = IC('bell', 20) + (n ? `<span class="bd">${n}</span>` : '');
+  $('#chatB').innerHTML = IC('chat', 20) + (c ? `<span class="bd">${c}</span>` : '');
+  countUp(v); GymFig.animate(v);
+}
+async function refresh(p) { H = p || (await api('/api/me')); render(); }
+const act = async (path, body, method) => { try { const r = await api(path, { method: method || 'POST', body }); if (r && r.me) H = r; return r; } catch (e) { toast(e.message, 'bad'); throw e; } };
+
+/* ───────── ACASĂ ───────── */
+function cardHtml() {
+  const me = H.me, s = me.subscription, total = s.plan ? s.plan.days : 30, left = s.daysLeft == null ? null : Math.max(0, s.daysLeft);
+  const cls = s.state === 'expired' || s.state === 'none' ? 'exp' : s.state === 'expiring' ? 'warn' : '';
+  return `<div class="mc3" id="mc" role="button" tabindex="0" aria-label="Cardul de membru. Atinge ca să vezi codul QR."><div class="mc-in">
+    <div class="face mc-f ${cls}">
+      <div class="mc-top"><span class="mc-logo">${IC('bolt', 16)}</span><b>${esc(S().name)}</b>${chipFor(s)}</div>
+      <div class="mc-mid"><div class="grow"><div class="k">Abonament</div><div class="plan">${esc(s.plan ? s.plan.name : 'Fără abonament')}</div><div class="muted small" style="margin-top:4px">${s.end ? (s.state === 'expired' ? 'A expirat pe ' : 'Valabil până pe ') + fdate(s.end, true) : 'Treci pe la recepție'}</div></div>
+        ${ring(left == null ? 0 : left / total, left == null ? '–' : `<span data-count="${left}">0</span>`, left === 1 ? 'zi' : 'zile', 96)}</div>
+      <div class="mc-bot"><span class="nm">${esc(me.name)}</span><span class="mc-hint">${IC('qr', 16)} Cardul tău</span></div>
+    </div>
+    <div class="face mc-b"><div class="qrbox">${QR.svg(H.memberCode, { size: 150 })}</div><div class="grow"><small>Card de membru</small><b>${esc(me.name)}</b><small>Arată codul la recepție pentru intrare.</small><br><button class="btn btn-sm" id="subD" style="margin-top:10px;background:#0A0A0C;color:#fff">Abonament și plăți</button></div></div>
+  </div></div>`;
+}
+function vHome(v) {
+  const me = H.me, d = H.daily, first = me.name.split(' ')[0];
+  const hour = new Date().getHours(), hi = hour < 11 ? 'Bună dimineața' : hour < 18 ? 'Salut' : 'Bună seara';
+  const prog = H.program, nd = prog ? prog.days[H.nextDay] : null, firstEx = nd ? exById((nd.items.find((i) => !/min/.test(i.reps)) || nd.items[0] || {}).ex) : null;
+  const mon = CoreAdd(H.today, -((new Date(H.today + 'T12:00:00').getDay() + 6) % 7)), cal = H.calendar;
+  const wdots = ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((l, i) => { const k = CoreAdd(mon, i), on = /[wc]/.test(cal[k] || ''); return `<span><i class="${on ? 'on' : ''} ${k === H.today ? 'td' : ''}">${on ? IC('check', 12) : ''}</i>${l}</span>`; }).join('');
+  const c = H.crowd, LV = ['Închis sau gol', 'Liniște', 'Moderat', 'Aglomerat'], curH = new Date().getHours(), peak = c.hours.reduce((a, x) => (x.n > a.n ? x : a), { n: -1 });
+  const mx = Math.max(1, ...c.hours.map((x) => x.n), c.now);
+  const b = H.board, top3 = b.top.slice(0, 3);
+  v.innerHTML = `
+    <div class="hello"><small>${esc(fday(H.today))}</small><h1>${hi}, ${esc(first)}</h1></div>
+    <div>${installBanner()}${cardHtml()}</div>
+    <div class="qa">
+      <button id="qaC" class="${H.checkedInToday ? 'done' : ''}"><span class="q">${IC(H.checkedInToday ? 'check' : 'qr', 22)}</span>${H.checkedInToday ? 'Ești la sală' : 'Check-in'}</button>
+      <button id="qaT"><span class="q">${IC('dumbbell', 22)}</span>Antrenează-te</button>
+      <button id="qaM"><span class="q">${IC('chat', 22)}</span>Mesaje${H.chatUnread ? `<span class="bd">${H.chatUnread}</span>` : ''}</button>
+      <button id="qaL"><span class="q">${IC('trophy', 22)}</span>Clasament</button>
+    </div>
+    <div class="duo">
+      <div class="streak"><div class="row" style="gap:8px"><span class="fl">${IC('flame', 30)}</span><b data-count="${me.streak}">0</b><small class="muted" style="font-weight:700;line-height:1.1">zile<br>la rând</small></div><div class="wd">${wdots}</div></div>
+      <div class="weekc">${ring(me.weekCount / (me.weekGoal || 3), `${me.weekCount}/${me.weekGoal || 3}`, '', 78)}<small>antrenamente<br>săptămâna asta</small></div>
+    </div>
+    <div class="card crowd lv${c.level}" style="margin-top:10px"><div class="row"><span class="dot"></span><div class="grow"><small>ACUM LA SALĂ</small><span class="lvl">${LV[c.level]}</span></div><div style="text-align:right"><b style="font-family:var(--fd);font-size:1.6rem" data-count="${c.now}">0</b><br><small style="letter-spacing:0">${c.now === 1 ? 'persoană' : 'persoane'}</small></div></div>
+      <div class="hb" aria-hidden="true">${c.hours.map((x) => `<i class="${x.h === curH ? 'on' : ''}" style="height:${Math.max(6, ((x.h === curH ? Math.max(x.n, c.now) : x.n) / mx) * 100)}%">${x.h % 3 === 0 ? `<em>${x.h}</em>` : ''}</i>`).join('')}</div>
+      <p class="muted small" style="margin:24px 0 0">${peak.n > 0 ? `De obicei, ${DAYS[c.weekday]} e cel mai aglomerat în jur de ora ${peak.h}:00.` : 'Vino când îți convine.'}</p></div>
+    <div class="sec"><h2>Motivația zilei</h2></div>
+    <div class="quote"><div class="q">„${esc(d.quote)}”</div><div class="a">— ${esc(d.author || 'Anonim')}</div>
+      <button class="chal ${d.done ? 'done' : ''}" id="chal"><span class="box">${IC('check', 20)}</span><span class="grow"><small>Provocarea zilei · +5 puncte</small><b>${esc(d.challenge)}</b></span></button></div>
+    ${nd ? `<div class="sec"><h2>Antrenamentul de azi</h2><a href="#train">Programul tău</a></div>
+    <div class="today"><div><div class="k">Ziua ${H.nextDay + 1} · ${esc(prog.name)}</div><h3>${esc(nd.name)}</h3><div class="muted small">${nd.items.length} exerciții · ~${estMin(nd)} min</div><button class="btn btn-acc" id="startW" style="margin-top:14px">${IC('play', 16)} Începe</button></div><div class="figwrap">${firstEx ? GymFig.figure(firstEx) : ''}</div></div>` : ''}
+    <div class="sec"><h2>Clasamentul lunii</h2><button id="lbAll">Vezi tot</button></div>
+    <div class="card">${top3.length >= 3 ? `<div class="podium">${[1, 0, 2].map((i) => { const x = top3[i]; return `<div class="p${i + 1}"><span class="av">${esc(x.name.split(' ').map((y) => y[0]).join(''))}</span><small>${esc(x.name)}</small><small class="muted">${x.pts} p</small><span class="st2" style="height:${[64, 44, 32][i]}px">${i + 1}</span></div>`; }).join('')}</div>` : ''}
+      <div class="lbrow me"><span class="n">${b.me && b.me.rank ? b.me.rank : '–'}</span><b class="grow">Tu</b><b class="acc">${b.me ? b.me.pts : 0} puncte</b></div>
+      <p class="muted small" style="margin:10px 0 0">Antrenament +10 · Check-in +5 · Provocarea zilei +5. Se resetează la început de lună.</p></div>
+    ${H.announcements.length ? `<div class="sec"><h2>Noutăți de la sală</h2><button id="allAnn">Toate</button></div><div class="list">${H.announcements.slice(0, 2).map(annHtml).join('')}</div>` : ''}
+    <div class="sec"><h2>Contact rapid</h2></div>
+    <div class="contact">
+      ${S().whatsapp ? `<a href="${waLink(S().whatsapp, 'Bună! ')}" target="_blank" rel="noopener"><span>${IC('chat', 20)}</span>WhatsApp</a>` : ''}
+      ${S().phone ? `<a href="tel:${esc(S().phone.replace(/\s/g, ''))}"><span>${IC('phone', 20)}</span>Sună</a>` : ''}
+      ${S().mapsUrl ? `<a href="${esc(S().mapsUrl)}" target="_blank" rel="noopener"><span>${IC('pin', 20)}</span>Locație</a>` : ''}
+    </div>
+    <div class="card" style="margin-top:12px"><div class="row"><span style="color:var(--acc)">${IC('clock', 20)}</span><b>Program sală</b></div>${S().hours.map((h) => `<div class="row" style="margin-top:8px"><span class="grow muted">${esc(h.d)}</span><b>${esc(h.h)}</b></div>`).join('')}</div>`;
+  const mc = $('#mc');
+  mc.onclick = (e) => { if (e.target.closest('#subD')) return openSub(); mc.classList.toggle('flip'); };
+  mc.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mc.classList.toggle('flip'); } };
+  $('#chal').onclick = async () => { const done = !H.daily.done; await act('/api/me/challenge', { done }); if (done) { confetti(); toast('Bravo! +5 puncte'); } render(); };
+  $('#qaC').onclick = () => (H.checkedInToday ? toast(`Check-in făcut azi${H.checkinTime ? ' la ' + H.checkinTime : ''}. Spor!`) : openCheckin());
+  $('#qaT').onclick = () => go('train'); $('#qaM').onclick = () => openChat(); $('#qaL').onclick = openBoard; $('#lbAll').onclick = openBoard;
+  if ($('#startW')) $('#startW').onclick = () => startWorkout(prog, H.nextDay);
+  if ($('#allAnn')) $('#allAnn').onclick = openAnns;
+  bindInstall();
+}
+const CoreAdd = (d, n) => GymCore.add(d, n);
+const chipFor = (s) => s.state === 'active' ? '<span class="chip ok">Activ</span>' : s.state === 'expiring' ? '<span class="chip warn">Expiră curând</span>' : s.state === 'expired' ? '<span class="chip bad">Expirat</span>' : '<span class="chip">Inactiv</span>';
+const ANN = { program: ['clock', 'Program'], noutate: ['megaphone', 'Noutate'], oferta: ['gift', 'Ofertă'], eveniment: ['star', 'Eveniment'] };
+const annHtml = (a) => `<div class="card ann ${a.type}"><div class="row"><span class="chip">${IC(ANN[a.type][0], 14)} ${ANN[a.type][1]}</span>${a.pinned ? '<span class="chip acc">Important</span>' : ''}<span class="grow"></span><small class="muted">${fdate(a.date)}</small></div><h3 style="margin-top:10px">${esc(a.title)}</h3><p>${esc(a.body)}</p></div>`;
+const estMin = (day) => Math.round(day.items.reduce((a, i) => a + (/min/.test(i.reps) ? parseInt(i.reps) || 10 : i.sets * (0.8 + (i.rest || 60) / 60)), 0) + 5);
+
+function openSub() {
+  const me = H.me, s = me.subscription, pays = (me.payments || []).slice().reverse();
+  sheet(`<h2>Abonamentul meu</h2>${chipFor(s)}
+    <div class="g2" style="margin:16px 0"><div class="st"><small>Tip</small><b style="font-size:1.1rem">${esc(s.plan ? s.plan.name : '–')}</b></div><div class="st"><small>Expiră</small><b style="font-size:1.1rem">${s.end ? fdate(s.end, true) : '–'}</b></div><div class="st"><small>Început</small><b style="font-size:1.1rem">${s.start ? fdate(s.start, true) : '–'}</b></div><div class="st"><small>Zile rămase</small><b style="font-size:1.1rem">${s.daysLeft == null ? '–' : Math.max(0, s.daysLeft)}</b></div></div>
+    <h3 style="margin:18px 0 10px">Istoric plăți</h3><div class="list">${pays.length ? pays.map((p) => `<div class="row card" style="padding:12px 14px"><span class="ico">${IC('card', 20)}</span><div class="grow"><b>${lei(p.amount)}</b><div class="muted" style="font-size:.84rem">${fdate(p.date, true)} · ${esc((H.plans.find((x) => x.id === p.planId) || {}).name || 'Abonament')} · ${esc(p.method)}</div></div></div>`).join('') : '<p class="muted">Nicio plată încă.</p>'}</div>
+    <h3 style="margin:22px 0 10px">Prețuri</h3><div class="list">${H.plans.map((p) => `<div class="row"><span class="grow">${esc(p.name)}<br><small class="muted">${esc(p.desc || '')}</small></span><b>${lei(p.price)}</b></div>`).join('')}</div>
+    ${S().whatsapp ? `<a class="btn btn-acc btn-block" style="margin-top:18px" href="${waLink(S().whatsapp, `Bună! Sunt ${me.name}. Aș vrea să-mi reînnoiesc abonamentul.`)}" target="_blank" rel="noopener">${IC('chat', 18)} Reînnoiește pe WhatsApp</a>` : ''}`);
+}
+/* ── check-in: cod QR sau cod de 4 cifre ── */
+let camStream = null;
+function stopCam() { if (camStream) { camStream.getTracks().forEach((t) => t.stop()); camStream = null; } }
+async function doCheckin(code) {
+  try { await act('/api/me/checkin', { code }); stopCam(); closeSheet(); history.replaceState(null, '', '#' + tab); confetti(); toast('Check-in făcut! +5 puncte'); render(); return true; }
+  catch (e) { return false; }
+}
+function openCheckin() {
+  const canScan = 'BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+  const el = sheet(`<h2>Check-in</h2><p class="muted">Scanează codul QR de la recepție${canScan ? '' : ' cu camera telefonului'} sau scrie codul de 4 cifre.</p>
+    ${canScan ? `<div id="camBox"><button class="btn btn-acc btn-block" id="camGo" style="margin-top:8px">${IC('scan', 18)} Scanează codul QR</button></div>` : `<div class="tip" style="margin-top:6px">${IC('qr', 18)} Deschide camera telefonului și îndreapt-o spre codul QR de la recepție. Check-in-ul se face singur.</div>`}
+    <div class="or">sau scrie codul</div><div class="code">${[0, 1, 2, 3].map((i) => `<input inputmode="numeric" maxlength="1" data-i="${i}" aria-label="Cifra ${i + 1}">`).join('')}</div><p class="err" id="ce" style="text-align:center"></p>`);
+  const ins = $$('.code input', el);
+  ins.forEach((inp, i) => {
+    inp.oninput = async () => { inp.value = inp.value.replace(/\D/g, '').slice(-1); if (inp.value && ins[i + 1]) ins[i + 1].focus(); const code = ins.map((x) => x.value).join(''); if (code.length === 4 && !(await doCheckin(code))) { $('#ce', el).textContent = 'Codul nu e corect. Îl găsești la recepție.'; ins.forEach((x) => (x.value = '')); ins[0].focus(); } };
+    inp.onkeydown = (e) => { if (e.key === 'Backspace' && !inp.value && ins[i - 1]) ins[i - 1].focus(); };
+  });
+  const w = $('#sheet'); const close = () => { stopCam(); closeSheet(); }; $('.sheet-bg', w).onclick = close; $('.sheet-x', w).onclick = close;
+  if ($('#camGo', el)) $('#camGo', el).onclick = async () => {
+    try {
+      camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      $('#camBox', el).innerHTML = '<div class="cam"><video playsinline muted autoplay></video></div>';
+      const vid = $('video', el); vid.srcObject = camStream; const det = new BarcodeDetector({ formats: ['qr_code'] });
+      const scan = async () => { if (!camStream) return; try { const r = await det.detect(vid); const m = r[0] && /(?:ci-)?(\d{4})\s*$/.exec(r[0].rawValue); if (m) { if (await doCheckin(m[1])) return; } } catch {} setTimeout(scan, 350); };
+      scan();
+    } catch { $('#camBox', el).innerHTML = '<p class="err">Nu am acces la cameră. Scrie codul mai jos.</p>'; }
+  };
+}
+function openAnns() { sheet(`<h2>Noutăți de la sală</h2><div class="list" style="margin-top:14px">${H.announcements.map(annHtml).join('') || '<p class="muted">Nimic nou.</p>'}</div>`); }
+async function openNotifs() {
+  const { notifs } = await api('/api/me/notifs');
+  sheet(`<h2>Notificări</h2>${pushRow()}<div class="list" style="margin-top:14px">${notifs.map((n) => `<div class="notif ${n.read ? '' : 'new'}"><div class="row"><b class="grow">${esc(n.title)}</b><small class="muted">${new Date(n.at).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })}</small></div><p>${esc(n.body)}</p></div>`).join('') || '<p class="muted">Nu ai notificări.</p>'}</div>`);
+  bindPush(); if (H.unread) { await api('/api/me/notifs/read', { method: 'POST', body: {} }); H.unread = 0; render(); }
+}
+/* ── clasament ── */
+function openBoard() {
+  const b = H.board, mo = MONTHS_L[+b.month.slice(5) - 1];
+  const el = sheet(`<h2>Clasamentul lunii</h2><p class="muted">${mo} · cei mai activi membri</p>
+    ${b.top.length >= 3 ? `<div class="podium" style="margin-top:16px">${[1, 0, 2].map((i) => { const x = b.top[i]; return `<div class="p${i + 1}"><span class="av">${esc(x.name.split(' ').map((y) => y[0]).join(''))}</span><small>${esc(x.name)}</small><small class="muted">${x.pts} p</small><span class="st2" style="height:${[64, 44, 32][i]}px">${i + 1}</span></div>`; }).join('')}</div>` : ''}
+    <div class="list" style="gap:4px">${b.top.map((x) => `<div class="lbrow ${x.me ? 'me' : ''}"><span class="n">${x.rank}</span><b class="grow">${esc(x.me ? x.name + ' (tu)' : x.name)}</b>${x.streak >= 3 ? `<small class="muted" style="color:#FF8A3D">${IC('flame', 14)} ${x.streak}</small>` : ''}<b>${x.pts}</b></div>`).join('')}
+    ${b.me && (!b.me.rank || b.me.rank > 10) ? `<div class="lbrow me"><span class="n">${b.me.rank || '–'}</span><b class="grow">Tu</b><b>${b.me.pts}</b></div>` : ''}</div>
+    <div class="menu" style="margin-top:16px"><button id="hb"><span class="mi">${IC('eye', 18)}</span>Apar în clasament<span class="toggle ${H.me.hideBoard ? '' : 'on'}"></span></button></div>
+    <p class="muted small">În clasament apare doar prenumele și inițiala numelui.</p>`);
+  $('#hb', el).onclick = async () => { await act('/api/me', { hideBoard: !H.me.hideBoard }, 'PUT'); toast(H.me.hideBoard ? 'Nu mai apari în clasament' : 'Apari în clasament'); closeSheet(); render(); setTimeout(openBoard, 280); };
+}
+/* ── mesaje cu sala ── */
+let chatPoll = null;
+async function openChat(prefill) {
+  if ($('#chat')) return;
+  const el = document.createElement('div'); el.className = 'chat'; el.id = 'chat'; document.body.appendChild(el); document.body.classList.add('noscroll');
+  el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="cx" aria-label="Înapoi">${IC('back', 20)}</button><span class="mc-logo" style="width:40px;height:40px;border-radius:13px">${IC('bolt', 20)}</span><div class="grow"><b>${esc(S().name)}</b><div class="muted small">Recepția și antrenorii · răspundem de obicei în câteva ore</div></div></div>
+    <div class="msgs" id="msgs"><div class="skel" style="height:60px;width:70%"></div></div>
+    <form class="cbar" id="cf"><textarea class="input" id="ct" rows="1" placeholder="Scrie un mesaj…" aria-label="Mesaj"></textarea><button class="btn btn-acc" aria-label="Trimite">${IC('send', 20)}</button></form>`;
+  const draw = (msgs) => {
+    let last = '';
+    $('#msgs').innerHTML = (msgs.length ? '' : `<div class="dsep">Scrie-ne orice: program, abonament, exerciții, programări.</div>`) + msgs.map((m) => { const d = m.at.slice(0, 10), sep = d !== last ? `<div class="dsep">${d === H.today ? 'Azi' : fday(d)}</div>` : ''; last = d; return `${sep}<div class="bub ${m.from}">${esc(m.text)}<time>${new Date(m.at).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}</time></div>`; }).join('');
+    const box = $('#msgs'); box.scrollTop = box.scrollHeight;
+  };
+  const load = async () => { try { const r = await api('/api/me/chat'); draw(r.messages); } catch {} };
+  await load(); chatPoll = setInterval(() => { if (!window.GymDemo) load(); }, 6000); window.GymChatReload = load;
+  const ta = $('#ct'); if (prefill) ta.value = prefill; ta.focus();
+  ta.oninput = () => { ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; };
+  ta.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey && matchMedia('(pointer:fine)').matches) { e.preventDefault(); $('#cf').requestSubmit(); } };
+  $('#cf').onsubmit = async (e) => { e.preventDefault(); const tx = ta.value.trim(); if (!tx) return; ta.value = ''; ta.style.height = ''; try { const r = await api('/api/me/chat', { method: 'POST', body: { text: tx } }); draw(r.messages); } catch (er) { toast(er.message, 'bad'); ta.value = tx; } };
+  $('#cx').onclick = async () => { clearInterval(chatPoll); window.GymChatReload = null; el.remove(); document.body.classList.remove('noscroll'); if (location.hash === '#chat') history.replaceState(null, '', '#' + tab); H = await api('/api/me'); render(); };
+}
+
+/* ───────── ANTRENAMENT ───────── */
+let exFilter = 'Toate', exQuery = '';
+function vTrain(v) {
+  const prog = H.program, last = (H.me.workouts || []).slice(-6).reverse();
+  const muscles = ['Toate', ...new Set(EX.map((e) => e.muscle))];
+  v.innerHTML = `<div class="hello"><small>Antrenament</small><h1>Programul tău</h1></div>
+    ${prog ? `<div class="prog"><div class="row" style="flex-wrap:wrap;gap:6px">${prog.owner ? `<span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">${IC('spark', 13)} Făcut pentru tine</span>` : ''}<span class="chip acc">${esc(prog.goal || '')}</span><span class="chip">${esc(prog.level || '')}</span></div>
+      <h2 style="font-size:1.5rem;margin:10px 0 4px">${esc(prog.name)}</h2><p class="muted small" style="margin:0 0 14px">${esc(prog.desc || '')}</p>
+      <div class="list">${prog.days.map((d, i) => `<button class="day ${i === H.nextDay ? 'next-up' : ''}" data-d="${i}"><span class="n">${i + 1}</span><span class="grow"><b>${esc(d.name)}</b><br><small class="muted">${d.items.length} exerciții · ~${estMin(d)} min${i === H.nextDay ? ' · <span class="acc">urmează</span>' : ''}</small></span>${IC('chev', 18)}</button>`).join('')}</div>
+      <button class="btn btn-ghost btn-block" id="chP" style="margin-top:12px">Alege alt program</button></div>` : `<button class="btn btn-acc btn-block" id="chP">Alege un program</button>`}
+    <div class="ai" style="margin-top:14px"><div class="row" style="position:relative"><span class="sp">${IC('spark', 24)}</span><div class="grow"><b style="font-size:1.08rem">Antrenor inteligent</b><div class="small" style="color:#C9BCFF">Răspunzi la 6 întrebări și primești un program făcut pentru tine, cu greutăți potrivite.</div></div></div><button class="btn btn-block" id="gen" style="margin-top:14px;background:#fff;color:#1A1240;position:relative">${IC('spark', 18)} ${prog && prog.owner ? 'Refă-mi programul' : 'Creează-mi programul'}</button></div>
+    <div class="sec"><h2>Ghidul exercițiilor</h2><small class="muted">${EX.length} exerciții</small></div>
+    <p class="muted small" style="margin:-6px 0 12px">Animație, mușchii lucrați, pașii și video pentru fiecare exercițiu.</p>
+    <div class="search">${IC('search', 18)}<input class="input" id="exq" placeholder="Caută un exercițiu…" value="${esc(exQuery)}" style="margin-bottom:10px"></div>
+    <div class="filters">${muscles.map((m) => `<button class="${m === exFilter ? 'on' : ''}" data-m="${esc(m)}">${esc(m)}</button>`).join('')}</div>
+    <div class="exgrid" id="exl" style="margin-top:12px"></div>
+    <div class="sec"><h2>Antrenor personal</h2></div>
+    <div class="list">${H.services.map((s) => `<div class="card row"><span class="ico">${IC('users', 20)}</span><div class="grow"><b>${esc(s.name)}</b><div class="muted" style="font-size:.86rem">${esc(s.desc || '')} · ${s.duration} min</div></div><div style="text-align:right"><b>${lei(s.price)}</b><br><button class="btn btn-acc btn-sm" data-book="${s.id}" style="margin-top:6px">Programează</button></div></div>`).join('')}</div>
+    ${H.bookings.length ? `<h3 style="margin:18px 0 10px">Programările mele</h3><div class="list">${H.bookings.map((b) => { const sv = H.services.find((x) => x.id === b.serviceId) || {}; return `<div class="card row" style="padding:12px 14px"><span class="ico">${IC('calendar', 20)}</span><div class="grow"><b>${esc(sv.name || 'Antrenament')}</b><div class="muted" style="font-size:.84rem">${fday(b.date)} · ${b.time}</div></div>${b.status === 'confirmed' ? '<span class="chip ok">Confirmat</span>' : b.status === 'pending' ? '<span class="chip warn">În așteptare</span>' : b.status === 'done' ? '<span class="chip">Făcut</span>' : '<span class="chip bad">Anulat</span>'}${['pending', 'confirmed'].includes(b.status) && b.date >= H.today ? `<button class="btn btn-sm btn-red" data-cb="${b.id}" aria-label="Anulează">${IC('x', 16)}</button>` : ''}</div>`; }).join('')}</div>` : ''}
+    <div class="sec"><h2>Istoric</h2></div>
+    <div class="list">${last.length ? last.map((w) => { const vol = (w.sets || []).reduce((a, s) => a + (s.kg || 0) * (s.reps || 0), 0); return `<div class="card row" style="padding:12px 14px"><span class="ico" style="color:var(--green)">${IC('check', 20)}</span><div class="grow"><b>${esc(w.title || (prog && prog.id === w.programId && prog.days[w.dayIdx] ? prog.days[w.dayIdx].name : 'Antrenament'))}</b><div class="muted" style="font-size:.84rem">${fday(w.date)}${w.duration ? ` · ${w.duration} min` : ''}${w.sets && w.sets.length ? ` · ${w.sets.length} serii` : ''}${vol ? ` · ${Math.round(vol).toLocaleString('ro-RO')} kg` : ''}</div></div></div>`; }).join('') : '<p class="muted">Primul antrenament te așteaptă.</p>'}</div>`;
+  $$('.day', v).forEach((b) => (b.onclick = () => openDay(prog, +b.dataset.d)));
+  $('#chP').onclick = chooseProgram; $('#gen').onclick = openGen;
+  const drawEx = () => { const q = exQuery.toLowerCase(); $('#exl').innerHTML = EX.filter((e) => (exFilter === 'Toate' || e.muscle === exFilter) && (!q || e.name.toLowerCase().includes(q))).map((e) => `<button class="exg" data-ex="${e.id}">${thumb(e)}<b>${esc(e.name)}</b><small>${esc(e.muscle)} · ${esc(e.level)}</small></button>`).join('') || '<p class="muted">Niciun exercițiu găsit.</p>'; $$('[data-ex]', v).forEach((b) => (b.onclick = () => openEx(b.dataset.ex))); };
+  drawEx();
+  $('#exq').oninput = (e) => { exQuery = e.target.value; drawEx(); };
+  $$('.filters button', v).forEach((b) => (b.onclick = () => { exFilter = b.dataset.m; $$('.filters button', v).forEach((x) => x.classList.toggle('on', x === b)); drawEx(); }));
+  $$('[data-book]', v).forEach((b) => (b.onclick = () => openBook(b.dataset.book)));
+  $$('[data-cb]', v).forEach((b) => (b.onclick = async () => { if (!(await ask('Anulezi programarea?', 'Antrenorul primește anunțul.', 'Anulează', { danger: true, icon: 'calendar' }))) return; await act('/api/me/booking/' + b.dataset.cb, {}, 'DELETE'); toast('Programare anulată'); render(); }));
+}
+function openDay(prog, i) {
+  const d = prog.days[i];
+  const el = sheet(`<h2>${esc(d.name)}</h2><p class="muted">${d.items.length} exerciții · ~${estMin(d)} minute</p><div class="list" style="margin:14px 0">${d.items.map((it) => { const e = exById(it.ex); return `<button class="day" data-ex="${e.id}" style="padding:8px 12px"><span style="width:56px;height:56px;flex:none;border-radius:12px;background:var(--card)">${thumb(e)}</span><span class="grow"><b>${esc(e.name)}</b><br><small class="muted">${it.sets} × ${esc(it.reps)}${it.kg ? ` · ${it.kg} kg` : ''}${it.rest ? ` · pauză ${it.rest}s` : ''}</small></span><span class="chip">Cum?</span></button>`; }).join('')}</div><button class="btn btn-acc btn-block" id="go">${IC('play', 18)} Începe antrenamentul</button>`);
+  $$('[data-ex]', el).forEach((b) => (b.onclick = () => openEx(b.dataset.ex)));
+  $('#go', el).onclick = () => { closeSheet(); startWorkout(prog, i); };
+}
+function prsFor(exId) {
+  const pts = [];
+  for (const w of H.me.workouts || []) { const s = (w.sets || []).filter((x) => x.ex === exId && x.kg); if (!s.length) continue; const best = s.reduce((a, x) => (e1rm(x.kg, x.reps) > e1rm(a.kg, a.reps) ? x : a)); pts.push({ date: w.date, kg: best.kg, reps: best.reps, e: e1rm(best.kg, best.reps) }); }
+  return pts;
+}
+function openEx(id) {
+  const e = exById(id), hist = prsFor(id), best = hist.reduce((a, x) => (!a || x.e > a.e ? x : a), null);
+  const el = sheet(`<h2 style="margin:0 0 8px">${esc(e.name)}</h2><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip acc">${esc(e.muscle)}</span><span class="chip">${esc(e.equipment)}</span><span class="chip">${esc(e.level)}</span></div>
+    <div class="stage" style="margin-top:12px">${GymFig.figure(e)}</div>
+    <h3>Mușchi lucrați</h3><div style="margin:10px 0 6px">${GymFig.muscleMap(e)}</div>
+    ${best ? `<h3 style="margin-top:18px">Recordul tău</h3><div class="pr" style="margin-top:10px"><span style="color:var(--amber)">${IC('medal', 28)}</span><div class="grow"><b>${best.kg} kg × ${best.reps}</b><div class="muted small">${fdate(best.date, true)} · forță maximă estimată ~${Math.round(best.e)} kg</div></div></div>${hist.length > 1 ? `<div style="margin-top:8px">${lineChart(hist.slice(-12).map((x) => ({ v: x.kg, l: fdate(x.date) })), { h: 170, label: 'Greutatea maximă' })}</div>` : ''}` : ''}
+    <h3 style="margin-top:18px">Cum se face, pas cu pas</h3><ol class="steps">${(e.steps || []).map((s) => `<li>${esc(s)}</li>`).join('')}</ol>
+    ${e.tip ? `<div class="tip">${IC('info', 18)} ${esc(e.tip)}</div>` : ''}
+    <a class="btn btn-acc btn-block" style="margin-top:16px" href="${esc(e.video)}" target="_blank" rel="noopener">${IC('play', 18)} Vezi video demonstrativ</a>
+    <button class="btn btn-ghost btn-block" style="margin-top:10px" id="askT">${IC('chat', 18)} Întreabă antrenorul</button>`);
+  GymFig.animate(el);
+  $('#askT', el).onclick = () => { closeSheet(); setTimeout(() => openChat(`Bună! Am o întrebare despre exercițiul „${e.name}”: `), 260); };
+}
+function chooseProgram() {
+  const el = sheet(`<h2>Alege programul</h2><p class="muted">Poți schimba oricând. Antrenorul îți poate face și unul personalizat.</p><div class="list" style="margin-top:14px">${H.programs.map((p) => `<button class="day ${H.program && p.id === H.program.id ? 'next-up' : ''}" data-p="${p.id}"><span class="n">${p.nDays}×</span><span class="grow"><b>${esc(p.name)}</b>${p.owner ? ` <span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">personal</span>` : ''}<br><small class="muted">${esc(p.goal)} · ${esc(p.level)}</small><br><small class="muted">${esc(p.desc || '')}</small></span></button>`).join('')}</div>`);
+  $$('[data-p]', el).forEach((b) => (b.onclick = async () => { await act('/api/me/program', { programId: b.dataset.p }); closeSheet(); toast('Program schimbat'); render(); }));
+}
+/* ── antrenorul inteligent ── */
+function openGen() {
+  const A = {}, me = H.me;
+  const Q = [
+    ['goal', 'Care e obiectivul tău?', [['slabire', 'Slăbire', 'flame', 'Arzi grăsime, păstrezi mușchii'], ['tonifiere', 'Tonifiere', 'target', 'Corp ferm și definit'], ['masa', 'Masă musculară', 'dumbbell', 'Mai mult mușchi, mai mare'], ['forta', 'Forță', 'bolt', 'Ridici mai greu'], ['sanatate', 'Sănătate și energie', 'sun', 'Te simți bine în corpul tău']]],
+    ['days', 'De câte ori pe săptămână poți veni?', [[2, '2'], [3, '3'], [4, '4'], [5, '5'], [6, '6']], 'c2'],
+    ['level', 'Cât de experimentat ești?', [['incepator', 'Începător', 'star', 'Sub 6 luni de sală'], ['mediu', 'Mediu', 'chart', '6 luni – 2 ani'], ['avansat', 'Avansat', 'trophy', 'Peste 2 ani, tehnică bună']]],
+    ['place', 'Unde te antrenezi?', [['sala', 'La sală', 'dumbbell', 'Toate aparatele'], ['acasa', 'Acasă', 'home', 'Gantere și greutatea corpului']]],
+    ['minutes', 'Cât timp ai pentru un antrenament?', [[30, '30 min'], [45, '45 min'], [60, '60 min'], [75, '75 min']], 'c2'],
+    ['focus', 'Vrei accent pe o zonă?', [['', 'Echilibrat', 'grid', 'Tot corpul la fel'], ['legs', 'Picioare și fesieri', 'target', ''], ['chest', 'Piept și brațe', 'dumbbell', ''], ['back', 'Spate și umeri', 'user', ''], ['core', 'Abdomen', 'flame', '']]],
+  ];
+  let i = 0;
+  const el = sheet('<div id="wz"></div>'); const wz = $('#wz', el);
+  const step = () => {
+    const [k, q, opts, cls] = Q[i];
+    wz.innerHTML = `<div class="row" style="padding-right:44px"><span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">${IC('spark', 13)} Antrenor inteligent</span><span class="grow"></span><small class="muted">${i + 1} din ${Q.length}</small></div><div class="wz-bar"><i style="width:${(i / Q.length) * 100}%"></i></div>
+      <h2 style="padding:0;margin-bottom:14px">${q}</h2><div class="opts stagger ${cls || ''}">${opts.map(([val, l, icn, sub]) => `<button class="opt ${icn ? '' : 'big'}" data-v="${val}">${icn ? `<span class="oi">${IC(icn, 20)}</span><span class="grow"><b>${l}</b>${sub ? `<small>${sub}</small>` : ''}</span>` : l}</button>`).join('')}</div>
+      ${i ? `<button class="btn btn-ghost btn-sm" id="wb" style="margin-top:14px">${IC('back', 16)} Înapoi</button>` : ''}`;
+    $$('.opt', wz).forEach((b) => (b.onclick = () => { A[k] = isNaN(+b.dataset.v) || b.dataset.v === '' ? b.dataset.v : +b.dataset.v; i++; i < Q.length ? step() : build(); }));
+    if ($('#wb', wz)) $('#wb', wz).onclick = () => { i--; step(); };
+  };
+  const build = async () => {
+    wz.innerHTML = `<div class="gen"><span class="sp">${IC('spark', 34)}</span><h2 style="padding:0">Îți construiesc programul…</h2><p class="muted" id="gs">Aleg exercițiile potrivite</p></div>`;
+    const msgs = ['Aleg exercițiile potrivite', 'Calculez seriile și pauzele', 'Potrivesc greutățile după istoricul tău'];
+    let k = 0; const h = setInterval(() => { k++; if ($('#gs', wz)) $('#gs', wz).textContent = msgs[k % msgs.length]; }, 600);
+    try {
+      const [r] = await Promise.all([api('/api/me/generate', { method: 'POST', body: A }), new Promise((ok) => setTimeout(ok, 1800))]);
+      clearInterval(h); H = r; const p = H.program;
+      wz.innerHTML = `<div style="text-align:center"><span class="sp" style="width:64px;height:64px;border-radius:20px;display:inline-grid;place-items:center;background:linear-gradient(140deg,#B6A2FF,#7C5CFF);color:#fff">${IC('check', 30)}</span><h2 style="padding:0;margin-top:12px">Programul tău e gata</h2><p class="muted">${esc(p.desc)}</p></div>
+        <div class="list stagger" style="margin:14px 0">${p.days.map((d, j) => `<div class="card" style="padding:12px 14px"><b>Ziua ${j + 1} · ${esc(d.name)}</b><div class="muted small" style="margin-top:4px">${d.items.map((it) => esc(exById(it.ex).name) + ` <span class="acc">${it.sets}×${esc(it.reps)}</span>`).join(' · ')}</div></div>`).join('')}</div>
+        <button class="btn btn-acc btn-block" id="wGo">${IC('play', 18)} Începe cu ziua 1</button><button class="btn btn-ghost btn-block" id="wOk" style="margin-top:8px">Vezi programul</button>`;
+      confetti();
+      $('#wGo', wz).onclick = () => { closeSheet(); go('train'); startWorkout(H.program, 0); };
+      $('#wOk', wz).onclick = () => { closeSheet(); go('train'); };
+    } catch (e) { clearInterval(h); wz.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  };
+  step();
+}
+function openBook(id) {
+  const sv = H.services.find((x) => x.id === id), times = Array.from({ length: 15 }, (_, i) => `${String(7 + i).padStart(2, '0')}:00`);
+  const el = sheet(`<h2>${esc(sv.name)}</h2><p class="muted">${lei(sv.price)} · ${sv.duration} min. Antrenorul îți confirmă programarea.</p>
+    <div class="g2" style="margin-top:14px"><div class="field"><label for="bd">Ziua</label><input class="input" type="date" id="bd" min="${H.today}" value="${H.today}"></div><div class="field"><label for="bt">Ora</label><select class="input" id="bt">${times.map((t) => `<option>${t}</option>`).join('')}</select></div></div>
+    <div class="field"><label for="bn">Mesaj pentru antrenor (opțional)</label><input class="input" id="bn" placeholder="ex: vreau să învăț tehnica la genuflexiuni"></div><p class="err" id="be"></p><button class="btn btn-acc btn-block" id="bs">Trimite cererea</button>`);
+  $('#bs', el).onclick = async () => { try { H = await api('/api/me/booking', { method: 'POST', body: { serviceId: id, date: $('#bd', el).value, time: $('#bt', el).value, note: $('#bn', el).value } }); closeSheet(); toast('Cerere trimisă! Primești confirmarea în aplicație.'); render(); } catch (e) { $('#be', el).textContent = e.message; } };
+}
+
+/* ── ecranul de antrenament activ ── */
+let WO = null;
+function lastFor(exId) { const ws = (H.me.workouts || []).slice().reverse(); for (const w of ws) { const s = (w.sets || []).filter((x) => x.ex === exId); if (s.length) return s; } return null; }
+function startWorkout(prog, dayIdx) {
+  const day = prog.days[dayIdx];
+  WO = { prog, dayIdx, day, start: Date.now(), ex: day.items.map((it) => { const prev = lastFor(it.ex), cardio = /min/.test(it.reps); return { it, cardio, sets: Array.from({ length: cardio ? 1 : it.sets }, (_, k) => ({ kg: prev && prev[k] ? prev[k].kg : it.kg || '', reps: prev && prev[k] ? prev[k].reps : parseInt(it.reps) || '', done: false })) }; }) };
+  const el = document.createElement('div'); el.className = 'wo'; el.id = 'wo'; document.body.appendChild(el); document.body.classList.add('noscroll');
+  drawWO(); WO.tick = setInterval(() => { const t = $('#wtm'); if (t) t.textContent = mmss((Date.now() - WO.start) / 1000); }, 1000);
+}
+const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+function drawWO() {
+  const el = $('#wo'), doneSets = WO.ex.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0), all = WO.ex.reduce((a, e) => a + e.sets.length, 0);
+  el.innerHTML = `<div class="wo-top"><button class="iconbtn" id="wx" aria-label="Închide">${IC('x', 20)}</button><div class="grow"><b>${esc(WO.day.name)}</b><div class="muted" style="font-size:.8rem">${doneSets}/${all} serii</div></div><span class="tm" id="wtm">${mmss((Date.now() - WO.start) / 1000)}</span></div>
+    <div style="padding:0 16px"><div class="bar-p" style="margin-top:12px"><i style="width:${(doneSets / all) * 100}%"></i></div></div>
+    ${WO.ex.map((e, i) => { const x = exById(e.it.ex), allDone = e.sets.every((s) => s.done); return `<div class="wex ${allDone ? 'all' : ''}"><div class="row"><span class="th">${thumb(x)}</span><div class="grow"><b>${esc(x.name)}</b><div class="muted" style="font-size:.82rem">Țintă: ${e.it.sets} × ${esc(e.it.reps)}${e.it.kg ? ` · ${e.it.kg} kg` : ''}${e.it.rest ? ` · pauză ${e.it.rest}s` : ''}</div></div><button class="btn btn-sm btn-ghost" data-how="${x.id}">Cum?</button></div>
+      <div class="sets">${e.cardio ? `<div class="set ${e.sets[0].done ? 'done' : ''}" style="grid-template-columns:1fr 48px"><span class="muted">${esc(e.it.reps)}</span><button class="ck" data-e="${i}" data-s="0" aria-label="Făcut">${IC('check', 22)}</button></div>` : `<div class="set"><span></span><span class="lb">KG</span><span class="lb">REPETĂRI</span><span></span></div>` + e.sets.map((s, k) => `<div class="set ${s.done ? 'done' : ''}"><span class="no">${k + 1}</span><input inputmode="decimal" value="${s.kg}" data-e="${i}" data-s="${k}" data-f="kg" aria-label="Kilograme seria ${k + 1}"><input inputmode="numeric" value="${s.reps}" data-e="${i}" data-s="${k}" data-f="reps" aria-label="Repetări seria ${k + 1}"><button class="ck" data-e="${i}" data-s="${k}" aria-label="Serie făcută">${IC('check', 22)}</button></div>`).join('')}</div></div>`; }).join('')}
+    <div class="wo-end"><button class="btn btn-acc btn-block" id="wfin" style="padding:16px;font-size:1.05rem">${IC('trophy', 20)} Termină antrenamentul</button></div>`;
+  $('#wx').onclick = async () => { if (doneSets && !(await ask('Ieși din antrenament?', 'Seriile bifate nu se salvează.', 'Ieși', { danger: true, icon: 'x' }))) return; endWO(); };
+  $$('[data-how]', el).forEach((b) => (b.onclick = () => openEx(b.dataset.how)));
+  $$('input[data-f]', el).forEach((inp) => (inp.onchange = () => { WO.ex[inp.dataset.e].sets[inp.dataset.s][inp.dataset.f] = inp.value; }));
+  $$('.ck', el).forEach((b) => (b.onclick = () => { const e = WO.ex[b.dataset.e], s = e.sets[b.dataset.s]; s.done = !s.done; if (s.done && navigator.vibrate) navigator.vibrate(30); if (s.done && e.it.rest && !e.cardio) restTimer(e.it.rest); const y = el.scrollTop; drawWO(); el.scrollTop = y; }));
+  $('#wfin').onclick = finishWO;
+}
+function restTimer(sec) {
+  clearInterval(restTimer.h); let left = sec, r = $('#rest'); const C = 2 * Math.PI * 14;
+  if (!r) { r = document.createElement('div'); r.className = 'rest'; r.id = 'rest'; document.body.appendChild(r); }
+  const draw = () => { r.innerHTML = `<svg class="rr" viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" stroke="#ccc"/><circle cx="17" cy="17" r="14" stroke="#0A0A0C" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - left / sec)}" transform="rotate(-90 17 17)" stroke-linecap="round"/></svg>Pauză <b>${mmss(left)}</b><button class="btn btn-sm" style="background:#000;color:#fff" id="rp">+15s</button><button class="btn btn-sm" style="background:#000;color:#fff" id="rsk">Sari</button>`; $('#rsk').onclick = stop; $('#rp').onclick = () => { left += 15; sec += 15; draw(); }; };
+  const stop = () => { clearInterval(restTimer.h); r.remove(); };
+  draw(); restTimer.h = setInterval(() => { left--; if (left <= 0) { stop(); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); toast('Gata pauza! Următoarea serie'); } else draw(); }, 1000);
+}
+function endWO() { clearInterval(WO.tick); clearInterval(restTimer.h); const r = $('#rest'); if (r) r.remove(); $('#wo').remove(); document.body.classList.remove('noscroll'); WO = null; }
+async function finishWO() {
+  const sets = WO.ex.flatMap((e) => e.sets.map((s, k) => ({ ex: e.it.ex, set: k + 1, kg: s.kg, reps: s.reps, done: s.done })).filter((s) => s.done));
+  if (!sets.length) return toast('Bifează cel puțin o serie făcută.', 'bad');
+  const minutes = Math.max(1, Math.round((Date.now() - WO.start) / 6e4)), vol = sets.reduce((a, s) => a + (Number(s.kg) || 0) * (Number(s.reps) || 0), 0), name = WO.day.name;
+  // recorduri noi față de istoric
+  const prevBest = {}; for (const w of H.me.workouts || []) for (const s of w.sets || []) prevBest[s.ex] = Math.max(prevBest[s.ex] || 0, e1rm(s.kg, s.reps));
+  const recs = []; const seen = new Set(); for (const s of sets) { const v = e1rm(Number(s.kg), Number(s.reps)); if (v && prevBest[s.ex] && v > prevBest[s.ex] + 0.01 && !seen.has(s.ex)) { seen.add(s.ex); recs.push(`${exById(s.ex).name}: ${s.kg} kg × ${s.reps}`); } }
+  try { H = await api('/api/me/workout', { method: 'POST', body: { programId: WO.prog.id, dayIdx: WO.dayIdx, title: name, duration: minutes, sets } }); } catch (e) { return toast(e.message, 'bad'); }
+  endWO(); confetti(); render();
+  sheet(`<div style="text-align:center"><div style="color:var(--amber);display:grid;place-items:center">${IC('trophy', 60)}</div><h2 style="padding:0;margin-top:8px">Antrenament terminat!</h2><p class="muted">${esc(name)}</p>
+    <div class="g3" style="margin:18px 0"><div class="st"><b>${minutes}</b><small>minute</small></div><div class="st"><b>${sets.length}</b><small>serii</small></div><div class="st"><b>${vol ? Math.round(vol).toLocaleString('ro-RO') : '–'}</b><small>kg ridicate</small></div></div>
+    ${recs.length ? `<div class="pr" style="text-align:left;margin-bottom:14px"><span style="color:var(--amber)">${IC('medal', 28)}</span><div class="grow"><b>${recs.length === 1 ? 'Record nou!' : recs.length + ' recorduri noi!'}</b><div class="muted small">${recs.map(esc).join('<br>')}</div></div></div>` : ''}
+    <p><b class="acc">+10 puncte</b> · ${IC('flame', 16)} ${H.me.streak} ${H.me.streak === 1 ? 'zi' : 'zile'} la rând</p><button class="btn btn-acc btn-block" onclick="closeSheet()">Super!</button></div>`);
+}
+
+/* ───────── PROGRES ───────── */
+let calMonth = null;
+function vProgress(v) {
+  const me = H.me, ws = me.weights || [], cur = ws.length ? ws[ws.length - 1].kg : null, first = ws.length ? ws[0].kg : null, delta = cur != null ? Math.round((cur - first) * 10) / 10 : 0;
+  const ms = (me.measures || []).slice(-4), allW = me.workouts || [];
+  calMonth = calMonth || H.today.slice(0, 7);
+  // recorduri personale
+  const bestBy = {}; for (const w of allW) for (const s of w.sets || []) { const v2 = e1rm(s.kg, s.reps); if (v2 && (!bestBy[s.ex] || v2 > bestBy[s.ex].e)) bestBy[s.ex] = { e: v2, kg: s.kg, reps: s.reps, date: w.date }; }
+  const prs = Object.entries(bestBy).sort((a, b) => b[1].e - a[1].e).slice(0, 6);
+  // volum pe ultimele 8 săptămâni
+  const mon = CoreAdd(H.today, -((new Date(H.today + 'T12:00:00').getDay() + 6) % 7));
+  const weeks = Array.from({ length: 8 }, (_, i) => { const a = CoreAdd(mon, -7 * (7 - i)), b = CoreAdd(a, 6); return { l: fdate(a).replace(/\.$/, ''), v: Math.round(allW.filter((w) => w.date >= a && w.date <= b).reduce((x, w) => x + (w.sets || []).reduce((y, s) => y + (s.kg || 0) * (s.reps || 0), 0), 0) / 100) / 10 }; });
+  const totalVol = allW.reduce((x, w) => x + (w.sets || []).reduce((y, s) => y + (s.kg || 0) * (s.reps || 0), 0), 0);
+  v.innerHTML = `<div class="hello"><small>Progres</small><h1>Evoluția ta</h1></div>
+    <div class="kp"><div class="st"><b data-count="${new Set([...(me.checkins || []), ...allW.map((w) => w.date)]).size}">0</b><small>zile la sală</small></div><div class="st"><b data-count="${me.maxStreak}">0</b><small>record zile la rând</small></div><div class="st"><b data-count="${Math.round(totalVol / 1000)}">0</b><small>tone ridicate</small></div></div>
+    <div class="card" style="margin-top:12px"><div class="row"><div class="grow"><small class="muted" style="font-weight:700">GREUTATE</small><div style="font-family:var(--fd);font-size:2.2rem;font-weight:900;line-height:1.1">${cur != null ? cur + ' <small style="font-size:1rem;color:var(--muted)">kg</small>' : '–'}</div>${ws.length > 1 ? `<span class="chip ${delta <= 0 ? 'ok' : 'warn'}">${delta > 0 ? '+' : ''}${delta} kg de la început</span>` : ''}${me.targetWeight ? ` <span class="chip">${IC('target', 13)} ${me.targetWeight} kg</span>` : ''}</div><button class="btn btn-acc btn-sm" id="aw">${IC('plus', 16)} Adaugă</button></div>
+      <div style="margin-top:12px">${lineChart(ws.slice(-20).map((w) => ({ v: w.kg, l: fdate(w.date) })), { target: me.targetWeight || null, empty: 'Cântărește-te și notează greutatea ca să vezi graficul.' })}</div></div>
+    <div class="sec"><h2>Recorduri personale</h2></div>
+    ${prs.length ? `<div class="list">${prs.map(([id, x]) => { const e = exById(id); return `<button class="day" data-ex="${id}" style="padding:8px 12px;background:var(--card)"><span style="width:52px;height:52px;flex:none;border-radius:12px;background:var(--bg2)">${thumb(e)}</span><span class="grow"><b>${esc(e.name)}</b><br><small class="muted">${x.kg} kg × ${x.reps} · ${fdate(x.date)}</small></span><span style="text-align:right"><b class="acc" style="font-family:var(--fd);font-size:1.15rem">${Math.round(x.e)}</b><br><small class="muted" style="font-size:.66rem">kg max. est.</small></span></button>`; }).join('')}</div>` : '<p class="muted">Notează kilogramele la antrenamente și aici apar recordurile tale.</p>'}
+    <div class="sec"><h2>Volum pe săptămâni</h2><small class="muted">tone</small></div>
+    <div class="card">${barChart(weeks, { h: 180, label: 'Volum săptămânal', fmt: (x) => (x ? x.toLocaleString('ro-RO') : '') })}</div>
+    <div class="sec"><h2>Măsurători</h2><button id="am">+ Adaugă</button></div>
+    <div class="card">${ms.length ? `${(me.measures || []).length > 1 ? lineChart((me.measures || []).filter((x) => x.waist).map((x) => ({ v: x.waist, l: fdate(x.date) })), { h: 150, label: 'Talie' }) + '<p class="muted small" style="margin:4px 0 10px">Talia în centimetri</p>' : ''}<div style="overflow-x:auto"><table class="mtab"><tr><th>Data</th><th>Talie</th><th>Piept</th><th>Șold</th><th>Braț</th><th>Coapsă</th></tr>${ms.map((x) => `<tr><td>${fdate(x.date)}</td><td>${x.waist || '–'}</td><td>${x.chest || '–'}</td><td>${x.hips || '–'}</td><td>${x.arm || '–'}</td><td>${x.thigh || '–'}</td></tr>`).join('')}</table></div>` : '<p class="muted" style="margin:0">Notează-ți măsurătorile o dată la 2–4 săptămâni. Uneori centimetrii scad înainte de kilograme.</p>'}</div>
+    <div class="sec"><h2>Poze de progres</h2>${(me.photos || []).length > 1 ? '<button id="cmp">Compară</button>' : ''}</div>
+    <p class="muted small" style="margin:-4px 0 10px">${IC('lock', 14)} Private. Le vezi doar tu.</p>
+    <div class="photos">${(me.photos || []).slice().reverse().map((p) => `<button data-ph="${p.id}"><img src="${esc(photoUrl(p.file))}" alt="Progres ${fdate(p.date)}" loading="lazy"><small>${fdate(p.date)}</small></button>`).join('')}<label class="add">${IC('camera', 26)}Adaugă<input type="file" accept="image/*" id="phf" hidden></label></div>
+    <div class="sec"><h2>Calendar de activitate</h2></div>
+    <div class="card" id="calc"></div>
+    <div class="sec"><h2>Obiective săptămânale</h2></div>
+    <div class="card goal">${H.weekly.map((g) => `<div><div class="row"><span class="grow"><b>${esc(g.title)}</b></span><small>${g.done}/${g.target}</small></div><div class="bar-p" style="margin-top:6px"><i style="width:${Math.min(1, g.done / g.target) * 100}%;${g.done >= g.target ? 'background:var(--green)' : ''}"></i></div></div>`).join('')}</div>
+    <div class="sec"><h2>Insigne</h2><small class="muted">${me.badges.filter((b) => b.earned).length}/${me.badges.length}</small></div>
+    <div class="badges">${me.badges.map((b) => `<button class="bdg ${b.earned ? 'on' : ''}" data-bd="${b.id}"><span>${b.icon}</span><small>${esc(b.name)}</small></button>`).join('')}</div>
+    <div class="sec"><h2>Puncte și premii</h2><button id="lb2">Clasament</button></div>
+    <div class="hero-pts"><span style="color:var(--amber)">${IC('star', 40)}</span><div class="grow"><b data-count="${me.points.balance}">0</b><div class="muted" style="font-size:.86rem">puncte disponibile · ${me.points.earned} câștigate în total</div></div></div>
+    <p class="muted" style="font-size:.84rem">Antrenament +10 · Check-in +5 · Provocarea zilei +5 · Insignă +50</p>
+    <div class="list">${H.rewards.map((r) => `<div class="reward"><span class="ico" style="color:var(--amber)">${IC('gift', 20)}</span><div class="grow"><b>${esc(r.name)}</b><div class="muted" style="font-size:.84rem">${esc(r.desc || '')}</div><div class="bar-p" style="margin-top:6px;height:5px"><i style="width:${Math.min(1, me.points.balance / r.points) * 100}%;background:var(--amber)"></i></div></div><button class="btn btn-sm ${me.points.balance >= r.points ? 'btn-acc' : ''}" data-rw="${r.id}" ${me.points.balance >= r.points ? '' : 'disabled'}>${r.points} p</button></div>`).join('')}</div>
+    ${H.redemptions.length ? `<div class="list" style="margin-top:10px">${H.redemptions.map((r) => `<div class="row muted" style="font-size:.86rem"><span class="grow">${esc(r.name)} · ${fdate(r.at)}</span><span class="chip ${r.status === 'acordat' ? 'ok' : r.status === 'refuzat' ? 'bad' : 'warn'}">${r.status === 'nou' ? 'Ridică de la recepție' : r.status}</span></div>`).join('')}</div>` : ''}`;
+  drawCal();
+  $$('[data-ex]', v).forEach((b) => (b.onclick = () => openEx(b.dataset.ex)));
+  $('#lb2').onclick = openBoard;
+  $('#aw').onclick = () => { const el = sheet(`<h2>Greutatea de azi</h2><div class="field" style="margin-top:14px"><label for="kg">Kilograme</label><input class="input" id="kg" inputmode="decimal" placeholder="ex: 78,5" style="font-size:1.4rem;font-weight:800"></div><p class="muted" style="font-size:.86rem">Sfat: cântărește-te dimineața, înainte de micul dejun.</p><p class="err" id="we"></p><button class="btn btn-acc btn-block" id="ws">Salvează</button>`); $('#kg', el).focus(); $('#ws', el).onclick = async () => { try { H = await api('/api/me/weight', { method: 'POST', body: { kg: $('#kg', el).value } }); closeSheet(); toast('Salvat'); render(); } catch (e) { $('#we', el).textContent = e.message; } }; };
+  $('#am').onclick = () => { const f = [['waist', 'Talie'], ['chest', 'Piept'], ['hips', 'Șold'], ['arm', 'Braț'], ['thigh', 'Coapsă'], ['bodyFat', 'Grăsime %']]; const el = sheet(`<h2>Măsurători (cm)</h2><div class="g2" style="margin-top:14px">${f.map(([k, l]) => `<div class="field"><label for="m_${k}">${l}</label><input class="input" inputmode="decimal" id="m_${k}" data-k="${k}"></div>`).join('')}</div><p class="err" id="me2"></p><button class="btn btn-acc btn-block" id="ms">Salvează</button>`); $('#ms', el).onclick = async () => { const body = {}; $$('[data-k]', el).forEach((i) => (body[i.dataset.k] = i.value)); try { H = await api('/api/me/measure', { method: 'POST', body }); closeSheet(); toast('Salvat'); render(); } catch (e) { $('#me2', el).textContent = e.message; } }; };
+  $('#phf').onchange = uploadPhoto;
+  $$('[data-ph]', v).forEach((b) => (b.onclick = () => { const p = me.photos.find((x) => x.id === b.dataset.ph); const el = sheet(`<h2>${fdate(p.date, true)}</h2><img src="${esc(photoUrl(p.file))}" alt="" style="width:100%;border-radius:16px;margin-top:10px"><button class="btn btn-red btn-block" id="phd" style="margin-top:12px">${IC('trash', 18)} Șterge poza</button>`); $('#phd', el).onclick = async () => { if (!(await ask('Ștergi poza?', 'Nu o mai poți recupera.', 'Șterge', { danger: true }))) return; H = await api('/api/me/photo/' + p.id, { method: 'DELETE', body: {} }); render(); }; }));
+  if ($('#cmp')) $('#cmp').onclick = () => { const ph = me.photos; sheet(`<h2>Înainte și acum</h2><div class="cmp" style="margin-top:12px"><div><img src="${esc(photoUrl(ph[0].file))}" alt=""><p class="muted" style="text-align:center">${fdate(ph[0].date, true)}</p></div><div><img src="${esc(photoUrl(ph[ph.length - 1].file))}" alt=""><p class="muted" style="text-align:center">${fdate(ph[ph.length - 1].date, true)}</p></div></div>`); };
+  $$('[data-bd]', v).forEach((b) => (b.onclick = () => { const x = me.badges.find((y) => y.id === b.dataset.bd); sheet(`<div style="text-align:center"><div style="font-size:4rem;${x.earned ? '' : 'filter:grayscale(1);opacity:.4'}">${x.icon}</div><h2 style="padding:0">${esc(x.name)}</h2><p class="muted">${esc(x.desc)}</p><p>${x.earned ? '<span class="chip ok">Obținută · +50 puncte</span>' : '<span class="chip">Încă blocată</span>'}</p></div>`); }));
+  $$('[data-rw]', v).forEach((b) => (b.onclick = async () => { const r = H.rewards.find((x) => x.id === b.dataset.rw); if (!(await ask(`Folosești ${r.points} puncte?`, `Pentru „${r.name}”. Îl ridici de la recepție.`, 'Da, vreau', { icon: 'gift' }))) return; await act('/api/me/redeem', { rewardId: r.id }); confetti(); toast('Premiu cerut! Ridică-l de la recepție.'); render(); }));
+}
+function drawCal() {
+  const [y, m] = calMonth.split('-').map(Number), first = new Date(y, m - 1, 1), days = new Date(y, m, 0).getDate(), off = (first.getDay() + 6) % 7, cal = H.calendar;
+  const cells = Array.from({ length: off }, () => '<span class="d o"></span>');
+  for (let d = 1; d <= days; d++) { const k = `${calMonth}-${String(d).padStart(2, '0')}`, c = cal[k] || ''; cells.push(`<span class="d ${c.includes('w') ? 'w' : c.includes('c') ? 'c' : ''} ${c.includes('p') ? 'p' : ''} ${k === H.today ? 't' : ''}" title="${k}">${d}</span>`); }
+  const n = Object.keys(cal).filter((k) => k.startsWith(calMonth) && /[wc]/.test(cal[k])).length;
+  $('#calc').innerHTML = `<div class="row" style="margin-bottom:12px"><button class="iconbtn" id="cp" aria-label="Luna anterioară">${IC('back', 18)}</button><b class="grow" style="text-align:center">${MONTHS_L[m - 1]} ${y}</b><button class="iconbtn" id="cn" aria-label="Luna următoare">${IC('chev', 18)}</button></div>
+    <div class="cal">${['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((x) => `<span class="h">${x}</span>`).join('')}${cells.join('')}</div>
+    <div class="row" style="margin-top:14px;flex-wrap:wrap;gap:14px;font-size:.8rem"><span><b class="acc">${n}</b> zile la sală</span><span>Record: <b>${H.me.maxStreak}</b> zile la rând</span></div>
+    <div class="row muted" style="margin-top:8px;flex-wrap:wrap;gap:12px;font-size:.74rem"><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--acc)"></i> antrenament</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:color-mix(in srgb,var(--acc) 40%,var(--card2))"></i> check-in</span><span style="color:var(--vio)">● provocare</span></div>`;
+  const shift = (k) => { const d = new Date(y, m - 1 + k, 1); calMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; drawCal(); };
+  $('#cp').onclick = () => shift(-1); $('#cn').onclick = () => shift(1);
+}
+async function uploadPhoto(e) {
+  const f = e.target.files[0]; if (!f) return;
+  toast('Se încarcă…');
+  try {
+    const blob = await shrink(f);
+    if (window.GymDemo) { const url = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); }); H = await api('/api/me/photo', { method: 'POST', body: { file: url } }); }
+    else H = await api('/api/me/photo', { method: 'POST', raw: blob, type: 'image/jpeg' });
+    toast('Poză salvată'); render();
+  } catch (er) { toast(er.message, 'bad'); }
+}
+function shrink(file) { return new Promise((res) => { const img = new Image(); img.onload = () => { const k = Math.min(1, 1400 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = img.width * k; c.height = img.height * k; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => res(b), 'image/jpeg', 0.84); }; img.onerror = () => res(file); img.src = URL.createObjectURL(file); }); }
+
+/* ───────── NUTRIȚIE ───────── */
+function vFood(v) {
+  const n = H.nutrition, eaten = new Set((H.me.meals || {})[H.today] || []), wt = H.water || 0;
+  const water = `<div class="card" style="margin-top:12px"><div class="row"><span style="color:#5FB8FF">${IC('water', 24)}</span><div class="grow"><b>Apă azi</b><div class="muted small">${wt} din 8 pahare · ${(wt * 0.25).toLocaleString('ro-RO')} litri</div></div>${wt >= 8 ? '<span class="chip ok">Bravo!</span>' : ''}</div><div class="water">${Array.from({ length: 8 }, (_, i) => `<button class="${i < wt ? 'on' : ''}" data-w="${i + 1}" aria-label="${i + 1} pahare"></button>`).join('')}</div></div>`;
+  const bindW = () => $$('[data-w]', v).forEach((b) => (b.onclick = async () => { const k = +b.dataset.w; await act('/api/me/water', { n: k === wt ? k - 1 : k }); if (k === 8 && wt < 8) confetti(); render(); }));
+  if (!n) { v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>Alege un plan</h1></div><p class="muted">Alege un plan alimentar potrivit obiectivului tău.</p>${water}<div class="list" id="np" style="margin-top:12px"></div>`; drawPlans(); bindW(); return; }
+  const kc = n.meals.reduce((a, x, i) => a + (eaten.has(i) ? x.kcal : 0), 0), mac = (k) => n.meals.reduce((a, x, i) => a + (eaten.has(i) ? x[k] : 0), 0);
+  v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>${esc(n.name)}</h1></div><p class="muted" style="margin:4px 0 16px">${esc(n.desc || '')}</p>
+    <div class="card row" style="gap:18px">${ring(kc / n.kcal, `<span data-count="${kc}">0</span>`, `din ${n.kcal} kcal`, 130)}<div class="grow"><b>Azi</b><div class="muted" style="font-size:.88rem;margin:4px 0 10px">Bifează mesele pe care le-ai mâncat.</div>${H.kcal ? `<span class="chip acc">Recomandat pentru tine: ~${H.kcal} kcal</span>` : '<span class="chip">Completează greutatea, înălțimea și data nașterii pentru caloriile tale</span>'}</div></div>
+    <div class="macro" style="margin-top:12px">${[['p', 'Proteine', '#3DDC97'], ['c', 'Carbohidrați', '#FFC23D'], ['f', 'Grăsimi', '#FF5A7A']].map(([k, l, c]) => `<div><small class="muted" style="font-weight:700">${l}</small><div><b>${mac(k)}</b><span class="muted"> / ${n[k]} g</span></div><div class="bar-p" style="margin-top:8px"><i style="width:${Math.min(1, mac(k) / n[k]) * 100}%;background:${c}"></i></div></div>`).join('')}</div>
+    ${water}
+    <div class="sec"><h2>Mesele de azi</h2></div>
+    <div class="list">${n.meals.map((x, i) => `<button class="meal ${eaten.has(i) ? 'done' : ''}" data-m="${i}"><span class="box">${IC('check', 18)}</span><span class="grow"><span class="row"><b class="grow">${esc(x.name)}</b><small class="muted">${esc(x.time)}</small></span><span class="muted" style="display:block;font-size:.9rem;margin:4px 0 6px">${esc(x.items)}</span><small><b>${x.kcal}</b> kcal · P ${x.p} g · C ${x.c} g · G ${x.f} g</small></span></button>`).join('')}</div>
+    <div class="sec"><h2>Alte planuri</h2></div><div class="list" id="np"></div>
+    <div class="tip" style="margin-top:16px">${IC('info', 18)} Planurile sunt orientative. Pentru un plan făcut exact pentru tine, cere o consultanță la sală.</div>`;
+  $$('[data-m]', v).forEach((b) => (b.onclick = async () => { await act('/api/me/meal', { date: H.today, idx: +b.dataset.m, done: !eaten.has(+b.dataset.m) }); render(); }));
+  drawPlans(); bindW();
+}
+function drawPlans() { $('#np').innerHTML = H.nutritionPlans.filter((p) => !H.nutrition || p.id !== H.nutrition.id).map((p) => `<button class="day" data-np="${p.id}" style="background:var(--card)"><span class="n" style="width:auto;padding:0 10px;font-size:.84rem">${p.kcal}</span><span class="grow"><b>${esc(p.name)}</b><br><small class="muted">${esc(p.goal)} · P ${p.p} g · C ${p.c} g · G ${p.f} g</small></span>${IC('chev', 18)}</button>`).join(''); $$('[data-np]').forEach((b) => (b.onclick = async () => { await act('/api/me/nutrition', { nutritionId: b.dataset.np }); toast('Plan schimbat'); render(); })); }
+
+/* ───────── PROFIL ───────── */
+function vMe(v) {
+  const me = H.me, ini = me.name.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
+  const M = (id, ic, label, right) => `<button id="${id}"><span class="mi">${IC(ic, 18)}</span>${label}${right || `<span class="ar">${IC('chev', 18)}</span>`}</button>`;
+  v.innerHTML = `<div class="row" style="padding:18px 0 10px;gap:16px"><span class="avatar">${esc(ini)}</span><div class="grow"><h1 style="font-size:1.6rem">${esc(me.name)}</h1><div class="muted">${esc(me.phone)}</div><div style="margin-top:6px">${chipFor(me.subscription)}</div></div></div>
+    <div class="kp"><div class="st"><b data-count="${me.points.balance}">0</b><small>puncte</small></div><div class="st"><b data-count="${me.badges.filter((b) => b.earned).length}">0</b><small>insigne</small></div><div class="st"><b>${H.board.me && H.board.me.rank ? '#' + H.board.me.rank : '–'}</b><small>în clasament</small></div></div>
+    <div class="sec"><h2>Despre mine</h2><button id="ed">Editează</button></div>
+    <div class="card"><div class="g2">${[['Obiectiv', me.goal || '–'], ['Greutate dorită', me.targetWeight ? me.targetWeight + ' kg' : '–'], ['Înălțime', me.height ? me.height + ' cm' : '–'], ['Antrenamente/săptămână', me.weekGoal || 3]].map(([k, x]) => `<div><small class="muted" style="font-weight:700">${k}</small><div><b>${esc(x)}</b></div></div>`).join('')}</div></div>
+    <div class="sec"><h2>Contul meu</h2></div>
+    <div class="menu">
+      ${M('sub', 'card', 'Abonament și plăți')}
+      ${M('chatM', 'chat', 'Mesaje cu sala', H.chatUnread ? `<span class="chip bad" style="margin-left:auto">${H.chatUnread} noi</span>` : '')}
+      ${M('pushT', 'bell', 'Notificări pe telefon', `<span class="toggle ${me.pushOn || LS.get('gymPush') === '1' ? 'on' : ''}"></span>`)}
+      ${M('lbT', 'trophy', 'Apar în clasament', `<span class="toggle ${me.hideBoard ? '' : 'on'}"></span>`)}
+      ${M('genM', 'spark', 'Antrenor inteligent')}
+      ${M('ann', 'megaphone', 'Anunțuri și evenimente')}
+      ${M('pw', 'lock', 'Schimbă parola')}
+    </div>
+    <div class="sec"><h2>Sala</h2></div>
+    <div class="menu">
+      ${S().whatsapp ? `<a href="${waLink(S().whatsapp, 'Bună! ')}" target="_blank" rel="noopener"><span class="mi">${IC('chat', 18)}</span>WhatsApp<span class="ar">${IC('chev', 18)}</span></a>` : ''}
+      ${S().phone ? `<a href="tel:${esc(S().phone.replace(/\s/g, ''))}"><span class="mi">${IC('phone', 18)}</span>${esc(S().phone)}<span class="ar">${IC('chev', 18)}</span></a>` : ''}
+      ${S().address ? `<a href="${esc(S().mapsUrl || '#')}" target="_blank" rel="noopener"><span class="mi">${IC('pin', 18)}</span>${esc(S().address)}<span class="ar">${IC('chev', 18)}</span></a>` : ''}
+      ${S().instagram ? `<a href="${esc(S().instagram)}" target="_blank" rel="noopener"><span class="mi">${IC('camera', 18)}</span>Instagram<span class="ar">${IC('chev', 18)}</span></a>` : ''}
+      ${S().facebook ? `<a href="${esc(S().facebook)}" target="_blank" rel="noopener"><span class="mi">${IC('users', 18)}</span>Facebook<span class="ar">${IC('chev', 18)}</span></a>` : ''}
+    </div>
+    <button class="btn btn-ghost btn-block" id="out" style="margin-top:22px">${IC('logout', 18)} Ieși din cont</button>`;
+  $('#sub').onclick = openSub; $('#ann').onclick = openAnns; $('#chatM').onclick = () => openChat(); $('#genM').onclick = openGen;
+  $('#pushT').onclick = togglePush;
+  $('#lbT').onclick = async () => { await act('/api/me', { hideBoard: !me.hideBoard }, 'PUT'); toast(H.me.hideBoard ? 'Nu mai apari în clasament' : 'Apari în clasament'); render(); };
+  $('#ed').onclick = () => {
+    const el = sheet(`<h2>Despre mine</h2><div class="field" style="margin-top:14px"><label for="pn">Nume</label><input class="input" id="pn" value="${esc(me.name)}"></div>
+      <div class="field"><label for="pg">Obiectiv</label><select class="input" id="pg">${['Slăbire', 'Slăbire și tonifiere', 'Masă musculară', 'Forță', 'Condiție fizică', 'Sănătate'].map((g) => `<option ${g === me.goal ? 'selected' : ''}>${g}</option>`).join('')}</select></div>
+      <div class="g2"><div class="field"><label for="pt">Greutate dorită (kg)</label><input class="input" id="pt" inputmode="decimal" value="${me.targetWeight || ''}"></div><div class="field"><label for="ph">Înălțime (cm)</label><input class="input" id="ph" inputmode="numeric" value="${me.height || ''}"></div>
+      <div class="field"><label for="pb">Data nașterii</label><input class="input" id="pb" type="date" value="${me.birth || ''}"></div><div class="field"><label for="px">Sex</label><select class="input" id="px"><option value="">–</option><option value="M" ${me.sex === 'M' ? 'selected' : ''}>Masculin</option><option value="F" ${me.sex === 'F' ? 'selected' : ''}>Feminin</option></select></div></div>
+      <div class="field"><label for="pw2">Câte antrenamente pe săptămână vrei?</label><select class="input" id="pw2">${[2, 3, 4, 5, 6].map((n) => `<option ${n === (me.weekGoal || 3) ? 'selected' : ''}>${n}</option>`).join('')}</select></div><p class="err" id="pe"></p><button class="btn btn-acc btn-block" id="ps">Salvează</button>`);
+    $('#ps', el).onclick = async () => { try { H = await api('/api/me', { method: 'PUT', body: { name: $('#pn', el).value, goal: $('#pg', el).value, targetWeight: $('#pt', el).value, height: $('#ph', el).value, birth: $('#pb', el).value, sex: $('#px', el).value, weekGoal: $('#pw2', el).value } }); closeSheet(); toast('Salvat'); render(); } catch (e) { $('#pe', el).textContent = e.message; } };
+  };
+  $('#pw').onclick = () => { const el = sheet(`<h2>Schimbă parola</h2><div class="field" style="margin-top:14px"><label for="o">Parola actuală</label><input class="input" type="password" id="o"></div><div class="field"><label for="n">Parola nouă</label><input class="input" type="password" id="n"></div><p class="err" id="e"></p><button class="btn btn-acc btn-block" id="s">Schimbă</button>`); $('#s', el).onclick = async () => { try { await api('/api/me/password', { method: 'PUT', body: { old: $('#o', el).value, new: $('#n', el).value } }); closeSheet(); toast('Parola a fost schimbată'); } catch (e) { $('#e', el).textContent = e.message; } }; };
+  $('#out').onclick = async () => { if (!(await ask('Ieși din cont?', '', 'Ieși', { icon: 'logout' }))) return; await api('/api/logout', { method: 'POST', body: {} }); location.hash = ''; showLogin(); };
+}
+
+/* ───────── notificări push + instalare ───────── */
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+function pushRow() { return H.me.pushOn ? '' : `<div class="banner" style="margin-top:12px"><span class="bi">${IC('bell', 20)}</span><div class="grow"><b>Primește motivația zilei</b><div class="muted" style="font-size:.84rem">Și anunțuri când îți expiră abonamentul.</div></div><button class="btn btn-acc btn-sm" id="pushOn">Activează</button></div>`; }
+function bindPush() { const b = $('#pushOn'); if (b) b.onclick = enablePush; }
+async function togglePush() { if (H.me.pushOn || LS.get('gymPush') === '1') { try { const reg = await navigator.serviceWorker.getRegistration(); const sub = reg && (await reg.pushManager.getSubscription()); if (sub) { await api('/api/me/push', { method: 'DELETE', body: { endpoint: sub.endpoint } }); await sub.unsubscribe(); } } catch {} LS.del('gymPush'); H = await api('/api/me'); toast('Notificările sunt oprite'); render(); } else enablePush(); }
+async function enablePush() {
+  if (window.GymDemo) { LS.set('gymPush', '1'); window.GymDemo.pushOn(); H = await api('/api/me'); toast('Notificări activate'); closeSheet(); render(); return; }
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent), standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (ios && !standalone) return sheet(`<h2>Pune aplicația pe ecran</h2><p class="muted">Pe iPhone, notificările merg doar după ce adaugi aplicația pe ecranul principal:</p><ol class="steps"><li>Apasă butonul Partajează jos în Safari</li><li>Alege „Adaugă pe ecranul principal”</li><li>Deschide aplicația de pe ecran și activează notificările</li></ol>`);
+  if (!pushSupported() || !CFG.pushKey) return toast('Telefonul tău nu suportă notificări din browser.', 'bad');
+  const perm = await Notification.requestPermission(); if (perm !== 'granted') return toast('Ai refuzat notificările. Le poți porni din setările telefonului.', 'bad');
+  const reg = await navigator.serviceWorker.ready, key = Uint8Array.from(atob(CFG.pushKey.replace(/-/g, '+').replace(/_/g, '/') + '=='.slice(0, (4 - (CFG.pushKey.length % 4)) % 4)), (c) => c.charCodeAt(0));
+  const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }));
+  await api('/api/me/push', { method: 'POST', body: { subscription: sub.toJSON() } }); LS.set('gymPush', '1');
+  H = await api('/api/me'); closeSheet(); toast('Notificări activate'); render();
+}
+let deferredInstall = null;
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; if (tab === 'home' && H) render(); });
+function installBanner() {
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone, ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (standalone || LS.get('gymInstX') || (!deferredInstall && !ios) || window.GymDemo) return H.me.pushOn ? '' : pushRow();
+  return `<div class="banner"><span class="bi">${IC('download', 20)}</span><div class="grow"><b>Pune aplicația pe telefon</b><div class="muted" style="font-size:.84rem">${deferredInstall ? 'O deschizi dintr-o atingere, ca pe orice aplicație.' : 'Apasă Partajează în Safari, apoi „Adaugă pe ecranul principal”.'}</div></div>${deferredInstall ? '<button class="btn btn-acc btn-sm" id="inst">Instalează</button>' : ''}<button class="btn btn-sm" id="instX" aria-label="Închide" style="background:none">${IC('x', 16)}</button></div>`;
+}
+function bindInstall() {
+  if ($('#inst')) $('#inst').onclick = async () => { deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; render(); };
+  if ($('#instX')) $('#instX').onclick = () => { LS.set('gymInstX', '1'); render(); };
+  bindPush();
+}
+if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.GymDemo) navigator.serviceWorker.register('sw.js').catch(() => {});
+if (window.GymDemo) window.GymDemoRefresh = () => { if ($('#chat') && window.GymChatReload) { window.GymChatReload(); return; } if (H && !WO && !$('#sheet') && !$('#login:not(.hide)')) refresh().catch(() => {}); };
+boot().catch((e) => { $('#splash').classList.add('out'); document.body.insertAdjacentHTML('beforeend', `<div class="login"><h1>Ups</h1><p class="muted">${esc(e.message)}</p><button class="btn btn-acc" onclick="location.reload()">Reîncearcă</button></div>`); });
+</script>
+</body>
+</html>

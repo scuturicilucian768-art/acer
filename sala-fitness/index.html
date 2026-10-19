@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FORMA Gym App</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* layout: o bandă de prezentare sus, apoi telefonul membrului lângă fereastra adminului (pe telefon: comutator între ele) */
+:root{
+  --bg:#0B0B0E;--panel:#141419;--line:rgba(255,255,255,.09);--ink:#F2F2F5;--muted:#9C9CAA;--acc:#D4FF3A;--acc-ink:#0B0B0E;
+  --fd:'Archivo','Arial Black',system-ui,sans-serif;--fb:'Inter',system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--fb);margin:0}
+.wrap{max-width:1500px;margin:0 auto;padding-block:20px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.logo{width:46px;height:46px;border-radius:14px;background:var(--acc);display:grid;place-items:center;flex:none}
+.logo svg{width:26px;height:26px}
+h1{font-family:var(--fd);font-size:clamp(1.4rem,2.6vw,2rem);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:2px 0 0;font-size:.95rem}
+.tag{margin-left:auto;font-size:.78rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 12px;max-width:100%}
+.tag b{color:var(--ink)}
+.switch{display:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:5px;gap:5px}
+.switch button{flex:1;border:0;background:none;color:var(--muted);font:700 .95rem var(--fb);padding:11px;border-radius:10px;cursor:pointer}
+.switch button.on{background:var(--acc);color:var(--acc-ink)}
+.switch button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.stage{display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px;align-items:start}
+.lab{font-size:.74rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;display:flex;gap:8px;align-items:center}
+.lab i{width:7px;height:7px;border-radius:50%;background:var(--acc);display:inline-block}
+.phone{width:396px;height:820px;max-width:100%;border-radius:52px;padding:12px;background:#1d1d23;border:1px solid #2c2c35;box-shadow:0 40px 80px -30px rgba(0,0,0,.9),inset 0 0 0 2px #0b0b0e;position:relative}
+.phone iframe{width:100%;height:100%;border:0;border-radius:40px;background:#0A0A0C;display:block}
+.browser{border-radius:18px;overflow:hidden;border:1px solid #2c2c35;background:#1d1d23;box-shadow:0 40px 80px -30px rgba(0,0,0,.9);min-width:0}
+.bar{display:flex;align-items:center;gap:7px;padding:11px 14px}
+.bar span{width:11px;height:11px;border-radius:50%;background:#3a3a44}
+.bar em{font-style:normal;margin-left:10px;background:#0f0f13;color:var(--muted);font-size:.8rem;border-radius:8px;padding:6px 12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.browser iframe{width:100%;height:796px;border:0;display:block;background:#0A0A0C}
+.try{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.try div{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px;font-size:.9rem;color:var(--muted);line-height:1.45}
+.try b{display:block;color:var(--ink);font-size:.95rem;margin-bottom:3px}
+.note{font-size:.8rem;color:var(--muted);margin:0}
+@media (max-width:980px){
+  .switch{display:flex}
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .stage>section{display:none}
+  .stage>section.on{display:block}
+  .lab{display:none}
+  .phone{width:100%;height:78vh;min-height:560px;border-radius:30px;padding:8px}
+  .phone iframe{border-radius:24px}
+  .browser iframe{height:78vh;min-height:560px}
+  .tag{margin-left:0}
+}
+</style>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0E" stroke-width="2.6" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/></svg></div>
+    <div><h1>FORMA Gym · aplicația sălii</h1><p class="sub">Aplicația membrilor și panoul de administrare, legate între ele în timp real. Încearcă-le pe amândouă.</p></div>
+    <p class="tag"><b>Demo interactiv</b> · date de exemplu · numele sălii se schimbă din Setări</p>
+  </header>
+
+  <div class="switch" role="tablist" aria-label="Alege ecranul">
+    <button id="tab-m" class="on" role="tab" aria-selected="true" data-s="m">📱 Membru</button>
+    <button id="tab-a" role="tab" aria-selected="false" data-s="a">🛠️ Administrator</button>
+  </div>
+
+  <div class="stage">
+    <section id="s-m" class="on">
+      <p class="lab"><i></i>Aplicația membrului · Andrei</p>
+      <div class="phone"><iframe id="fm" title="Aplicația membrului" src="app.html?as=member&v=3"></iframe></div>
+    </section>
+    <section id="s-a" class="on">
+      <p class="lab"><i></i>Panoul de administrare · recepție</p>
+      <div class="browser"><div class="bar"><span></span><span></span><span></span><em>sala-ta.ro/admin</em></div><iframe id="fa" title="Panoul de administrare" src="admin.html?as=admin&v=3"></iframe></div>
+    </section>
+  </div>
+
+  <div class="try">
+    <div><b>Antrenorul inteligent</b>În aplicație: Antrenament → „Creează-mi programul”. 6 întrebări și primești programul tău, cu greutăți potrivite.</div>
+    <div><b>Exerciții animate</b>Deschide orice exercițiu: animația mișcării, mușchii lucrați pe corp, pașii, video și recordul tău.</div>
+    <div><b>Mesaje cu sala</b>Scrie din aplicație, răspunde din admin la Mesaje. Conversația apare imediat pe telefon.</div>
+    <div><b>Recepție cu cod QR</b>Admin → Recepție: codul QR de pe ecran face check-in automat. Membrul are și card digital cu QR.</div>
+    <div><b>Clasament și premii</b>Puncte pentru antrenamente, check-in și provocări. Top lunar, insigne și premii de ridicat.</div>
+    <div><b>Rapoarte</b>Admin → Rapoarte: creșterea sălii, venituri, abonamente, orele aglomerate și export Excel.</div>
+  </div>
+  <p class="note">În demo datele stau doar în pagina asta și se resetează la reîncărcare. Versiunea reală le salvează pe server, cu parole și notificări push pe telefon.</p>
+</div>
+<script>
+document.querySelectorAll('.switch button').forEach(function (b) {
+  b.onclick = function () {
+    document.querySelectorAll('.switch button').forEach(function (x) { var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-selected', on); });
+    document.getElementById('s-m').classList.toggle('on', b.dataset.s === 'm');
+    document.getElementById('s-a').classList.toggle('on', b.dataset.s === 'a');
+  };
+});
+// telefon: pornim cu membrul; ambele rămân încărcate ca să împartă aceleași date
+if (matchMedia('(max-width:980px)').matches) document.getElementById('s-a').classList.remove('on');
+</script>
+
+</html>
