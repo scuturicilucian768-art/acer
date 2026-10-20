@@ -101,7 +101,7 @@
     const t = ctx.today();
     return {
       settings: {
-        name: 'Fitness Empire Telciu', tagline: 'Devino cea mai bună versiune a ta', phone: '', whatsapp: '', email: '',
+        name: 'Fitness Empire Telciu', tagline: 'Devino cea mai bună versiune a ta', phone: '0785 769 200', whatsapp: '40785769200', email: '',
         address: '', mapsUrl: '', instagram: '', facebook: '',
         hours: [{ d: 'Luni – Vineri', h: '06:00 – 22:00' }, { d: 'Sâmbătă', h: '08:00 – 20:00' }, { d: 'Duminică', h: '09:00 – 16:00' }],
         accent: '#A8E63C', dailyHour: 8, checkinCode: String(1000 + Math.floor(ctx.rand() * 9000)), checkinDate: t, weeklyGoal: 3,
@@ -134,7 +134,7 @@
 
   /* membri demonstrativi, ca demo-ul să arate „plin” */
   function demo(db, ctx) {
-    Object.assign(db.settings, { name: 'Fitness Empire Telciu', phone: '0700 000 000', whatsapp: '40700000000', email: '', address: 'Telciu, jud. Bistrița-Năsăud', mapsUrl: 'https://maps.google.com/?q=Telciu' });
+    Object.assign(db.settings, { name: 'Fitness Empire Telciu', phone: '0785 769 200', whatsapp: '40785769200', email: '', address: 'Telciu, jud. Bistrița-Năsăud', mapsUrl: 'https://maps.google.com/?q=Telciu' });
     const t0 = ctx.today();
     db.announcements = [
       { id: 'an_1', type: 'program', title: 'Program de sărbători', body: 'De Crăciun și Revelion sala are program redus: 10:00 – 16:00. Pe 1 ianuarie e închis.', date: t0, pinned: true },
