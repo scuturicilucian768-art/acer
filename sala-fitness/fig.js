@@ -194,5 +194,22 @@
       <div class="mleg">${pri.map((k) => `<span class="ml p">${MNAME[k]}</span>`).join('')}${sec.map((k) => `<span class="ml s">${MNAME[k]}</span>`).join('')}</div></div>`;
   }
 
-  root.GymFig = { drawFig: (k, t) => drawFig(PAT[k], t), PATS: Object.keys(PAT), icon, figure, animate, muscleMap, musclesOf, MNAME, patFor };
+
+  /* ───────── insignele rangurilor Empire ───────── */
+  const RK_COL = [['#8A8F98', '#4B4F57'], ['#B8F05A', '#4E8A16'], ['#E8F4D8', '#7A8A70'], ['#FFD66B', '#B07A10'], ['#FFE58A', '#C98B00']];
+  const CHEV = (y) => `<path d="M30 ${y}L50 ${y + 11}L70 ${y}" fill="none" stroke="#0A0A0C" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const SYM = [
+    CHEV(50),
+    CHEV(42) + CHEV(58),
+    CHEV(36) + CHEV(50) + CHEV(64),
+    '<path d="M50 30l5.6 11.4 12.6 1.8-9.1 8.9 2.1 12.5L50 58.7l-11.2 5.9 2.1-12.5-9.1-8.9 12.6-1.8z" fill="#0A0A0C"/><path d="M30 72q20 10 40 0" fill="none" stroke="#0A0A0C" stroke-width="5" stroke-linecap="round"/>',
+    '<path d="M28 66L24 38l14 12 12-20 12 20 14-12-4 28z" fill="#0A0A0C"/><rect x="28" y="69" width="44" height="6" rx="3" fill="#0A0A0C"/><circle cx="24" cy="36" r="4" fill="#0A0A0C"/><circle cx="50" cy="27" r="4" fill="#0A0A0C"/><circle cx="76" cy="36" r="4" fill="#0A0A0C"/>',
+  ];
+  function rankBadge(idx, size = 48) {
+    const i = Math.max(0, Math.min(4, idx | 0)), [a, b] = RK_COL[i], id = 'rk' + i + Math.random().toString(36).slice(2, 6);
+    return `<svg class="rkb" viewBox="0 0 100 110" width="${size}" height="${size * 1.1}" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>
+      <path d="M50 4L92 18V52C92 78 72 96 50 106C28 96 8 78 8 52V18Z" fill="url(#${id})" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+      <path d="M50 12L84 23.5V52C84 73 68 88 50 97C32 88 16 73 16 52V23.5Z" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2"/>${SYM[i]}</svg>`;
+  }
+  root.GymFig = { rankBadge, drawFig: (k, t) => drawFig(PAT[k], t), PATS: Object.keys(PAT), icon, figure, animate, muscleMap, musclesOf, MNAME, patFor };
 })(this);

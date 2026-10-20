@@ -289,6 +289,19 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .notif.new{border-color:color-mix(in srgb,var(--acc) 50%,transparent)}
 .notif p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
 .small{font-size:.84rem}
+.rkcard{display:flex;align-items:center;gap:14px;margin-top:10px;padding:14px 16px;border-radius:22px;background:radial-gradient(120% 140% at 0% 0%,color-mix(in srgb,var(--rkc,#A8E63C) 22%,transparent),transparent 60%),var(--card);border:1px solid var(--line2);cursor:pointer;width:100%;text-align:left;color:inherit}
+.rkcard .k{font-size:.68rem;font-weight:800;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.rkcard b.rn{font-family:var(--fd);font-size:1.35rem;display:block;line-height:1.1}
+.rkb{flex:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
+.rkline{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:800;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-top:3px}
+.rkl{display:flex;align-items:center;gap:14px;padding:12px;border-radius:16px;border:1px solid var(--line)}
+.rkl.cur{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.rkl.lock{opacity:.45}
+.rkup{display:grid;justify-items:center;text-align:center;gap:8px;padding:10px 0}
+.rkup .rkb{animation:rkpop 1s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes rkpop{0%{transform:scale(.2) rotate(-25deg);opacity:0}100%{transform:none;opacity:1}}
+.scanbtn{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:14px 16px;border-radius:18px;border:1.5px dashed color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 7%,transparent);color:var(--ink);cursor:pointer;text-align:left}
+.scanbtn .q{width:42px;height:42px;border-radius:13px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;flex:none}
 </style>
 </head>
 <body>
@@ -334,6 +347,12 @@ async function boot() {
   go(TABS.includes(h) ? h : 'home'); hideSplash(t0);
   if (/^ci-\d{4}$/.test(h)) doCheckin(h.slice(3));
   if (h === 'chat') openChat();
+  if (/^ex-\w+$/.test(h)) openExFromQR(h.slice(3));
+}
+function openExFromQR(id) {
+  const e = EX.find((x) => x.id === id); history.replaceState(null, '', '#' + tab);
+  if (!e) return toast('Exercițiul nu mai există în aplicație.', 'bad');
+  if (tab !== 'train') go('train'); setTimeout(() => openEx(id), 250);
 }
 function hideSplash(t0) { setTimeout(() => $('#splash').classList.add('out'), Math.max(0, 650 - (performance.now() - t0))); }
 function showLogin() {
@@ -360,7 +379,7 @@ function go(t) {
   render(true); scrollTo(0, 0);
 }
 $$('.tabs button').forEach((b) => (b.onclick = () => go(b.dataset.t)));
-addEventListener('hashchange', () => { const h = location.hash.slice(1); if (!H) return; if (/^ci-\d{4}$/.test(h)) return doCheckin(h.slice(3)); if (h === 'chat') return openChat(); if (TABS.includes(h) && h !== tab) go(h); });
+addEventListener('hashchange', () => { const h = location.hash.slice(1); if (!H) return; if (/^ci-\d{4}$/.test(h)) return doCheckin(h.slice(3)); if (h === 'chat') return openChat(); if (/^ex-\w+$/.test(h)) return openExFromQR(h.slice(3)); if (TABS.includes(h) && h !== tab) go(h); });
 $('#bell').onclick = openNotifs; $('#chatB').onclick = () => openChat();
 function render(anim) {
   const v = $('#view'); v.className = 'wrap' + (anim ? ' stagger' : '');
@@ -368,7 +387,7 @@ function render(anim) {
   const n = H.unread, c = H.chatUnread;
   $('#bell').innerHTML = IC('bell', 20) + (n ? `<span class="bd">${n}</span>` : '');
   $('#chatB').innerHTML = IC('chat', 20) + (c ? `<span class="bd">${c}</span>` : '');
-  countUp(v); GymFig.animate(v);
+  countUp(v); GymFig.animate(v); checkRankUp();
 }
 async function refresh(p) { H = p || (await api('/api/me')); render(); }
 const act = async (path, body, method) => { try { const r = await api(path, { method: method || 'POST', body }); if (r && r.me) H = r; return r; } catch (e) { toast(e.message, 'bad'); throw e; } };
@@ -382,7 +401,7 @@ function cardHtml() {
       <div class="mc-top"><span class="mc-logo"><img src="img/logo-mark.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></span><b>${esc(S().name)}</b>${chipFor(s)}</div>
       <div class="mc-mid"><div class="grow"><div class="k">Abonament</div><div class="plan">${esc(s.plan ? s.plan.name : 'Fără abonament')}</div><div class="muted small" style="margin-top:4px">${s.end ? (s.state === 'expired' ? 'A expirat pe ' : 'Valabil până pe ') + fdate(s.end, true) : 'Treci pe la recepție'}</div></div>
         ${ring(left == null ? 0 : left / total, left == null ? '–' : `<span data-count="${left}">0</span>`, left === 1 ? 'zi' : 'zile', 96)}</div>
-      <div class="mc-bot"><span class="nm">${esc(me.name)}</span><span class="mc-hint">${IC('qr', 16)} Cardul tău</span></div>
+      <div class="mc-bot"><span><span class="nm">${esc(me.name)}</span><br><span class="rkline">${GymFig.rankBadge(me.rank.idx, 16)} ${esc(me.rank.name)}</span></span><span class="mc-hint">${IC('qr', 16)} Cardul tău</span></div>
     </div>
     <div class="face mc-b"><div class="qrbox">${QR.svg(H.memberCode, { size: 150 })}</div><div class="grow"><small>Card de membru</small><b>${esc(me.name)}</b><small>Arată codul la recepție pentru intrare.</small><br><button class="btn btn-sm" id="subD" style="margin-top:10px;background:#0A0A0C;color:#fff">Abonament și plăți</button></div></div>
   </div></div>`;
@@ -409,6 +428,7 @@ function vHome(v) {
       <div class="streak"><div class="row" style="gap:8px"><span class="fl">${IC('flame', 30)}</span><b data-count="${me.streak}">0</b><small class="muted" style="font-weight:700;line-height:1.1">zile<br>la rând</small></div><div class="wd">${wdots}</div></div>
       <div class="weekc">${ring(me.weekCount / (me.weekGoal || 3), `${me.weekCount}/${me.weekGoal || 3}`, '', 78)}<small>antrenamente<br>săptămâna asta</small></div>
     </div>
+    ${rankCard(me)}
     <div class="card crowd lv${c.level}" style="margin-top:10px"><div class="row"><span class="dot"></span><div class="grow"><small>ACUM LA SALĂ</small><span class="lvl">${LV[c.level]}</span></div><div style="text-align:right"><b style="font-family:var(--fd);font-size:1.6rem" data-count="${c.now}">0</b><br><small style="letter-spacing:0">${c.now === 1 ? 'persoană' : 'persoane'}</small></div></div>
       <div class="hb" aria-hidden="true">${c.hours.map((x) => `<i class="${x.h === curH ? 'on' : ''}" style="height:${Math.max(6, ((x.h === curH ? Math.max(x.n, c.now) : x.n) / mx) * 100)}%">${x.h % 3 === 0 ? `<em>${x.h}</em>` : ''}</i>`).join('')}</div>
       <p class="muted small" style="margin:24px 0 0">${peak.n > 0 ? `De obicei, ${DAYS[c.weekday]} e cel mai aglomerat în jur de ora ${peak.h}:00.` : 'Vino când îți convine.'}</p></div>
@@ -434,12 +454,29 @@ function vHome(v) {
   mc.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mc.classList.toggle('flip'); } };
   $('#chal').onclick = async () => { const done = !H.daily.done; await act('/api/me/challenge', { done }); if (done) { confetti(); toast('Bravo! +5 puncte'); } render(); };
   $('#qaC').onclick = () => (H.checkedInToday ? toast(`Check-in făcut azi${H.checkinTime ? ' la ' + H.checkinTime : ''}. Spor!`) : openCheckin());
+  $('#rkC').onclick = openRanks;
   $('#qaT').onclick = () => go('train'); $('#qaM').onclick = () => openChat(); $('#qaL').onclick = openBoard; $('#lbAll').onclick = openBoard;
   if ($('#startW')) $('#startW').onclick = () => startWorkout(prog, H.nextDay);
   if ($('#allAnn')) $('#allAnn').onclick = openAnns;
   bindInstall();
 }
 const CoreAdd = (d, n) => GymCore.add(d, n);
+const RK_C = ['#8A8F98', '#A8E63C', '#D8E8C8', '#FFD66B', '#FFE58A'];
+function rankCard(me) {
+  const r = me.rank;
+  return `<button class="rkcard" id="rkC" style="--rkc:${RK_C[r.idx]}">${GymFig.rankBadge(r.idx, 54)}<span class="grow"><span class="k">Rangul tău în Empire</span><b class="rn">${esc(r.name)}</b>${r.next ? `<div class="bar-p" style="margin-top:8px;height:7px"><i style="width:${Math.round(r.pct * 100)}%;background:${RK_C[r.idx + 1]}"></i></div><small class="muted">încă <b style="color:var(--ink)">${r.toNext}</b> puncte până la ${esc(r.next.name)}</small>` : '<small class="muted">Ai atins cel mai înalt rang. Respect!</small>'}</span>${IC('chev', 18)}</button>`;
+}
+function openRanks() {
+  const r = H.me.rank, earned = H.me.points.earned;
+  sheet(`<h2>Rangurile Empire</h2><p class="muted">Urci în rang cu fiecare punct câștigat: antrenament +10, check-in +5, provocarea zilei +5, insignă +50. Rangul nu scade niciodată.</p>
+    <div class="list" style="margin-top:14px">${GymCore.RANKS.map((x, i) => `<div class="rkl ${i === r.idx ? 'cur' : i > r.idx ? 'lock' : ''}">${GymFig.rankBadge(i, 46)}<div class="grow"><b style="font-family:var(--fd);font-size:1.1rem">${esc(x.name)}</b>${i === r.idx ? ' <span class="chip acc">acum</span>' : i < r.idx ? ' <span class="chip ok">obținut</span>' : ''}<div class="muted small">${esc(x.desc)}</div></div><small class="muted" style="text-align:right;white-space:nowrap">${x.min ? x.min.toLocaleString('ro-RO') + ' p' : 'start'}</small></div>`).join('')}</div>
+    <p class="muted small" style="margin-top:12px">Ai strâns <b style="color:var(--ink)">${earned.toLocaleString('ro-RO')}</b> puncte în total.</p>`);
+}
+function checkRankUp() {
+  const k = 'gymRank_' + H.me.id, prev = LS.get(k), cur = H.me.rank.idx; LS.set(k, String(cur));
+  if (prev === null || +prev >= cur || $('#sheet')) return;
+  setTimeout(() => { confetti(); sheet(`<div class="rkup">${GymFig.rankBadge(cur, 110)}<small class="muted" style="letter-spacing:.2em;font-weight:800;text-transform:uppercase">Rang nou</small><h2 style="padding:0;font-size:2rem">${esc(H.me.rank.name)}</h2><p class="muted">${esc(H.me.rank.desc)}</p><button class="btn btn-acc btn-block" onclick="closeSheet()">Mergi mai departe</button></div>`); }, 600);
+}
 const chipFor = (s) => s.state === 'active' ? '<span class="chip ok">Activ</span>' : s.state === 'expiring' ? '<span class="chip warn">Expiră curând</span>' : s.state === 'expired' ? '<span class="chip bad">Expirat</span>' : '<span class="chip">Inactiv</span>';
 const ANN = { program: ['clock', 'Program'], noutate: ['megaphone', 'Noutate'], oferta: ['gift', 'Ofertă'], eveniment: ['star', 'Eveniment'] };
 const annHtml = (a) => `<div class="card ann ${a.type}"><div class="row"><span class="chip">${IC(ANN[a.type][0], 14)} ${ANN[a.type][1]}</span>${a.pinned ? '<span class="chip acc">Important</span>' : ''}<span class="grow"></span><small class="muted">${fdate(a.date)}</small></div><h3 style="margin-top:10px">${esc(a.title)}</h3><p>${esc(a.body)}</p></div>`;
@@ -492,7 +529,7 @@ function openBoard() {
   const b = H.board, mo = MONTHS_L[+b.month.slice(5) - 1];
   const el = sheet(`<h2>Clasamentul lunii</h2><p class="muted">${mo} · cei mai activi membri</p>
     ${b.top.length >= 3 ? `<div class="podium" style="margin-top:16px">${[1, 0, 2].map((i) => { const x = b.top[i]; return `<div class="p${i + 1}"><span class="av">${esc(x.name.split(' ').map((y) => y[0]).join(''))}</span><small>${esc(x.name)}</small><small class="muted">${x.pts} p</small><span class="st2" style="height:${[64, 44, 32][i]}px">${i + 1}</span></div>`; }).join('')}</div>` : ''}
-    <div class="list" style="gap:4px">${b.top.map((x) => `<div class="lbrow ${x.me ? 'me' : ''}"><span class="n">${x.rank}</span><b class="grow">${esc(x.me ? x.name + ' (tu)' : x.name)}</b>${x.streak >= 3 ? `<small class="muted" style="color:#FF8A3D">${IC('flame', 14)} ${x.streak}</small>` : ''}<b>${x.pts}</b></div>`).join('')}
+    <div class="list" style="gap:4px">${b.top.map((x) => `<div class="lbrow ${x.me ? 'me' : ''}"><span class="n">${x.rank}</span>${GymFig.rankBadge(x.rk || 0, 22)}<b class="grow">${esc(x.me ? x.name + ' (tu)' : x.name)}</b>${x.streak >= 3 ? `<small class="muted" style="color:#FF8A3D">${IC('flame', 14)} ${x.streak}</small>` : ''}<b>${x.pts}</b></div>`).join('')}
     ${b.me && (!b.me.rank || b.me.rank > 10) ? `<div class="lbrow me"><span class="n">${b.me.rank || '–'}</span><b class="grow">Tu</b><b>${b.me.pts}</b></div>` : ''}</div>
     <div class="menu" style="margin-top:16px"><button id="hb"><span class="mi">${IC('eye', 18)}</span>Apar în clasament<span class="toggle ${H.me.hideBoard ? '' : 'on'}"></span></button></div>
     <p class="muted small">În clasament apare doar prenumele și inițiala numelui.</p>`);
@@ -533,6 +570,7 @@ function vTrain(v) {
     <div class="ai" style="margin-top:14px"><div class="row" style="position:relative"><span class="sp">${IC('spark', 24)}</span><div class="grow"><b style="font-size:1.08rem">Antrenor inteligent</b><div class="small" style="color:#C9BCFF">Răspunzi la 6 întrebări și primești un program făcut pentru tine, cu greutăți potrivite.</div></div></div><button class="btn btn-block" id="gen" style="margin-top:14px;background:#fff;color:#1A1240;position:relative">${IC('spark', 18)} ${prog && prog.owner ? 'Refă-mi programul' : 'Creează-mi programul'}</button></div>
     <div class="sec"><h2>Ghidul exercițiilor</h2><small class="muted">${EX.length} exerciții</small></div>
     <p class="muted small" style="margin:-6px 0 12px">Animație, mușchii lucrați, pașii și video pentru fiecare exercițiu.</p>
+    <button class="scanbtn" id="scanEx" style="margin:0 0 12px"><span class="q">${IC('scan', 22)}</span><span class="grow"><b>Scanează codul de pe aparat</b><br><small class="muted">Vezi pe loc cum se face exercițiul corect</small></span>${IC('chev', 18)}</button>
     <div class="search">${IC('search', 18)}<input class="input" id="exq" placeholder="Caută un exercițiu…" value="${esc(exQuery)}" style="margin-bottom:10px"></div>
     <div class="filters">${muscles.map((m) => `<button class="${m === exFilter ? 'on' : ''}" data-m="${esc(m)}">${esc(m)}</button>`).join('')}</div>
     <div class="exgrid" id="exl" style="margin-top:12px"></div>
@@ -542,13 +580,24 @@ function vTrain(v) {
     <div class="sec"><h2>Istoric</h2></div>
     <div class="list">${last.length ? last.map((w) => { const vol = (w.sets || []).reduce((a, s) => a + (s.kg || 0) * (s.reps || 0), 0); return `<div class="card row" style="padding:12px 14px"><span class="ico" style="color:var(--green)">${IC('check', 20)}</span><div class="grow"><b>${esc(w.title || (prog && prog.id === w.programId && prog.days[w.dayIdx] ? prog.days[w.dayIdx].name : 'Antrenament'))}</b><div class="muted" style="font-size:.84rem">${fday(w.date)}${w.duration ? ` · ${w.duration} min` : ''}${w.sets && w.sets.length ? ` · ${w.sets.length} serii` : ''}${vol ? ` · ${Math.round(vol).toLocaleString('ro-RO')} kg` : ''}</div></div></div>`; }).join('') : '<p class="muted">Primul antrenament te așteaptă.</p>'}</div>`;
   $$('.day', v).forEach((b) => (b.onclick = () => openDay(prog, +b.dataset.d)));
-  $('#chP').onclick = chooseProgram; $('#gen').onclick = openGen;
+  $('#chP').onclick = chooseProgram; $('#gen').onclick = openGen; $('#scanEx').onclick = scanMachine;
   const drawEx = () => { const q = exQuery.toLowerCase(); $('#exl').innerHTML = EX.filter((e) => (exFilter === 'Toate' || e.muscle === exFilter) && (!q || e.name.toLowerCase().includes(q))).map((e) => `<button class="exg" data-ex="${e.id}">${thumb(e)}<b>${esc(e.name)}</b><small>${esc(e.muscle)} · ${esc(e.level)}</small></button>`).join('') || '<p class="muted">Niciun exercițiu găsit.</p>'; $$('[data-ex]', v).forEach((b) => (b.onclick = () => openEx(b.dataset.ex))); };
   drawEx();
   $('#exq').oninput = (e) => { exQuery = e.target.value; drawEx(); };
   $$('.filters button', v).forEach((b) => (b.onclick = () => { exFilter = b.dataset.m; $$('.filters button', v).forEach((x) => x.classList.toggle('on', x === b)); drawEx(); }));
   $$('[data-book]', v).forEach((b) => (b.onclick = () => openBook(b.dataset.book)));
   $$('[data-cb]', v).forEach((b) => (b.onclick = async () => { if (!(await ask('Anulezi programarea?', 'Antrenorul primește anunțul.', 'Anulează', { danger: true, icon: 'calendar' }))) return; await act('/api/me/booking/' + b.dataset.cb, {}, 'DELETE'); toast('Programare anulată'); render(); }));
+}
+function scanMachine() {
+  const canScan = 'BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+  if (!canScan) return sheet(`<h2>Scanează aparatul</h2><p class="muted">Pe fiecare aparat din sală e lipit un cod QR.</p><ol class="steps"><li>Deschide camera telefonului</li><li>Îndreapt-o spre codul de pe aparat</li><li>Atinge linkul care apare și se deschide exercițiul, cu animație și explicații</li></ol>`);
+  const el = sheet(`<h2>Scanează aparatul</h2><p class="muted">Îndreaptă camera spre codul QR de pe aparat.</p><div class="cam"><video playsinline muted autoplay></video></div><p class="err" id="sce" style="text-align:center"></p>`);
+  const w = $('#sheet'), close = () => { stopCam(); closeSheet(); }; $('.sheet-bg', w).onclick = close; $('.sheet-x', w).onclick = close;
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then((st) => {
+    camStream = st; const vid = $('video', el); vid.srcObject = st; const det = new BarcodeDetector({ formats: ['qr_code'] });
+    const loop = async () => { if (!camStream) return; try { const r = await det.detect(vid); const m = r[0] && /#ex-(\w+)/.exec(r[0].rawValue); if (m) { stopCam(); closeSheet(); setTimeout(() => openExFromQR(m[1]), 280); return; } if (r[0]) $('#sce', el).textContent = 'Codul ăsta nu e de pe un aparat.'; } catch {} setTimeout(loop, 300); };
+    loop();
+  }).catch(() => { $('#sce', el).textContent = 'Nu am acces la cameră. Folosește camera telefonului.'; });
 }
 function openDay(prog, i) {
   const d = prog.days[i];
@@ -767,7 +816,8 @@ function vMe(v) {
   const me = H.me, ini = me.name.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
   const M = (id, ic, label, right) => `<button id="${id}"><span class="mi">${IC(ic, 18)}</span>${label}${right || `<span class="ar">${IC('chev', 18)}</span>`}</button>`;
   v.innerHTML = `<div class="row" style="padding:18px 0 10px;gap:16px"><span class="avatar">${esc(ini)}</span><div class="grow"><h1 style="font-size:1.6rem">${esc(me.name)}</h1><div class="muted">${esc(me.phone)}</div><div style="margin-top:6px">${chipFor(me.subscription)}</div></div></div>
-    <div class="kp"><div class="st"><b data-count="${me.points.balance}">0</b><small>puncte</small></div><div class="st"><b data-count="${me.badges.filter((b) => b.earned).length}">0</b><small>insigne</small></div><div class="st"><b>${H.board.me && H.board.me.rank ? '#' + H.board.me.rank : '–'}</b><small>în clasament</small></div></div>
+    ${rankCard(me).replace('id="rkC"', 'id="rkP"')}
+    <div class="kp" style="margin-top:10px"><div class="st"><b data-count="${me.points.balance}">0</b><small>puncte</small></div><div class="st"><b data-count="${me.badges.filter((b) => b.earned).length}">0</b><small>insigne</small></div><div class="st"><b>${H.board.me && H.board.me.rank ? '#' + H.board.me.rank : '–'}</b><small>în clasament</small></div></div>
     <div class="sec"><h2>Despre mine</h2><button id="ed">Editează</button></div>
     <div class="card"><div class="g2">${[['Obiectiv', me.goal || '–'], ['Greutate dorită', me.targetWeight ? me.targetWeight + ' kg' : '–'], ['Înălțime', me.height ? me.height + ' cm' : '–'], ['Antrenamente/săptămână', me.weekGoal || 3]].map(([k, x]) => `<div><small class="muted" style="font-weight:700">${k}</small><div><b>${esc(x)}</b></div></div>`).join('')}</div></div>
     <div class="sec"><h2>Contul meu</h2></div>
@@ -790,6 +840,7 @@ function vMe(v) {
     </div>
     <a href="confidentialitate.html" class="muted small" style="display:block;text-align:center;margin-top:18px">Politica de confidențialitate</a>
     <button class="btn btn-ghost btn-block" id="out" style="margin-top:12px">${IC('logout', 18)} Ieși din cont</button>`;
+  $('#rkP').onclick = openRanks;
   $('#sub').onclick = openSub; $('#ann').onclick = openAnns; $('#chatM').onclick = () => openChat(); $('#genM').onclick = openGen;
   $('#pushT').onclick = togglePush;
   $('#lbT').onclick = async () => { await act('/api/me', { hideBoard: !me.hideBoard }, 'PUT'); toast(H.me.hideBoard ? 'Nu mai apari în clasament' : 'Apari în clasament'); render(); };

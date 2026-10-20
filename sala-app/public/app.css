@@ -114,7 +114,7 @@ textarea.input{min-height:90px;resize:vertical}
 .ask .row{margin-top:18px}
 .ask .row .btn{flex:1}
 .qrbox{background:#fff;border-radius:20px;padding:14px;display:grid;place-items:center;width:max-content;max-width:100%;margin:0 auto}
-.qrbox svg{display:block;width:220px;height:220px;max-width:100%}
+.qrbox svg{display:block;max-width:100%;height:auto}
 .donut{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
 .donut svg{width:150px;height:150px;flex:none}
 .dn-v{fill:var(--ink);font:900 24px var(--fd)}

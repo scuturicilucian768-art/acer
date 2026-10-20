@@ -78,7 +78,7 @@
   }
   function boardFor(db, me, t) {
     const mo = monthOf(t);
-    const rows = db.members.filter((x) => !x.hideBoard || x.id === me.id).map((x) => ({ id: x.id, name: shortName(x.name), pts: monthPts(x, mo), streak: streak(x, t), hidden: !!x.hideBoard })).filter((x) => x.pts > 0 || x.id === me.id).sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
+    const rows = db.members.filter((x) => !x.hideBoard || x.id === me.id).map((x) => ({ id: x.id, name: shortName(x.name), pts: monthPts(x, mo), streak: streak(x, t), hidden: !!x.hideBoard, rk: rankOf(pointsOf(db, x, t).earned).idx })).filter((x) => x.pts > 0 || x.id === me.id).sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
     rows.forEach((x, i) => (x.rank = i + 1));
     const mine = rows.find((x) => x.id === me.id);
     return { month: mo, top: rows.filter((x) => !x.hidden).slice(0, 10).map(({ id, ...x }) => ({ ...x, me: id === me.id })), me: mine ? { rank: mine.hidden ? null : mine.rank, pts: mine.pts } : null, total: rows.length };
@@ -149,11 +149,24 @@
   const pubSettings = (s) => { const { checkinCode, checkinDate, dailySent, ...r } = s; return r; };
   function memberRow(db, m, t) {
     const s = subOf(db, m, t), la = lastActive(m);
-    return { id: m.id, name: m.name, phone: m.phone, tags: m.tags || [], plan: s.plan ? s.plan.name : '', state: s.state, end: s.end, daysLeft: s.daysLeft, lastActive: la, idle: la ? diff(t, la) : null, createdAt: m.createdAt, visits: trainDays(m).size, pushOn: (m.push || []).length > 0, ciToday: (m.ciAt || {})[t] || null };
+    return { id: m.id, name: m.name, phone: m.phone, tags: m.tags || [], plan: s.plan ? s.plan.name : '', state: s.state, end: s.end, daysLeft: s.daysLeft, lastActive: la, idle: la ? diff(t, la) : null, createdAt: m.createdAt, visits: trainDays(m).size, rk: rankOf(pointsOf(db, m, t).earned).idx, pushOn: (m.push || []).length > 0, ciToday: (m.ciAt || {})[t] || null };
+  }
+  /* ---------- rangurile Empire (după punctele câștigate în total) ---------- */
+  const RANKS = [
+    { id: 'recrut', name: 'Recrut', min: 0, desc: 'Ai intrat în imperiu. Primul pas e făcut.' },
+    { id: 'soldat', name: 'Soldat', min: 200, desc: 'Vii constant. Corpul începe să se schimbe.' },
+    { id: 'gladiator', name: 'Gladiator', min: 600, desc: 'Antrenamentul a devenit obicei. Respect!' },
+    { id: 'comandant', name: 'Comandant', min: 1500, desc: 'Ești exemplul celor din jur.' },
+    { id: 'imparat', name: 'Împărat', min: 3000, desc: 'Cel mai înalt rang din Fitness Empire.' },
+  ];
+  function rankOf(earned) {
+    let i = 0; RANKS.forEach((r, k) => { if (earned >= r.min) i = k; });
+    const cur = RANKS[i], next = RANKS[i + 1] || null;
+    return { idx: i, id: cur.id, name: cur.name, desc: cur.desc, min: cur.min, next: next ? { name: next.name, min: next.min, idx: i + 1 } : null, toNext: next ? next.min - earned : 0, pct: next ? (earned - cur.min) / (next.min - cur.min) : 1 };
   }
   function memberFull(db, m, t) {
     const { pass, push, ...r } = m;
-    return { ...r, pushOn: (push || []).length > 0, subscription: subOf(db, m, t), streak: streak(m, t), maxStreak: maxStreak(m), weekCount: weekCount(m, t), points: pointsOf(db, m, t), badges: badgesOf(m, t), lastActive: lastActive(m) };
+    return { ...r, pushOn: (push || []).length > 0, subscription: subOf(db, m, t), streak: streak(m, t), maxStreak: maxStreak(m), weekCount: weekCount(m, t), points: pointsOf(db, m, t), badges: badgesOf(m, t), lastActive: lastActive(m), rank: rankOf(pointsOf(db, m, t).earned) };
   }
   function homeFor(db, m, t, ctx) {
     const full = memberFull(db, m, t), d = dailyFor(db, t);
@@ -543,5 +556,5 @@
     }
     return dirty;
   }
-  return { route, jobs, subOf, add, diff, phoneKey, dailyFor };
+  return { route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf };
 });

@@ -66,6 +66,17 @@ body{min-height:100vh}
 .login{min-height:100vh;display:grid;place-items:center;padding:20px}
 .login .card{width:100%;max-width:400px;padding:28px}
 .mob-top{display:none}
+.printsheet{position:fixed;inset:0;z-index:400;background:#fff;color:#000;overflow:auto}
+.ps-bar{position:sticky;top:0;display:flex;align-items:center;gap:10px;padding:12px 18px;background:#0A0A0C;color:#fff}
+.ps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:18px;max-width:900px;margin:0 auto}
+.lab{border:2px dashed #bbb;border-radius:16px;padding:14px;display:grid;justify-items:center;gap:6px;text-align:center;break-inside:avoid;page-break-inside:avoid}
+.lab .lh{display:flex;align-items:center;gap:8px;font:900 .8rem var(--fd);text-transform:uppercase;letter-spacing:.06em}
+.lab .lh img{width:30px;height:30px;border-radius:8px}
+.lab .lq svg{width:170px;height:170px}
+.lab b{font:800 1rem var(--fd)}
+.lab small{color:#444;font-size:.72rem;line-height:1.3}
+@media print{body.printing>*:not(.printsheet){display:none!important}.printsheet{position:static}.no-print{display:none!important}.ps-grid{padding:0}@page{margin:10mm}}
+@media(max-width:700px){.ps-grid{grid-template-columns:1fr 1fr}}
 .main.stagger>*{animation:rise .45s cubic-bezier(.2,.9,.3,1) both}
 .kpi b{font-variant-numeric:tabular-nums}
 .kpi .ki{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--card2);color:var(--acc);float:right}
@@ -265,7 +276,7 @@ async function pMembers() {
     <div class="card" style="padding:0;overflow:auto"><table class="tbl"><thead><tr><th>Membru</th><th>Abonament</th><th class="hm">Expiră</th><th class="hm">Ultima vizită</th><th class="hm">Vizite</th><th></th></tr></thead><tbody id="mt"></tbody></table></div>`;
   $('#nm').onclick = newMember; $('#xm2').onclick = exportMembers;
   const load = async () => { const d = await api(`/api/admin/members?q=${encodeURIComponent(mQ)}&filter=${mFilter}`); $('#mc').textContent = `${d.members.length} ${d.members.length === 1 ? 'membru' : 'membri'}`;
-    $('#mt').innerHTML = d.members.map((r) => `<tr class="click" data-id="${r.id}"><td><div class="row"><span class="av">${esc(ini(r.name))}</span><div><b>${esc(r.name)}</b><br><small class="muted">${esc(r.phone)}${r.pushOn ? ' · 🔔' : ''}</small></div></div></td><td>${stateChip(r)}<br><small class="muted">${esc(r.plan)}</small></td><td class="hm">${r.end ? fdate(r.end, true) : '–'}</td><td class="hm">${idleTxt(r)}</td><td class="hm">${r.visits}</td><td style="text-align:right"><a class="btn btn-sm" href="${waTo(r.phone, `Bună, ${r.name.split(' ')[0]}! `)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${IC('chat', 16)}</a></td></tr>`).join('') || '<tr><td colspan="6" class="muted" style="padding:24px;text-align:center">Niciun membru găsit.</td></tr>';
+    $('#mt').innerHTML = d.members.map((r) => `<tr class="click" data-id="${r.id}"><td><div class="row"><span class="av">${esc(ini(r.name))}</span><div><b>${esc(r.name)}</b> <span title="${esc(GymCore.RANKS[r.rk || 0].name)}" style="vertical-align:middle">${GymFig.rankBadge(r.rk || 0, 16)}</span><br><small class="muted">${esc(r.phone)}${r.pushOn ? ' · 🔔' : ''}</small></div></div></td><td>${stateChip(r)}<br><small class="muted">${esc(r.plan)}</small></td><td class="hm">${r.end ? fdate(r.end, true) : '–'}</td><td class="hm">${idleTxt(r)}</td><td class="hm">${r.visits}</td><td style="text-align:right"><a class="btn btn-sm" href="${waTo(r.phone, `Bună, ${r.name.split(' ')[0]}! `)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${IC('chat', 16)}</a></td></tr>`).join('') || '<tr><td colspan="6" class="muted" style="padding:24px;text-align:center">Niciun membru găsit.</td></tr>';
     $$('#mt tr[data-id]').forEach((tr) => (tr.onclick = () => openMember(tr.dataset.id))); };
   let h; $('#q').oninput = (e) => { mQ = e.target.value; clearTimeout(h); h = setTimeout(load, 200); };
   $$('[data-f]').forEach((b) => (b.onclick = () => { mFilter = b.dataset.f; $$('[data-f]').forEach((x) => x.classList.toggle('on', x === b)); load(); }));
@@ -300,7 +311,7 @@ async function openMember(id, focus) {
       <p class="muted" style="font-size:.84rem;margin:0 0 10px">${s.end && s.daysLeft >= 0 ? `Se adaugă după ${fdate(s.end, true)}, ca să nu piardă zilele rămase.` : 'Începe de azi.'}</p><p class="err" id="pe"></p><button class="btn btn-acc" id="ps">Înregistrează plata</button></div>
       <h3 style="margin:16px 0 8px">Istoric plăți</h3><table class="tbl"><tbody>${(m.payments || []).slice().reverse().map((p) => `<tr><td>${fdate(p.date, true)}</td><td>${esc((CFG.plans.find((x) => x.id === p.planId) || {}).name || '')}</td><td><b>${lei(p.amount)}</b></td><td class="hm">${esc(p.method)}</td><td style="text-align:right"><button class="btn btn-sm btn-red" data-dp="${p.id}">Șterge</button></td></tr>`).join('') || '<tr><td class="muted">Nicio plată.</td></tr>'}</tbody></table>
       <details style="margin-top:14px"><summary class="muted" style="cursor:pointer">Modifică manual data expirării</summary><div class="row" style="margin-top:10px;gap:8px"><input class="input" type="date" id="se" value="${s.end || ''}" style="max-width:200px"><button class="btn btn-sm" id="ses">Salvează</button></div></details>`,
-    act: () => `<div class="g3"><div class="kpi"><small>Vizite</small><b>${new Set([...(m.checkins || []), ...(m.workouts || []).map((w) => w.date)]).size}</b></div><div class="kpi"><small>Ultima vizită</small><b style="font-size:1.2rem">${m.lastActive ? fdate(m.lastActive) : '–'}</b></div><div class="kpi"><small>Serie / puncte</small><b style="font-size:1.2rem">🔥 ${m.streak} · ⭐ ${m.points.balance}</b></div></div>
+    act: () => `<div class="g3"><div class="kpi"><small>Vizite</small><b>${new Set([...(m.checkins || []), ...(m.workouts || []).map((w) => w.date)]).size}</b></div><div class="kpi"><small>Ultima vizită</small><b style="font-size:1.2rem">${m.lastActive ? fdate(m.lastActive) : '–'}</b></div><div class="kpi"><small>Rang · puncte</small><b style="font-size:1.2rem;display:flex;align-items:center;gap:8px">${GymFig.rankBadge(m.rank.idx, 24)} ${esc(m.rank.name)} · ${m.points.balance}</b></div></div>
       <div class="card" style="margin-top:12px;background:var(--bg)"><h3>Greutate ${lastW ? `· ${lastW.kg} kg` : ''}${m.targetWeight ? ` <span class="chip">🎯 ${m.targetWeight} kg</span>` : ''}</h3>${lineChart(ws.slice(-20).map((w) => ({ v: w.kg, l: fdate(w.date) })), { target: m.targetWeight, h: 180, empty: 'Membrul nu și-a notat încă greutatea.' })}</div>
       <h3 style="margin:14px 0 8px">Ultimele antrenamente</h3>${(m.workouts || []).slice(-6).reverse().map((w) => `<div class="alert"><span class="av">🏋️</span><div class="grow"><b>${esc(w.title || 'Antrenament')}</b><br><small>${fday(w.date)}${w.duration ? ` · ${w.duration} min` : ''}${w.sets && w.sets.length ? ` · ${w.sets.length} serii` : ''}</small></div></div>`).join('') || '<p class="muted">Niciun antrenament înregistrat.</p>'}
       <h3 style="margin:14px 0 8px">Insigne</h3><div style="display:flex;gap:6px;flex-wrap:wrap">${m.badges.filter((b) => b.earned).map((b) => `<span class="chip acc">${b.icon} ${esc(b.name)}</span>`).join('') || '<span class="muted">Încă niciuna.</span>'}</div>
@@ -386,12 +397,30 @@ let progTab = 'programs';
 async function pPrograms() {
   const { programs } = await api('/api/admin/programs'), { exercises } = await api('/api/admin/exercises');
   M().innerHTML = `<div class="ph"><div><h1>Antrenamente</h1><p>Programele și exercițiile pe care le văd membrii, cu explicații și video.</p></div><button class="btn btn-acc" id="add">+ ${progTab === 'programs' ? 'Program nou' : 'Exercițiu nou'}</button></div>
-    <div class="pill-tabs"><button data-t="programs" class="${progTab === 'programs' ? 'on' : ''}">Programe (${programs.length})</button><button data-t="ex" class="${progTab === 'ex' ? 'on' : ''}">Exerciții (${exercises.length})</button></div>
-    <div class="list">${progTab === 'programs' ? programs.map((p) => `<div class="card row"><span class="ico">🏋️</span><div class="grow"><b>${esc(p.name)}</b><div class="muted" style="font-size:.86rem">${esc(p.goal)} · ${esc(p.level)} · ${p.days.length} zile · ${p.days.reduce((a, d) => a + d.items.length, 0)} exerciții</div></div><button class="btn btn-sm" data-ep="${p.id}">Editează</button></div>`).join('') : exercises.map((e) => `<div class="card row" style="padding:12px 16px"><div class="grow"><b>${esc(e.name)}</b><div class="muted" style="font-size:.84rem">${esc(e.muscle)} · ${esc(e.equipment)} · ${e.steps.length} pași</div></div><a class="btn btn-sm" href="${esc(e.video)}" target="_blank" rel="noopener">▶</a><button class="btn btn-sm" data-ee="${e.id}">Editează</button></div>`).join('')}</div>`;
+    <div class="pill-tabs"><button data-t="programs" class="${progTab === 'programs' ? 'on' : ''}">Programe (${programs.length})</button><button data-t="ex" class="${progTab === 'ex' ? 'on' : ''}">Exerciții (${exercises.length})</button><button data-t="qr" class="${progTab === 'qr' ? 'on' : ''}">Coduri QR aparate</button></div>
+    ${progTab === 'qr' ? qrPicker(exercises) : ''}<div class="list ${progTab === 'qr' ? 'hide' : ''}">${progTab === 'programs' ? programs.map((p) => `<div class="card row"><span class="ico">🏋️</span><div class="grow"><b>${esc(p.name)}</b><div class="muted" style="font-size:.86rem">${esc(p.goal)} · ${esc(p.level)} · ${p.days.length} zile · ${p.days.reduce((a, d) => a + d.items.length, 0)} exerciții</div></div><button class="btn btn-sm" data-ep="${p.id}">Editează</button></div>`).join('') : exercises.map((e) => `<div class="card row" style="padding:12px 16px"><div class="grow"><b>${esc(e.name)}</b><div class="muted" style="font-size:.84rem">${esc(e.muscle)} · ${esc(e.equipment)} · ${e.steps.length} pași</div></div><a class="btn btn-sm" href="${esc(e.video)}" target="_blank" rel="noopener">▶</a><button class="btn btn-sm" data-ee="${e.id}">Editează</button></div>`).join('')}</div>`;
   $$('.pill-tabs [data-t]').forEach((b) => (b.onclick = () => { progTab = b.dataset.t; pPrograms(); }));
   $('#add').onclick = () => (progTab === 'programs' ? editProgram(null, exercises) : editExercise(null));
+  if (progTab === 'qr') bindQR(exercises);
   $$('[data-ep]').forEach((b) => (b.onclick = () => editProgram(programs.find((p) => p.id === b.dataset.ep), exercises)));
   $$('[data-ee]').forEach((b) => (b.onclick = () => editExercise(exercises.find((e) => e.id === b.dataset.ee))));
+}
+const exUrl = (id) => new URL('app.html', location.href).href.split('#')[0] + '#ex-' + id;
+function qrPicker(exercises) {
+  return `<div class="card" style="margin-bottom:14px"><div class="row" style="flex-wrap:wrap;gap:12px"><div class="grow" style="min-width:240px"><h3>Etichete QR pentru aparate</h3><p class="muted small" style="margin:4px 0 0">Tipărește etichetele și lipește-le pe aparate. Membrul scanează codul și vede pe loc animația exercițiului, mușchii lucrați și pașii. Merge cu camera oricărui telefon sau din aplicație.</p></div><div class="row" style="gap:8px"><button class="btn btn-sm" id="qa">Toate</button><button class="btn btn-sm" id="qn">Niciunul</button><button class="btn btn-acc" id="qp">${IC('download', 18)} Tipărește etichetele</button></div></div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">${exercises.map((e) => `<label class="card" style="display:grid;justify-items:center;gap:8px;padding:12px;cursor:pointer;text-align:center"><input type="checkbox" class="qx" value="${e.id}" checked style="justify-self:start;width:18px;height:18px"><div class="qrbox" style="padding:6px;margin:0">${QR.svg(exUrl(e.id), { size: 120 })}</div><b style="font-size:.9rem">${esc(e.name)}</b><small class="muted">${esc(e.muscle)}</small></label>`).join('')}</div>`;
+}
+function bindQR(exercises) {
+  $('#qa').onclick = () => $$('.qx').forEach((c) => (c.checked = true));
+  $('#qn').onclick = () => $$('.qx').forEach((c) => (c.checked = false));
+  $('#qp').onclick = () => {
+    const ids = $$('.qx').filter((c) => c.checked).map((c) => c.value); if (!ids.length) return toast('Alege cel puțin un aparat.', 'bad');
+    const d = document.createElement('div'); d.className = 'printsheet';
+    d.innerHTML = `<div class="ps-bar no-print"><b>${ids.length} etichete</b><span class="grow"></span><button class="btn btn-acc" id="pp">Tipărește</button><button class="btn" id="pc">Închide</button></div><div class="ps-grid">${ids.map((id) => { const e = exercises.find((x) => x.id === id); return `<div class="lab"><div class="lh"><img src="img/logo-mark.png" alt=""><span>${esc(S().name)}</span></div><div class="lq">${QR.svg(exUrl(id), { size: 200 })}</div><b>${esc(e.name)}</b><small>Scanează cu camera telefonului<br>și vezi cum se face corect</small></div>`; }).join('')}</div>`;
+    document.body.appendChild(d); document.body.classList.add('printing');
+    const close = () => { d.remove(); document.body.classList.remove('printing'); };
+    $('#pc', d).onclick = close; $('#pp', d).onclick = () => { try { window.print(); } catch { toast('Tipărirea nu e disponibilă aici.', 'bad'); } };
+  };
 }
 function editProgram(p, exercises) {
   const P = p ? JSON.parse(JSON.stringify(p)) : { name: '', goal: '', level: 'mediu', desc: '', days: [{ name: 'Ziua 1', items: [] }] };
