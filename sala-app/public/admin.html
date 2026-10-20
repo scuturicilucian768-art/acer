@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Administrare sală</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0A0A0C">
+<link rel="icon" href="img/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="app.css?v=3">
+<style>
+body{min-height:100vh}
+.lay{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+.cols>*,.cols3>*,.kpis>*,.desk>*{min-width:0}
+.alert .grow{min-width:0}
+.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--bg2);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+.side .brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px;font-family:var(--fd);font-weight:900;text-transform:uppercase;font-size:1.02rem}
+.side .brand i{width:32px;height:32px;border-radius:10px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;font-style:normal}
+.side button{display:flex;align-items:center;gap:12px;border:0;background:none;padding:11px 12px;border-radius:12px;cursor:pointer;font-weight:700;color:var(--muted);text-align:left;font-size:.94rem}
+.side button .ic{opacity:.85}
+.side .brand i .ic{opacity:1}
+.side button.on{background:var(--card2);color:var(--ink)}
+.side button.on .ic{color:var(--acc);filter:drop-shadow(0 0 8px color-mix(in srgb,var(--acc) 70%,transparent))}
+.side .bd{margin-left:auto;background:var(--red);color:#fff;border-radius:10px;font-size:.7rem;padding:1px 7px}
+.main{padding:26px 28px 80px;max-width:1240px;width:100%}
+.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.ph h1{font-size:2rem;line-height:1.05}
+.ph p{margin:6px 0 0;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.kpi small{color:var(--muted);font-weight:700;font-size:.8rem}
+.kpi b{display:block;font-family:var(--fd);font-size:2rem;line-height:1.15;margin-top:4px}
+.kpi .d{font-size:.8rem;color:var(--muted)}
+.kpi.hl{background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 22%,var(--card)),var(--card));border-color:color-mix(in srgb,var(--acc) 35%,transparent)}
+.cols{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-top:14px}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.code-big{font-family:var(--fd);font-weight:900;font-size:3.6rem;letter-spacing:.18em;color:var(--acc);line-height:1}
+.alert{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.alert:last-child{border-bottom:0}
+.alert .grow small{color:var(--muted)}
+.tbl{width:100%;border-collapse:collapse;font-size:.92rem}
+.tbl th{text-align:left;color:var(--faint);font-size:.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;border-bottom:1px solid var(--line)}
+.tbl td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:var(--card2)}
+.av{width:36px;height:36px;border-radius:11px;background:var(--card2);display:grid;place-items:center;font-weight:900;font-size:.8rem;flex:none}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolbar .input{max-width:320px}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filters button{border:1px solid var(--line2);background:var(--card);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.84rem;cursor:pointer;color:var(--muted)}
+.filters button.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.dayrow{display:grid;grid-template-columns:120px 1fr 1fr auto;gap:10px;align-items:start;padding:12px 0;border-bottom:1px solid var(--line)}
+.dayrow .q{font-style:italic}
+.ed-item{display:grid;grid-template-columns:2fr 70px 90px 80px 80px 36px;gap:6px;align-items:center;margin-bottom:6px}
+.ed-meal{display:grid;grid-template-columns:1fr 80px 2fr 70px 60px 60px 60px 36px;gap:6px;align-items:center;margin-bottom:6px}
+.ed-item .input,.ed-meal .input{padding:9px 10px;font-size:.88rem}
+.pill-tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px;width:max-content;max-width:100%;overflow:auto;margin-bottom:16px}
+.pill-tabs button{border:0;background:none;padding:9px 14px;border-radius:10px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
+.pill-tabs button.on{background:var(--card2);color:var(--ink)}
+.mtop{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.mtop .av{width:60px;height:60px;border-radius:18px;font-size:1.3rem;background:var(--acc);color:var(--acc-ink)}
+.sheet.wide{width:760px}
+.ok-box{padding:14px;border-radius:14px;background:color-mix(in srgb,var(--green) 12%,transparent);border:1px solid color-mix(in srgb,var(--green) 35%,transparent)}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.login .card{width:100%;max-width:400px;padding:28px}
+.mob-top{display:none}
+.main.stagger>*{animation:rise .45s cubic-bezier(.2,.9,.3,1) both}
+.kpi b{font-variant-numeric:tabular-nums}
+.kpi .ki{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--card2);color:var(--acc);float:right}
+.heat{display:grid;grid-template-columns:34px repeat(17,1fr);gap:3px;font-size:.66rem;color:var(--faint);font-weight:700}
+.heat i{aspect-ratio:1;border-radius:4px;background:var(--acc)}
+.heat span{display:grid;place-items:center}
+.desk{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.desk .qrbox svg{width:260px;height:260px}
+.bigcode{font-family:var(--fd);font-weight:900;font-size:4.6rem;letter-spacing:.2em;color:var(--acc);line-height:1;text-align:center}
+.fs{position:fixed;inset:0;z-index:300;background:#0A0A0C;display:grid;place-content:center;justify-items:center;gap:26px;text-align:center;padding:30px}
+.fs .qrbox svg{width:min(52vh,70vw);height:min(52vh,70vw)}
+.fs .bigcode{font-size:min(14vh,16vw)}
+.inbox{display:grid;grid-template-columns:320px 1fr;gap:0;height:calc(100vh - 150px);min-height:480px;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:var(--card)}
+.thr{border-right:1px solid var(--line);overflow:auto}
+.thr button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:none;color:inherit;cursor:pointer}
+.thr button.on{background:var(--card2)}
+.thr button .grow small{display:block;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.thr .u{min-width:20px;height:20px;border-radius:10px;background:var(--acc);color:var(--acc-ink);font-size:.7rem;font-weight:900;display:grid;place-items:center;padding:0 6px}
+.conv{display:flex;flex-direction:column;min-width:0}
+.conv .hd{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:6px}
+.bub{max-width:75%;padding:10px 14px;border-radius:18px;line-height:1.4;white-space:pre-wrap;word-wrap:break-word}
+.bub.m{align-self:flex-start;background:var(--card2);border-bottom-left-radius:6px}
+.bub.g{align-self:flex-end;background:var(--acc);color:var(--acc-ink);border-bottom-right-radius:6px}
+.bub time{display:block;font-size:.68rem;opacity:.6;margin-top:3px}
+.cbar{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+.cbar textarea{flex:1;min-height:46px;max-height:120px;resize:none}
+.qr-reply{display:flex;gap:6px;overflow-x:auto;padding:8px 10px 0;scrollbar-width:none}
+.qr-reply .btn{flex:none}
+.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.wk .dcol{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:8px;min-height:150px}
+.wk .dcol.td{border-color:var(--acc)}
+.wk .dh{font-size:.74rem;font-weight:800;color:var(--muted);text-transform:capitalize;margin-bottom:6px}
+.wk .bk{font-size:.74rem;padding:6px 8px;border-radius:9px;margin-bottom:5px;background:var(--card2);border-left:3px solid var(--faint);cursor:pointer}
+.wk .bk.pending{border-color:var(--amber)}.wk .bk.confirmed{border-color:var(--green)}.wk .bk.done{opacity:.55}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:800;color:var(--green)}
+.live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+@media(max-width:900px){
+  .lay{grid-template-columns:minmax(0,1fr)}
+  .alert{flex-wrap:wrap}
+  .side{position:fixed;inset:0 30% 0 0;z-index:90;transform:translateX(-100%);transition:transform .25s;height:100%}
+  .side.open{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.6)}
+  .mob-top{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:40;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--bg2);border-bottom:1px solid var(--line)}
+  .main{padding:18px 16px 80px}
+  .cols,.cols3{grid-template-columns:1fr}
+  .tbl .hm{display:none}
+  .dayrow{grid-template-columns:1fr}
+  .ed-item{grid-template-columns:1fr 60px 70px;}
+  .ed-meal{grid-template-columns:1fr 1fr}
+  .desk{grid-template-columns:1fr}
+  .inbox{grid-template-columns:1fr;height:auto}
+  .inbox.open .thr{display:none}
+  .inbox:not(.open) .conv{display:none}
+  .conv{height:72vh}
+  .conv .hd .chip,.conv .hd small{display:none}
+  .wk{grid-template-columns:repeat(7,minmax(110px,1fr));overflow-x:auto}
+}
+</style>
+</head>
+<body>
+<div id="login" class="hide"></div>
+<div id="app" class="hide">
+  <div class="mob-top"><button class="iconbtn" id="menu" aria-label="Meniu"></button><b id="mtitle" style="font-family:var(--fd)"></b></div>
+  <div class="lay">
+    <nav class="side" id="side">
+      <div class="brand"><i id="bl"></i><span id="gn"></span></div>
+      <button data-p="dash" data-i="grid">Panou</button>
+      <button data-p="desk" data-i="qr">Recepție</button>
+      <button data-p="members" data-i="users">Membri</button>
+      <button data-p="chat" data-i="chat">Mesaje<em class="bd hide" id="chb"></em></button>
+      <button data-p="payments" data-i="wallet">Plăți și restanțe</button>
+      <button data-p="reports" data-i="chart">Rapoarte</button>
+      <button data-p="notify" data-i="bell">Notificări</button>
+      <button data-p="daily" data-i="spark">Motivația zilei</button>
+      <button data-p="programs" data-i="dumbbell">Antrenamente</button>
+      <button data-p="nutrition" data-i="food">Nutriție</button>
+      <button data-p="pt" data-i="calendar">Antrenor personal<em class="bd hide" id="ptb"></em></button>
+      <button data-p="ann" data-i="megaphone">Anunțuri</button>
+      <button data-p="rewards" data-i="gift">Premii</button>
+      <button data-p="settings" data-i="settings">Setări</button>
+      <div style="flex:1"></div>
+      <a class="btn btn-ghost btn-sm" href="app.html" target="_blank" rel="noopener" style="margin:6px" id="appL"></a>
+      <button id="logout" data-i="logout" style="color:var(--faint)">Ieși</button>
+    </nav>
+    <main class="main" id="main"></main>
+  </div>
+</div>
+<script src="core.js?v=3"></script>
+<script src="seed.js?v=3"></script>
+<script src="env.js?v=3"></script>
+<script src="common.js?v=3"></script>
+<script src="fig.js?v=3"></script>
+<script src="qr.js?v=3"></script>
+<script>
+let page = 'dash', O = null, CFG = null;
+$$('.side [data-i]').forEach((b) => b.insertAdjacentHTML('afterbegin', IC(b.dataset.i, 20)));
+$('#bl').innerHTML = IC('bolt', 18); $('#menu').innerHTML = IC('grid', 20); $('#appL').innerHTML = IC('phone', 16) + ' Aplicația membrilor';
+const M = () => $('#main');
+const stateChip = (r) => r.state === 'active' ? '<span class="chip ok">Activ</span>' : r.state === 'expiring' ? `<span class="chip warn">Expiră ${r.daysLeft === 0 ? 'azi' : `în ${r.daysLeft} ${r.daysLeft === 1 ? 'zi' : 'zile'}`}</span>` : r.state === 'expired' ? '<span class="chip bad">Expirat</span>' : '<span class="chip">Fără abonament</span>';
+const ini = (n) => String(n || '?').split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
+const idleTxt = (r) => r.idle == null ? 'n-a venit niciodată' : r.idle === 0 ? 'azi' : r.idle === 1 ? 'ieri' : `acum ${r.idle} zile`;
+const waTo = (phone, text) => waLink(String(phone).replace(/\D/g, '').replace(/^0/, '40'), text);
+const S = () => CFG.settings;
+
+async function boot() {
+  CFG = await api('/api/config'); applyAccent(CFG.settings.accent);
+  if (CFG.setup) return showSetup();
+  const w = await api('/api/whoami'); if (w.role !== 'admin') return showLogin();
+  $('#login').classList.add('hide'); $('#app').classList.remove('hide'); $('#gn').textContent = S().name;
+  go(location.hash.slice(1) || 'dash');
+}
+function showSetup() {
+  $('#app').classList.add('hide'); const L = $('#login'); L.classList.remove('hide');
+  L.innerHTML = `<div class="login"><form class="card" id="sf" style="max-width:460px"><div style="width:56px;height:56px;border-radius:16px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;margin-bottom:16px">${IC('bolt', 28)}</div><h1 style="font-size:1.8rem">Bun venit!</h1><p class="muted" style="margin:6px 0 20px">Configurează sala în 1 minut. Restul (prețuri, program, culori) le schimbi oricând din Setări.</p>
+    <div class="field"><label for="s1">Numele sălii *</label><input class="input" id="s1" required autocomplete="organization"></div>
+    <div class="g2"><div class="field"><label for="s2">Telefon</label><input class="input" id="s2" type="tel" placeholder="07xx xxx xxx"></div><div class="field"><label for="s3">WhatsApp</label><input class="input" id="s3" type="tel" placeholder="același ca telefonul"></div></div>
+    <div class="field"><label for="s4">Adresa</label><input class="input" id="s4" autocomplete="street-address"></div>
+    <div class="g2"><div class="field"><label for="s5">Parola panoului *</label><input class="input" id="s5" type="password" minlength="6" required autocomplete="new-password"></div><div class="field"><label for="s6">Repetă parola *</label><input class="input" id="s6" type="password" required autocomplete="new-password"></div></div>
+    <p class="err" id="se"></p><button class="btn btn-acc btn-block">Pornește aplicația</button></form></div>`;
+  $('#sf').onsubmit = async (e) => {
+    e.preventDefault(); $('#se').textContent = '';
+    if ($('#s5').value !== $('#s6').value) return ($('#se').textContent = 'Parolele nu sunt la fel.');
+    try { await api('/api/setup', { method: 'POST', body: { name: $('#s1').value, phone: $('#s2').value, whatsapp: $('#s3').value, address: $('#s4').value, password: $('#s5').value } }); CFG = await api('/api/config'); applyAccent(CFG.settings.accent); toast('Sala e gata! Adaugă primii membri.'); boot(); }
+    catch (er) { $('#se').textContent = er.message; }
+  };
+}
+function showLogin() {
+  $('#app').classList.add('hide'); const L = $('#login'); L.classList.remove('hide');
+  L.innerHTML = `<div class="login"><form class="card" id="lf"><div style="width:56px;height:56px;border-radius:16px;background:var(--acc);display:grid;place-items:center;font-size:1.6rem;margin-bottom:16px">⚡</div><h1 style="font-size:1.8rem">Administrare</h1><p class="muted" style="margin:6px 0 20px">${esc(CFG.settings.name)}</p>
+    <div class="field"><label>Parola</label><input class="input" type="password" id="pw" autocomplete="current-password" required></div><p class="err" id="le"></p><button class="btn btn-acc btn-block">Intră</button>${window.GymDemo ? '<p class="tip" style="margin-top:14px">Demo: parola <b>admin</b></p>' : ''}</form></div>`;
+  $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/api/admin/login', { method: 'POST', body: { password: $('#pw').value } }); boot(); } catch (er) { $('#le').textContent = er.message; } };
+}
+const TITLES = { dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', payments: 'Plăți și restanțe', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', pt: 'Antrenor personal', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
+function go(p) {
+  page = TITLES[p] ? p : 'dash'; history.replaceState(null, '', '#' + page);
+  $$('.side [data-p]').forEach((b) => b.classList.toggle('on', b.dataset.p === page)); $('#mtitle').textContent = TITLES[page]; $('#side').classList.remove('open');
+  M().innerHTML = '<div class="skel" style="height:60px;margin-bottom:14px"></div><div class="skel" style="height:220px"></div>'; M().classList.remove('stagger'); clearInterval(window._poll); window._quiet = null; window._convReload = null; stopScan();
+  const fn = ({ dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, payments: pPayments, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, pt: pPT, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
+  fn().then(() => { M().classList.add('stagger'); countUp(M()); if (!window._quiet && ['dash', 'members', 'payments', 'pt', 'rewards'].includes(page)) window._quiet = async () => { await fn(); countUp(M()); }; }).catch((e) => { if (e.status === 401) return showLogin(); M().innerHTML = `<p class="err">${esc(e.message)}</p>`; });
+  scrollTo(0, 0);
+}
+$$('.side [data-p]').forEach((b) => (b.onclick = () => go(b.dataset.p)));
+$('#menu').onclick = () => $('#side').classList.toggle('open');
+$('#logout').onclick = async () => { await api('/api/logout', { method: 'POST', body: {} }); showLogin(); };
+document.addEventListener('click', (e) => { if ($('#side').classList.contains('open') && !e.target.closest('#side') && !e.target.closest('#menu')) $('#side').classList.remove('open'); });
+
+/* ───────── PANOU ───────── */
+async function pDash() {
+  O = await api('/api/admin/overview'); const s = O.stats; updBadges();
+  $('#ptb').textContent = O.bookings.filter((b) => b.status === 'pending').length || ''; $('#ptb').classList.toggle('hide', !O.bookings.some((b) => b.status === 'pending'));
+  const al = (r, kind) => `<div class="alert"><span class="av">${esc(ini(r.name))}</span><div class="grow"><b>${esc(r.name)}</b><br><small>${kind === 'exp' ? (r.state === 'expired' ? `expirat din ${fdate(r.end)}` : `expiră ${r.daysLeft === 0 ? 'azi' : `pe ${fdate(r.end)}`}`) + ` · ${esc(r.plan || '')}` : `ultima vizită ${idleTxt(r)}`}</small></div>
+    <a class="btn btn-sm" href="${waTo(r.phone, kind === 'exp' ? `Bună, ${r.name.split(' ')[0]}! Abonamentul tău la ${S().name} ${r.state === 'expired' ? 'a expirat' : 'expiră ' + (r.daysLeft === 0 ? 'azi' : 'pe ' + fdate(r.end))}. Te așteptăm să-l reînnoiești! 💪` : `Bună, ${r.name.split(' ')[0]}! Nu te-am mai văzut de ceva vreme la sală. Totul e ok? Te așteptăm! 💪`)}" target="_blank" rel="noopener">${IC('chat', 16)}</a>
+    ${kind === 'exp' ? `<button class="btn btn-sm btn-acc" data-pay="${r.id}">Încasează</button>` : `<button class="btn btn-sm" data-open="${r.id}">Vezi</button>`}</div>`;
+  M().innerHTML = `<div class="ph"><div><h1>Bună ziua! 👋</h1><p>${esc(fday(todayStr()))} · ${s.visitsToday} ${s.visitsToday === 1 ? 'vizită' : 'vizite'} azi</p></div><div class="row" style="gap:8px"><button class="btn btn-acc" id="nm">+ Membru nou</button><button class="btn" id="nn">🔔 Trimite notificare</button></div></div>
+    <div class="kpis">
+      <div class="kpi hl"><span class="ki">${IC('users', 18)}</span><small>Membri activi</small><b data-count="${s.active}">0</b><span class="d">din ${s.total} înscriși</span></div>
+      <div class="kpi"><span class="ki">${IC('wallet', 18)}</span><small>Venit luna asta</small><b><span data-count="${s.revenueMonth}">0</span> lei</b><span class="d">${s.revenue[4] ? `luna trecută ${lei(s.revenue[4].total)}` : ''}</span></div>
+      <div class="kpi"><span class="ki">${IC('plus', 18)}</span><small>Membri noi</small><b data-count="${s.newThisMonth}">0</b><span class="d">luna asta</span></div>
+      <div class="kpi"><span class="ki">${IC('check', 18)}</span><small>Reînnoiri</small><b data-count="${s.renewals}">0</b><span class="d">luna asta</span></div>
+      <div class="kpi"><span class="ki" style="color:var(--red)">${IC('logout', 18)}</span><small>Abandon</small><b style="color:${s.churnRate > 15 ? 'var(--red)' : 'inherit'}">${s.churnRate}%</b><span class="d">${s.churn} au expirat în ultimele 30 de zile</span></div>
+    </div>
+    <div class="cols">
+      <div class="card"><div class="row"><h3 class="grow">Venituri pe luni</h3></div>${barChart(s.revenue.map((x) => ({ v: x.total, l: MONTHS[+x.month.slice(5) - 1] })), { fmt: (v) => (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v), label: 'Venituri' })}</div>
+      <div class="card" style="display:grid;align-content:space-between;gap:12px"><div class="row" style="align-items:flex-start;gap:14px;flex-wrap:wrap"><div class="grow" style="min-width:180px"><h3>Check-in de azi</h3><p class="muted" style="font-size:.88rem;margin:4px 0 14px">Membrii scanează codul QR sau scriu codul în aplicație.</p><div class="code-big">${esc(O.checkinCode)}</div></div><div class="qrbox" style="padding:8px;margin:0">${QR.svg(ciUrl(), { size: 110 })}</div></div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-sm" id="nc">${IC('timer', 16)} Cod nou</button><button class="btn btn-sm btn-acc" id="fs">${IC('tv', 16)} Afișează pe ecran</button><button class="btn btn-sm" data-go="desk">${IC('qr', 16)} Recepție</button></div></div>
+    </div>
+    <div class="cols3">
+      <div class="card"><h3>⏳ Expiră în 3 zile <span class="chip warn">${O.expiring.length}</span></h3>${O.expiring.map((r) => al(r, 'exp')).join('') || '<p class="muted">Nimeni. 👌</p>'}</div>
+      <div class="card"><h3>❌ Expirate, nereînnoite <span class="chip bad">${O.expired.length}</span></h3>${O.expired.slice(0, 8).map((r) => al(r, 'exp')).join('') || '<p class="muted">Nimeni. 👌</p>'}${O.expired.length > 8 ? `<button class="btn btn-sm btn-ghost" data-go="payments" style="margin-top:8px">Vezi toți (${O.expired.length})</button>` : ''}</div>
+      <div class="card"><h3>😴 N-au mai venit</h3><p class="muted" style="font-size:.82rem;margin:4px 0">Au abonament activ, dar lipsesc de 7+ zile</p>${O.idle7.map((r) => al(r, 'idle')).join('')}${O.idle14.slice(0, 6).map((r) => al(r, 'idle')).join('')}${!O.idle7.length && !O.idle14.length ? '<p class="muted">Toți vin regulat. 🔥</p>' : ''}${O.idle7.length + O.idle14.length ? `<button class="btn btn-sm btn-ghost" id="nIdle" style="margin-top:10px">🔔 Trimite-le tuturor un mesaj</button>` : ''}</div>
+    </div>
+    <div class="cols">
+      <div class="card"><h3>Vizite în ultimele 14 zile</h3>${barChart(s.visits14.map((x) => ({ v: x.n, l: String(+x.date.slice(8)) })), { label: 'Vizite' })}</div>
+      <div class="card"><h3>Azi</h3>
+        ${O.chatUnread ? `<div class="alert"><span class="av" style="background:var(--acc);color:var(--acc-ink)">${IC('chat', 18)}</span><div class="grow"><b>${O.chatUnread} ${O.chatUnread === 1 ? 'mesaj nou' : 'mesaje noi'}</b><br><small>de la membri</small></div><button class="btn btn-sm btn-acc" data-go="chat">Răspunde</button></div>` : ''}
+        <div class="alert"><span class="av">${IC('users', 18)}</span><div class="grow"><b>${O.todayVisits.length} ${O.todayVisits.length === 1 ? 'membru a venit' : 'membri au venit'} azi</b><br><small>${O.todayVisits.slice(0, 4).map((x) => esc(x.name.split(' ')[0]) + (x.ciToday ? ' ' + x.ciToday : '')).join(' · ') || 'încă nimeni'}</small></div><button class="btn btn-sm" data-go="desk">Vezi</button></div>
+        <div class="alert"><span class="av">${IC('spark', 18)}</span><div class="grow"><b>Motivația zilei</b><br><small>„${esc(O.daily.quote)}”</small></div></div>
+        <div class="alert"><span class="av">${IC('calendar', 18)}</span><div class="grow"><b>${O.bookings.length} programări PT</b><br><small>${O.bookings.filter((b) => b.status === 'pending').length} așteaptă confirmare</small></div><button class="btn btn-sm" data-go="pt">Vezi</button></div>
+        <div class="alert"><span class="av">${IC('gift', 18)}</span><div class="grow"><b>${O.redemptions.length} premii de acordat</b><br><small>${O.redemptions.slice(0, 2).map((x) => esc(x.member + ': ' + x.name)).join(' · ') || 'niciunul'}</small></div><button class="btn btn-sm" data-go="rewards">Vezi</button></div>
+        <div class="alert"><span class="av">${IC('calendar', 18)}</span><div class="grow"><b>${O.dailyScheduled} zile de motivație programate</b><br><small>${O.dailyScheduled < 7 ? 'Programează următoarele 30 de zile' : 'Totul e pregătit'}</small></div><button class="btn btn-sm" data-go="daily">Vezi</button></div>
+      </div>
+    </div>`;
+  $('#nm').onclick = newMember; $('#nn').onclick = () => go('notify');
+  $('#nc').onclick = async () => { await api('/api/admin/checkin-code', { method: 'POST', body: {} }); pDash(); };
+  $('#fs').onclick = showFull;
+  $$('[data-pay]').forEach((b) => (b.onclick = () => openMember(b.dataset.pay, 'pay')));
+  $$('[data-open]').forEach((b) => (b.onclick = () => openMember(b.dataset.open)));
+  $$('[data-go]').forEach((b) => (b.onclick = () => go(b.dataset.go)));
+  if ($('#nIdle')) $('#nIdle').onclick = () => { go('notify'); setTimeout(() => { $('#nt').value = 'Ne e dor de tine! 💪'; $('#nb').value = 'Nu te-am mai văzut de câteva zile. Revino azi, chiar și pentru 30 de minute. Fiecare antrenament contează!'; $('#tg').value = 'inactive'; }, 400); };
+}
+
+/* ───────── MEMBRI ───────── */
+let mFilter = 'all', mQ = '';
+async function pMembers() {
+  M().innerHTML = `<div class="ph"><div><h1>Membri</h1><p id="mc"></p></div><div class="row" style="gap:8px"><button class="btn" id="xm2">${IC('download', 18)} Excel</button><button class="btn btn-acc" id="nm">+ Membru nou</button></div></div>
+    <div class="toolbar"><input class="input" id="q" placeholder="Caută după nume sau telefon…" value="${esc(mQ)}"><div class="filters">${[['all', 'Toți'], ['active', 'Activi'], ['expiring', 'Expiră curând'], ['expired', 'Expirați'], ['idle', 'Inactivi 7+ zile']].map(([k, l]) => `<button data-f="${k}" class="${k === mFilter ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+    <div class="card" style="padding:0;overflow:auto"><table class="tbl"><thead><tr><th>Membru</th><th>Abonament</th><th class="hm">Expiră</th><th class="hm">Ultima vizită</th><th class="hm">Vizite</th><th></th></tr></thead><tbody id="mt"></tbody></table></div>`;
+  $('#nm').onclick = newMember; $('#xm2').onclick = exportMembers;
+  const load = async () => { const d = await api(`/api/admin/members?q=${encodeURIComponent(mQ)}&filter=${mFilter}`); $('#mc').textContent = `${d.members.length} ${d.members.length === 1 ? 'membru' : 'membri'}`;
+    $('#mt').innerHTML = d.members.map((r) => `<tr class="click" data-id="${r.id}"><td><div class="row"><span class="av">${esc(ini(r.name))}</span><div><b>${esc(r.name)}</b><br><small class="muted">${esc(r.phone)}${r.pushOn ? ' · 🔔' : ''}</small></div></div></td><td>${stateChip(r)}<br><small class="muted">${esc(r.plan)}</small></td><td class="hm">${r.end ? fdate(r.end, true) : '–'}</td><td class="hm">${idleTxt(r)}</td><td class="hm">${r.visits}</td><td style="text-align:right"><a class="btn btn-sm" href="${waTo(r.phone, `Bună, ${r.name.split(' ')[0]}! `)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${IC('chat', 16)}</a></td></tr>`).join('') || '<tr><td colspan="6" class="muted" style="padding:24px;text-align:center">Niciun membru găsit.</td></tr>';
+    $$('#mt tr[data-id]').forEach((tr) => (tr.onclick = () => openMember(tr.dataset.id))); };
+  let h; $('#q').oninput = (e) => { mQ = e.target.value; clearTimeout(h); h = setTimeout(load, 200); };
+  $$('[data-f]').forEach((b) => (b.onclick = () => { mFilter = b.dataset.f; $$('[data-f]').forEach((x) => x.classList.toggle('on', x === b)); load(); }));
+  await load();
+}
+async function newMember() {
+  const plans = CFG.plans;
+  const el = sheet(`<h2>Membru nou</h2><div class="g2" style="margin-top:14px"><div class="field"><label>Nume și prenume *</label><input class="input" id="n"></div><div class="field"><label>Telefon *</label><input class="input" id="p" type="tel" placeholder="07xx xxx xxx"></div>
+    <div class="field"><label>Email</label><input class="input" id="e" type="email"></div><div class="field"><label>Obiectiv</label><select class="input" id="g">${['Slăbire', 'Slăbire și tonifiere', 'Masă musculară', 'Forță', 'Condiție fizică', 'Sănătate'].map((x) => `<option>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Greutate (kg)</label><input class="input" id="w" inputmode="decimal"></div><div class="field"><label>Grupă (opțional)</label><input class="input" id="t" placeholder="ex: studenți, dimineața"></div></div>
+    <h3 style="margin:8px 0 10px">Abonament și plată</h3><div class="g3"><div class="field"><label>Tip</label><select class="input" id="pl"><option value="">Fără abonament acum</option>${plans.map((x) => `<option value="${x.id}">${esc(x.name)} – ${lei(x.price)}</option>`).join('')}</select></div><div class="field"><label>Sumă încasată</label><input class="input" id="a" inputmode="decimal" placeholder="automat"></div><div class="field"><label>Metodă</label><select class="input" id="pmeth"><option>numerar</option><option>card</option><option>transfer</option></select></div></div>
+    <div class="field"><label>Parola pentru aplicație</label><input class="input" id="pw" placeholder="goală = ultimele 4 cifre ale telefonului"></div><p class="err" id="er"></p><button class="btn btn-acc btn-block" id="sv">Adaugă membrul</button>`, { wide: true });
+  $('#pl', el).onchange = () => { const x = plans.find((y) => y.id === $('#pl', el).value); $('#a', el).placeholder = x ? String(x.price) : 'automat'; };
+  $('#sv', el).onclick = async () => { try {
+    const r = await api('/api/admin/members', { method: 'POST', body: { name: $('#n', el).value, phone: $('#p', el).value, email: $('#e', el).value, goal: $('#g', el).value, weight: $('#w', el).value, tags: $('#t', el).value, planId: $('#pl', el).value, amount: $('#a', el).value, method: $('#pmeth', el).value, password: $('#pw', el).value } });
+    const link = new URL('app.html', location.href).href;
+    sheet(`<div style="text-align:center"><div style="font-size:3rem">🎉</div><h2 style="padding:0">${esc(r.member.name)} a fost adăugat</h2></div><div class="ok-box" style="margin:16px 0"><b>Datele de intrare în aplicație:</b><br>Telefon: <b>${esc(r.member.phone)}</b><br>Parola: <b style="font-size:1.2rem">${esc(r.password)}</b><br>Link: ${esc(link)}</div>
+      <a class="btn btn-acc btn-block" href="${waTo(r.member.phone, `Bun venit la ${S().name}! 💪\n\nAplicația sălii: ${link}\nTelefon: ${r.member.phone}\nParola: ${r.password}\n\nAcolo îți vezi abonamentul, antrenamentele, progresul și motivația zilei. Adaug-o pe ecranul telefonului!`)}" target="_blank" rel="noopener">💬 Trimite-i datele pe WhatsApp</a>`);
+    if (page === 'members') pMembers(); else if (page === 'dash') pDash();
+  } catch (e) { $('#er', el).textContent = e.message; } };
+}
+async function openMember(id, focus) {
+  const { member: m, bookings } = await api('/api/admin/members/' + id), s = m.subscription, progs = (await api('/api/admin/programs')).programs, nus = (await api('/api/admin/nutrition')).nutrition;
+  const ws = m.weights || [], lastW = ws.slice(-1)[0];
+  const el = sheet(`<div class="mtop"><span class="av">${esc(ini(m.name))}</span><div class="grow"><h2 style="margin:0">${esc(m.name)}</h2><div class="muted">${esc(m.phone)}${m.email ? ' · ' + esc(m.email) : ''} · membru din ${fdate(m.createdAt, true)}</div><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${stateChip({ state: s.state, daysLeft: s.daysLeft })}${(m.tags || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}${m.pushOn ? '<span class="chip acc">🔔 notificări pornite</span>' : ''}</div></div></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><a class="btn btn-sm" href="${waTo(m.phone, `Bună, ${m.name.split(' ')[0]}! `)}" target="_blank" rel="noopener">${IC('chat', 16)} WhatsApp</a><a class="btn btn-sm" href="tel:${esc(m.phone)}">${IC('phone', 16)} Sună</a><button class="btn btn-sm" id="ci">${IC('check', 16)} Check-in azi</button><button class="btn btn-sm" id="msg">🔔 Notificare</button><button class="btn btn-sm btn-acc" id="cv">${IC('chat', 16)} Conversație</button></div>
+    <div class="pill-tabs" style="margin-top:16px"><button data-t="sub" class="on">Abonament</button><button data-t="act">Activitate</button><button data-t="plan">Program</button><button data-t="info">Date</button></div>
+    <div id="mtab"></div>`, { wide: true });
+  const T = {
+    sub: () => `<div class="g3"><div class="kpi"><small>Tip</small><b style="font-size:1.2rem">${esc(s.plan ? s.plan.name : '–')}</b></div><div class="kpi"><small>Expiră</small><b style="font-size:1.2rem">${s.end ? fdate(s.end, true) : '–'}</b></div><div class="kpi"><small>${s.daysLeft != null && s.daysLeft < 0 ? 'Expirat de' : 'Zile rămase'}</small><b style="font-size:1.2rem;${s.daysLeft < 0 ? 'color:var(--red)' : ''}">${s.daysLeft == null ? '–' : s.daysLeft < 0 ? -s.daysLeft + (s.daysLeft === -1 ? ' zi' : ' zile') : s.daysLeft}</b></div></div>
+      <div class="card" style="margin-top:12px;background:var(--bg)"><h3>💳 Încasează / reînnoiește</h3><div class="g3" style="margin-top:10px"><div class="field"><label>Abonament</label><select class="input" id="pp">${CFG.plans.map((x) => `<option value="${x.id}" ${s.plan && s.plan.id === x.id ? 'selected' : ''}>${esc(x.name)} – ${lei(x.price)}</option>`).join('')}</select></div><div class="field"><label>Sumă</label><input class="input" id="pa" inputmode="decimal" placeholder="prețul abonamentului"></div><div class="field"><label>Metodă</label><select class="input" id="pm"><option>numerar</option><option>card</option><option>transfer</option></select></div></div>
+      <p class="muted" style="font-size:.84rem;margin:0 0 10px">${s.end && s.daysLeft >= 0 ? `Se adaugă după ${fdate(s.end, true)}, ca să nu piardă zilele rămase.` : 'Începe de azi.'}</p><p class="err" id="pe"></p><button class="btn btn-acc" id="ps">Înregistrează plata</button></div>
+      <h3 style="margin:16px 0 8px">Istoric plăți</h3><table class="tbl"><tbody>${(m.payments || []).slice().reverse().map((p) => `<tr><td>${fdate(p.date, true)}</td><td>${esc((CFG.plans.find((x) => x.id === p.planId) || {}).name || '')}</td><td><b>${lei(p.amount)}</b></td><td class="hm">${esc(p.method)}</td><td style="text-align:right"><button class="btn btn-sm btn-red" data-dp="${p.id}">Șterge</button></td></tr>`).join('') || '<tr><td class="muted">Nicio plată.</td></tr>'}</tbody></table>
+      <details style="margin-top:14px"><summary class="muted" style="cursor:pointer">Modifică manual data expirării</summary><div class="row" style="margin-top:10px;gap:8px"><input class="input" type="date" id="se" value="${s.end || ''}" style="max-width:200px"><button class="btn btn-sm" id="ses">Salvează</button></div></details>`,
+    act: () => `<div class="g3"><div class="kpi"><small>Vizite</small><b>${new Set([...(m.checkins || []), ...(m.workouts || []).map((w) => w.date)]).size}</b></div><div class="kpi"><small>Ultima vizită</small><b style="font-size:1.2rem">${m.lastActive ? fdate(m.lastActive) : '–'}</b></div><div class="kpi"><small>Serie / puncte</small><b style="font-size:1.2rem">🔥 ${m.streak} · ⭐ ${m.points.balance}</b></div></div>
+      <div class="card" style="margin-top:12px;background:var(--bg)"><h3>Greutate ${lastW ? `· ${lastW.kg} kg` : ''}${m.targetWeight ? ` <span class="chip">🎯 ${m.targetWeight} kg</span>` : ''}</h3>${lineChart(ws.slice(-20).map((w) => ({ v: w.kg, l: fdate(w.date) })), { target: m.targetWeight, h: 180, empty: 'Membrul nu și-a notat încă greutatea.' })}</div>
+      <h3 style="margin:14px 0 8px">Ultimele antrenamente</h3>${(m.workouts || []).slice(-6).reverse().map((w) => `<div class="alert"><span class="av">🏋️</span><div class="grow"><b>${esc(w.title || 'Antrenament')}</b><br><small>${fday(w.date)}${w.duration ? ` · ${w.duration} min` : ''}${w.sets && w.sets.length ? ` · ${w.sets.length} serii` : ''}</small></div></div>`).join('') || '<p class="muted">Niciun antrenament înregistrat.</p>'}
+      <h3 style="margin:14px 0 8px">Insigne</h3><div style="display:flex;gap:6px;flex-wrap:wrap">${m.badges.filter((b) => b.earned).map((b) => `<span class="chip acc">${b.icon} ${esc(b.name)}</span>`).join('') || '<span class="muted">Încă niciuna.</span>'}</div>
+      <p class="muted" style="font-size:.82rem;margin-top:14px">🔒 Pozele de progres sunt private și le vede doar membrul.</p>`,
+    plan: () => `<div class="field"><label>Program de antrenament</label><select class="input" id="pr"><option value="">–</option>${progs.map((p) => `<option value="${p.id}" ${p.id === m.programId ? 'selected' : ''}>${esc(p.name)} (${esc(p.goal)})</option>`).join('')}</select></div>
+      <div class="field"><label>Plan alimentar</label><select class="input" id="nu"><option value="">–</option>${nus.map((p) => `<option value="${p.id}" ${p.id === m.nutritionId ? 'selected' : ''}>${esc(p.name)} (${p.kcal} kcal)</option>`).join('')}</select></div>
+      <button class="btn btn-acc" id="prs">Salvează</button><p class="muted" style="font-size:.84rem;margin-top:12px">Vrei un program făcut doar pentru el? Creează-l în „Antrenamente” și alege-l aici.</p>
+      ${bookings.length ? `<h3 style="margin:16px 0 8px">Programări PT</h3>${bookings.map((b) => `<div class="alert"><div class="grow"><b>${fday(b.date)} · ${b.time}</b><br><small>${esc(b.note || '')}</small></div><span class="chip">${esc(b.status)}</span></div>`).join('')}` : ''}`,
+    info: () => `<div class="g2"><div class="field"><label>Nume</label><input class="input" id="in" value="${esc(m.name)}"></div><div class="field"><label>Telefon</label><input class="input" id="ip" value="${esc(m.phone)}"></div><div class="field"><label>Email</label><input class="input" id="ie" value="${esc(m.email || '')}"></div><div class="field"><label>Grupe (separate prin virgulă)</label><input class="input" id="it" value="${esc((m.tags || []).join(', '))}"></div><div class="field"><label>Obiectiv</label><input class="input" id="ig" value="${esc(m.goal || '')}"></div><div class="field"><label>Data nașterii</label><input class="input" type="date" id="ib" value="${esc(m.birth || '')}"></div></div>
+      <div class="field"><label>Notițe interne (nu le vede membrul)</label><textarea class="input" id="ino">${esc(m.notes || '')}</textarea></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-acc" id="is">Salvează</button><button class="btn" id="rp">🔑 Resetează parola</button><span class="grow"></span><button class="btn btn-red" id="del">Șterge membrul</button></div><p class="err" id="ier"></p>`,
+  };
+  const show = (k) => { $$('.pill-tabs button', el).forEach((b) => b.classList.toggle('on', b.dataset.t === k)); $('#mtab', el).innerHTML = T[k](); bindTab(k); };
+  const reopen = (k) => openMember(id).then(() => {}).catch(() => {}) && setTimeout(() => { const b = $(`.pill-tabs [data-t="${k}"]`); if (b) b.click(); }, 350);
+  function bindTab(k) {
+    if (k === 'sub') {
+      $('#ps', el).onclick = async () => { try { await api(`/api/admin/members/${id}/payment`, { method: 'POST', body: { planId: $('#pp', el).value, amount: $('#pa', el).value, method: $('#pm', el).value } }); toast('Plată înregistrată ✅'); confetti(); reopen('sub'); refreshPage(); } catch (e) { $('#pe', el).textContent = e.message; } };
+      $$('[data-dp]', el).forEach((b) => (b.onclick = async () => { if (!(await ask('Ștergi plata din evidență?', 'Data expirării nu se schimbă.', 'Șterge', { danger: true }))) return; await api(`/api/admin/members/${id}/payment/${b.dataset.dp}`, { method: 'DELETE', body: {} }); reopen('sub'); }));
+      $('#ses', el).onclick = async () => { await api('/api/admin/members/' + id, { method: 'PUT', body: { subEnd: $('#se', el).value } }); toast('Salvat'); reopen('sub'); refreshPage(); };
+    }
+    if (k === 'plan') $('#prs', el).onclick = async () => { await api('/api/admin/members/' + id, { method: 'PUT', body: { programId: $('#pr', el).value, nutritionId: $('#nu', el).value } }); toast('Salvat ✅'); };
+    if (k === 'info') {
+      $('#is', el).onclick = async () => { try { await api('/api/admin/members/' + id, { method: 'PUT', body: { name: $('#in', el).value, phone: $('#ip', el).value, email: $('#ie', el).value, tags: $('#it', el).value, goal: $('#ig', el).value, birth: $('#ib', el).value, notes: $('#ino', el).value } }); toast('Salvat ✅'); refreshPage(); } catch (e) { $('#ier', el).textContent = e.message; } };
+      $('#rp', el).onclick = async () => { const pw = await askText('Resetează parola', 'Parola nouă (goală = ultimele 4 cifre ale telefonului)', ''); if (pw === null) return; const r = await api('/api/admin/members/' + id, { method: 'PUT', body: { resetPassword: true, password: pw } }); sheet(`<h2>Parolă nouă</h2><div class="ok-box" style="margin:14px 0">Parola pentru <b>${esc(m.name)}</b>: <b style="font-size:1.3rem">${esc(r.password)}</b></div><a class="btn btn-acc btn-block" href="${waTo(m.phone, `Parola ta nouă pentru aplicația ${S().name}: ${r.password}`)}" target="_blank" rel="noopener">💬 Trimite-i pe WhatsApp</a>`); };
+      $('#del', el).onclick = async () => { const nm = await askText('Șterge membrul', `Scrie numele „${m.name}” ca să ștergi definitiv membrul și tot istoricul lui.`, '', true); if (nm === null) return; if (nm.trim() !== m.name) return toast('Numele nu se potrivește. Nu am șters nimic.', 'bad'); await api('/api/admin/members/' + id, { method: 'DELETE', body: {} }); closeSheet(); toast('Membru șters'); refreshPage(); };
+    }
+  }
+  $$('.pill-tabs button', el).forEach((b) => (b.onclick = () => show(b.dataset.t)));
+  show('sub'); if (focus === 'pay') setTimeout(() => $('#pa', el) && $('#pa', el).focus(), 300);
+  $('#ci', el).onclick = async () => { await api(`/api/admin/members/${id}/checkin`, { method: 'POST', body: {} }); toast('Check-in înregistrat ✅'); refreshPage(); };
+  $('#cv', el).onclick = () => { closeSheet(); chatSel = id; go('chat'); };
+  $('#msg', el).onclick = () => { const e2 = sheet(`<h2>Mesaj pentru ${esc(m.name.split(' ')[0])}</h2><div class="field" style="margin-top:12px"><label>Titlu</label><input class="input" id="t"></div><div class="field"><label>Mesaj</label><textarea class="input" id="b"></textarea></div><p class="muted" style="font-size:.84rem">${m.pushOn ? '🔔 Îl primește și ca notificare pe telefon.' : 'Îl vede în aplicație (nu are notificările pornite).'}</p><button class="btn btn-acc btn-block" id="s">Trimite</button>`); $('#s', e2).onclick = async () => { try { await api(`/api/admin/members/${id}/notify`, { method: 'POST', body: { title: $('#t', e2).value, body: $('#b', e2).value } }); closeSheet(); toast('Mesaj trimis ✅'); } catch (er) { toast(er.message, 'bad'); } }; };
+}
+const refreshPage = () => { if (page === 'members') pMembers(); if (page === 'dash') pDash(); if (page === 'payments') pPayments(); };
+
+/* ───────── PLĂȚI ───────── */
+let payMonth = null;
+async function pPayments() {
+  payMonth = payMonth || todayStr().slice(0, 7);
+  const d = await api('/api/admin/payments?month=' + payMonth), [y, mo] = payMonth.split('-').map(Number);
+  M().innerHTML = `<div class="ph"><div><h1>Plăți și restanțe</h1><p>Încasările pe lună și cine are abonamentul expirat.</p></div><div class="row" style="gap:8px"><button class="btn btn-sm" id="xp2">${IC('download', 16)} Excel</button><button class="btn btn-sm" id="pv" aria-label="Luna trecută">${IC('back', 16)}</button><b>${MONTHS_L[mo - 1]} ${y}</b><button class="btn btn-sm" id="nx" aria-label="Luna viitoare">${IC('chev', 16)}</button></div></div>
+    <div class="kpis"><div class="kpi hl"><small>Total încasat</small><b>${lei(d.total)}</b><span class="d">${d.payments.length} plăți</span></div>${Object.entries(d.byMethod).map(([k, v]) => `<div class="kpi"><small>${esc(k)}</small><b>${lei(v)}</b></div>`).join('')}<div class="kpi"><small>Restanțe</small><b style="color:var(--red)">${d.unpaid.length}</b><span class="d">abonamente expirate</span></div></div>
+    <div class="cols"><div class="card" style="padding:0;overflow:auto"><table class="tbl"><thead><tr><th>Data</th><th>Membru</th><th class="hm">Abonament</th><th>Sumă</th><th class="hm">Metodă</th></tr></thead><tbody>${d.payments.map((p) => `<tr class="click" data-id="${p.memberId}"><td>${fdate(p.date)}</td><td><b>${esc(p.name)}</b></td><td class="hm">${esc(p.plan || '')}</td><td><b>${lei(p.amount)}</b></td><td class="hm">${esc(p.method)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted" style="padding:20px">Nicio plată în luna asta.</td></tr>'}</tbody></table></div>
+    <div class="card"><h3>Restanțe <span class="chip bad">${d.unpaid.length}</span></h3><p class="muted" style="font-size:.84rem;margin:4px 0 8px">Abonament expirat, nereînnoit</p>${d.unpaid.map((r) => `<div class="alert"><span class="av">${esc(ini(r.name))}</span><div class="grow"><b>${esc(r.name)}</b><br><small>expirat de ${-r.daysLeft} ${-r.daysLeft === 1 ? 'zi' : 'zile'} · ${esc(r.plan)}</small></div><a class="btn btn-sm" href="${waTo(r.phone, `Bună, ${r.name.split(' ')[0]}! Abonamentul tău la ${S().name} a expirat pe ${fdate(r.end, true)}. Te așteptăm să-l reînnoiești! 💪`)}" target="_blank" rel="noopener">${IC('chat', 16)}</a><button class="btn btn-sm btn-acc" data-pay="${r.id}">Încasează</button></div>`).join('') || '<p class="muted">Nicio restanță. 👌</p>'}</div></div>`;
+  const shift = (k) => { const x = new Date(y, mo - 1 + k, 1); payMonth = `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}`; pPayments(); };
+  $('#pv').onclick = () => shift(-1); $('#nx').onclick = () => shift(1); $('#xp2').onclick = () => exportPayments(payMonth);
+  $$('tr[data-id]').forEach((tr) => (tr.onclick = () => openMember(tr.dataset.id)));
+  $$('[data-pay]').forEach((b) => (b.onclick = () => openMember(b.dataset.pay, 'pay')));
+}
+
+/* ───────── NOTIFICĂRI ───────── */
+async function pNotify() {
+  const d = await api('/api/admin/notify'), mem = (await api('/api/admin/members')).members;
+  const T = [['Program modificat 🕐', 'Mâine sala are program special: 10:00 – 18:00. Mulțumim pentru înțelegere!'], ['Ofertă specială 🏷️', 'Doar săptămâna asta: abonament pe 3 luni cu 10% reducere. Întreabă la recepție!'], ['Ne e dor de tine! 💪', 'Nu te-am mai văzut de câteva zile. Revino azi, chiar și pentru 30 de minute!'], ['Abonamentul expiră ⏳', 'Abonamentul tău expiră în curând. Reînnoiește la recepție ca să nu pierzi seria!'], ['Eveniment la sală 🎉', 'Sâmbătă organizăm un antrenament de grup gratuit. Vino cu un prieten!']];
+  M().innerHTML = `<div class="ph"><div><h1>Notificări</h1><p>Mesajul apare în aplicație. Cei cu notificările pornite îl primesc și pe ecranul telefonului.</p></div></div>
+    <div class="cols"><div class="card"><h3>Mesaj nou</h3>
+      <div class="field" style="margin-top:12px"><label>Către</label><select class="input" id="tg"><option value="all">Toți membrii (${d.counts.all})</option><option value="active">Cu abonament activ (${d.counts.active})</option><option value="expiring">Abonament care expiră în 3 zile (${d.counts.expiring})</option><option value="expired">Abonament expirat (${d.counts.expired})</option><option value="inactive">N-au mai venit de 7+ zile (${d.counts.inactive})</option>${d.tags.map((t) => `<option value="tag:${esc(t)}">Grupa „${esc(t)}”</option>`).join('')}<option value="ids">Aleg eu membrii…</option></select></div>
+      <div class="field hide" id="pick"><label>Membri</label><select class="input" id="ids" multiple size="8">${mem.map((x) => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select><small class="muted">Ține apăsat Ctrl/Cmd ca să alegi mai mulți.</small></div>
+      <div class="field"><label>Titlu</label><input class="input" id="nt" maxlength="80"></div><div class="field"><label>Mesaj</label><textarea class="input" id="nb" maxlength="500"></textarea></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${T.map((x, i) => `<button class="btn btn-sm" data-tpl="${i}">${esc(x[0])}</button>`).join('')}</div>
+      <p class="err" id="ne"></p><button class="btn btn-acc" id="ns">🔔 Trimite</button></div>
+      <div class="card"><h3>Trimise</h3>${d.sent.map((x) => `<div class="alert"><div class="grow"><b>${esc(x.title)}</b><br><small>${esc(x.body.slice(0, 90))}${x.body.length > 90 ? '…' : ''}</small><br><small>${new Date(x.at).toLocaleString('ro-RO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${x.count} membri${x.pushed ? ` · ${x.pushed} pe telefon` : ''}</small></div></div>`).join('') || '<p class="muted">Nimic trimis încă.</p>'}
+      <div class="tip" style="margin-top:14px">💡 Automat, fără să faci nimic: motivația zilei la ora ${S().dailyHour}:00 și reamintiri cu 3 zile înainte de expirarea abonamentului.</div></div></div>`;
+  $('#tg').onchange = () => $('#pick').classList.toggle('hide', $('#tg').value !== 'ids');
+  $$('[data-tpl]').forEach((b) => (b.onclick = () => { const x = T[+b.dataset.tpl]; $('#nt').value = x[0]; $('#nb').value = x[1]; }));
+  $('#ns').onclick = async () => { $('#ne').textContent = ''; try { const r = await api('/api/admin/notify', { method: 'POST', body: { title: $('#nt').value, body: $('#nb').value, target: $('#tg').value, ids: [...$('#ids').selectedOptions].map((o) => o.value) } }); toast(`Trimis la ${r.count} membri ✅`); confetti(); pNotify(); } catch (e) { $('#ne').textContent = e.message; } };
+}
+
+/* ───────── MOTIVAȚIA ZILEI ───────── */
+async function pDaily() {
+  const d = await api('/api/admin/daily?days=45');
+  M().innerHTML = `<div class="ph"><div><h1>Motivația zilei</h1><p>Citatul și provocarea pe care le văd membrii în fiecare zi. Zilele nepersonalizate se completează automat din bibliotecă (${d.library} mesaje).</p></div><div class="row" style="gap:8px"><button class="btn" id="lib">+ Adaugă în bibliotecă</button><button class="btn btn-acc" id="fill">Programează 30 de zile</button></div></div>
+    <div class="card">${d.days.map((x) => `<div class="dayrow"><div><b style="text-transform:capitalize">${esc(fday(x.date))}</b><br>${x.custom ? '<span class="chip acc">programat</span>' : '<span class="chip">automat</span>'}</div><div class="q">„${esc(x.quote)}”<br><small class="muted">— ${esc(x.author || 'Anonim')}</small></div><div>🎯 ${esc(x.challenge)}</div><div class="row" style="gap:6px"><button class="btn btn-sm" data-ed="${x.date}">Editează</button>${x.custom ? `<button class="btn btn-sm" data-rs="${x.date}" title="Revino la automat">↺</button>` : ''}</div></div>`).join('')}</div>`;
+  $('#fill').onclick = async () => { const r = await api('/api/admin/daily/fill', { method: 'POST', body: { days: 30 } }); toast(`${r.made} zile programate ✅`); pDaily(); };
+  $$('[data-rs]').forEach((b) => (b.onclick = async () => { await api('/api/admin/daily/' + b.dataset.rs, { method: 'DELETE', body: {} }); pDaily(); }));
+  const form = (title, x, save) => { const el = sheet(`<h2>${title}</h2><div class="field" style="margin-top:12px"><label>Citat motivațional</label><textarea class="input" id="q">${esc(x.quote || '')}</textarea></div><div class="field"><label>Autor</label><input class="input" id="a" value="${esc(x.author || '')}"></div><div class="field"><label>Provocarea zilei</label><input class="input" id="c" value="${esc(x.challenge || '')}" placeholder="ex: Fă 50 de genuflexiuni"></div><p class="err" id="e"></p><button class="btn btn-acc btn-block" id="s">Salvează</button>`); $('#s', el).onclick = async () => { try { await save({ quote: $('#q', el).value, author: $('#a', el).value, challenge: $('#c', el).value }); closeSheet(); toast('Salvat ✅'); pDaily(); } catch (e) { $('#e', el).textContent = e.message; } }; };
+  $$('[data-ed]').forEach((b) => (b.onclick = () => { const x = d.days.find((y) => y.date === b.dataset.ed); form(fday(x.date), x, (body) => api('/api/admin/daily/' + x.date, { method: 'PUT', body })); }));
+  $('#lib').onclick = () => form('Mesaj nou în bibliotecă', {}, (body) => api('/api/admin/daily/lib', { method: 'POST', body }));
+}
+
+/* ───────── ANTRENAMENTE ───────── */
+let progTab = 'programs';
+async function pPrograms() {
+  const { programs } = await api('/api/admin/programs'), { exercises } = await api('/api/admin/exercises');
+  M().innerHTML = `<div class="ph"><div><h1>Antrenamente</h1><p>Programele și exercițiile pe care le văd membrii, cu explicații și video.</p></div><button class="btn btn-acc" id="add">+ ${progTab === 'programs' ? 'Program nou' : 'Exercițiu nou'}</button></div>
+    <div class="pill-tabs"><button data-t="programs" class="${progTab === 'programs' ? 'on' : ''}">Programe (${programs.length})</button><button data-t="ex" class="${progTab === 'ex' ? 'on' : ''}">Exerciții (${exercises.length})</button></div>
+    <div class="list">${progTab === 'programs' ? programs.map((p) => `<div class="card row"><span class="ico">🏋️</span><div class="grow"><b>${esc(p.name)}</b><div class="muted" style="font-size:.86rem">${esc(p.goal)} · ${esc(p.level)} · ${p.days.length} zile · ${p.days.reduce((a, d) => a + d.items.length, 0)} exerciții</div></div><button class="btn btn-sm" data-ep="${p.id}">Editează</button></div>`).join('') : exercises.map((e) => `<div class="card row" style="padding:12px 16px"><div class="grow"><b>${esc(e.name)}</b><div class="muted" style="font-size:.84rem">${esc(e.muscle)} · ${esc(e.equipment)} · ${e.steps.length} pași</div></div><a class="btn btn-sm" href="${esc(e.video)}" target="_blank" rel="noopener">▶</a><button class="btn btn-sm" data-ee="${e.id}">Editează</button></div>`).join('')}</div>`;
+  $$('.pill-tabs [data-t]').forEach((b) => (b.onclick = () => { progTab = b.dataset.t; pPrograms(); }));
+  $('#add').onclick = () => (progTab === 'programs' ? editProgram(null, exercises) : editExercise(null));
+  $$('[data-ep]').forEach((b) => (b.onclick = () => editProgram(programs.find((p) => p.id === b.dataset.ep), exercises)));
+  $$('[data-ee]').forEach((b) => (b.onclick = () => editExercise(exercises.find((e) => e.id === b.dataset.ee))));
+}
+function editProgram(p, exercises) {
+  const P = p ? JSON.parse(JSON.stringify(p)) : { name: '', goal: '', level: 'mediu', desc: '', days: [{ name: 'Ziua 1', items: [] }] };
+  const el = sheet('', { wide: true });
+  const opt = (sel) => exercises.map((e) => `<option value="${e.id}" ${e.id === sel ? 'selected' : ''}>${esc(e.name)}</option>`).join('');
+  const draw = () => {
+    el.innerHTML = `<h2>${p ? 'Editează programul' : 'Program nou'}</h2><div class="g3" style="margin-top:12px"><div class="field"><label>Nume</label><input class="input" data-k="name" value="${esc(P.name)}"></div><div class="field"><label>Obiectiv</label><input class="input" data-k="goal" value="${esc(P.goal)}"></div><div class="field"><label>Nivel</label><select class="input" data-k="level">${['ușor', 'mediu', 'greu'].map((l) => `<option ${l === P.level ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
+      <div class="field"><label>Descriere</label><textarea class="input" data-k="desc">${esc(P.desc)}</textarea></div>
+      ${P.days.map((d, i) => `<div class="card" style="background:var(--bg);margin-bottom:10px"><div class="row" style="margin-bottom:10px"><input class="input" data-day="${i}" value="${esc(d.name)}" style="font-weight:800"><button class="btn btn-sm btn-red" data-rd="${i}">Șterge ziua</button></div>
+        <div class="ed-item muted" style="font-size:.72rem;font-weight:800"><span>EXERCIȚIU</span><span>SERII</span><span>REPETĂRI</span><span>KG</span><span>PAUZĂ s</span><span></span></div>
+        ${d.items.map((it, j) => `<div class="ed-item"><select class="input" data-i="${i}.${j}.ex">${opt(it.ex)}</select><input class="input" data-i="${i}.${j}.sets" value="${it.sets}"><input class="input" data-i="${i}.${j}.reps" value="${esc(it.reps)}"><input class="input" data-i="${i}.${j}.kg" value="${it.kg}"><input class="input" data-i="${i}.${j}.rest" value="${it.rest}"><button class="btn btn-sm" data-ri="${i}.${j}">✕</button></div>`).join('')}
+        <button class="btn btn-sm" data-ai="${i}">+ Exercițiu</button></div>`).join('')}
+      <button class="btn btn-ghost btn-sm" id="ad">+ Zi nouă</button><p class="err" id="e"></p>
+      <div class="row" style="gap:8px"><button class="btn btn-acc" id="s">Salvează programul</button><span class="grow"></span>${p ? '<button class="btn btn-red" id="del">Șterge programul</button>' : ''}</div>`;
+    $$('[data-k]', el).forEach((x) => (x.oninput = () => (P[x.dataset.k] = x.value)));
+    $$('[data-day]', el).forEach((x) => (x.oninput = () => (P.days[x.dataset.day].name = x.value)));
+    $$('[data-i]', el).forEach((x) => (x.oninput = x.onchange = () => { const [i, j, k] = x.dataset.i.split('.'); P.days[i].items[j][k] = x.value; }));
+    $$('[data-rd]', el).forEach((b) => (b.onclick = () => { P.days.splice(+b.dataset.rd, 1); draw(); }));
+    $$('[data-ri]', el).forEach((b) => (b.onclick = () => { const [i, j] = b.dataset.ri.split('.'); P.days[i].items.splice(+j, 1); draw(); }));
+    $$('[data-ai]', el).forEach((b) => (b.onclick = () => { P.days[+b.dataset.ai].items.push({ ex: exercises[0].id, sets: 3, reps: '10', kg: 0, rest: 90 }); draw(); }));
+    $('#ad', el).onclick = () => { P.days.push({ name: `Ziua ${P.days.length + 1}`, items: [] }); draw(); };
+    $('#s', el).onclick = async () => { try { await api('/api/admin/programs' + (p ? '/' + p.id : ''), { method: p ? 'PUT' : 'POST', body: P }); closeSheet(); toast('Program salvat ✅'); pPrograms(); } catch (e) { $('#e', el).textContent = e.message; } };
+    if ($('#del', el)) $('#del', el).onclick = async () => { if (!(await ask('Ștergi programul?', 'Membrii care îl folosesc vor trebui să aleagă altul.', 'Șterge', { danger: true }))) return; await api('/api/admin/programs/' + p.id, { method: 'DELETE', body: {} }); closeSheet(); pPrograms(); };
+  };
+  draw();
+}
+function editExercise(e) {
+  const x = e || { name: '', muscle: '', equipment: '', level: 'ușor', steps: [], tip: '', video: '' };
+  const el = sheet(`<h2>${e ? 'Editează exercițiul' : 'Exercițiu nou'}</h2><div class="g3" style="margin-top:12px"><div class="field"><label>Nume</label><input class="input" id="n" value="${esc(x.name)}"></div><div class="field"><label>Grupă musculară</label><input class="input" id="m" value="${esc(x.muscle)}" list="ml"><datalist id="ml">${['Picioare', 'Fesieri', 'Piept', 'Spate', 'Umeri', 'Brațe', 'Abdomen', 'Cardio'].map((y) => `<option>${y}</option>`).join('')}</datalist></div><div class="field"><label>Echipament</label><input class="input" id="q" value="${esc(x.equipment)}"></div></div>
+    <div class="field"><label>Pașii (câte unul pe rând)</label><textarea class="input" id="st" style="min-height:140px">${esc((x.steps || []).join('\n'))}</textarea></div><div class="field"><label>Sfat / greșeli de evitat</label><input class="input" id="t" value="${esc(x.tip || '')}"></div>
+    <div class="field"><label>Link video (YouTube) – gol = căutare automată</label><input class="input" id="v" value="${esc(x.video && !/results\?search_query/.test(x.video) ? x.video : '')}" placeholder="https://www.youtube.com/watch?v=…"></div><p class="err" id="e"></p>
+    <div class="row" style="gap:8px"><button class="btn btn-acc" id="s">Salvează</button><span class="grow"></span>${e ? '<button class="btn btn-red" id="del">Șterge</button>' : ''}</div>`, { wide: true });
+  $('#s', el).onclick = async () => { try { await api('/api/admin/exercises' + (e ? '/' + e.id : ''), { method: e ? 'PUT' : 'POST', body: { name: $('#n', el).value, muscle: $('#m', el).value, equipment: $('#q', el).value, level: x.level, steps: $('#st', el).value, tip: $('#t', el).value, video: $('#v', el).value } }); closeSheet(); toast('Salvat ✅'); pPrograms(); } catch (er) { $('#e', el).textContent = er.message; } };
+  if ($('#del', el)) $('#del', el).onclick = async () => { if (!(await ask('Ștergi exercițiul?', '', 'Șterge', { danger: true }))) return; await api('/api/admin/exercises/' + e.id, { method: 'DELETE', body: {} }); closeSheet(); pPrograms(); };
+}
+
+/* ───────── NUTRIȚIE ───────── */
+async function pNutrition() {
+  const { nutrition } = await api('/api/admin/nutrition');
+  M().innerHTML = `<div class="ph"><div><h1>Nutriție</h1><p>Planurile alimentare din aplicație. Caloriile și macronutrienții se calculează din mese.</p></div><button class="btn btn-acc" id="add">+ Plan nou</button></div>
+    <div class="list">${nutrition.map((n) => `<div class="card row"><span class="ico">🥗</span><div class="grow"><b>${esc(n.name)}</b><div class="muted" style="font-size:.86rem">${esc(n.goal)} · ${n.kcal} kcal · P ${n.p} g · C ${n.c} g · G ${n.f} g · ${n.meals.length} mese</div></div><button class="btn btn-sm" data-en="${n.id}">Editează</button></div>`).join('')}</div>`;
+  $('#add').onclick = () => editNutrition(null);
+  $$('[data-en]').forEach((b) => (b.onclick = () => editNutrition(nutrition.find((n) => n.id === b.dataset.en))));
+}
+function editNutrition(n) {
+  const N = n ? JSON.parse(JSON.stringify(n)) : { name: '', goal: '', desc: '', meals: [{ name: 'Mic dejun', time: '08:00', items: '', kcal: 0, p: 0, c: 0, f: 0 }] };
+  const el = sheet('', { wide: true });
+  const draw = () => {
+    el.innerHTML = `<h2>${n ? 'Editează planul' : 'Plan nou'}</h2><div class="g2" style="margin-top:12px"><div class="field"><label>Nume</label><input class="input" data-k="name" value="${esc(N.name)}"></div><div class="field"><label>Obiectiv</label><input class="input" data-k="goal" value="${esc(N.goal)}"></div></div><div class="field"><label>Descriere</label><textarea class="input" data-k="desc">${esc(N.desc || '')}</textarea></div>
+      <div class="ed-meal muted" style="font-size:.72rem;font-weight:800"><span>MASA</span><span>ORA</span><span>CE CONȚINE</span><span>KCAL</span><span>P</span><span>C</span><span>G</span><span></span></div>
+      ${N.meals.map((m, i) => `<div class="ed-meal">${['name', 'time', 'items', 'kcal', 'p', 'c', 'f'].map((k) => `<input class="input" data-m="${i}.${k}" value="${esc(m[k])}">`).join('')}<button class="btn btn-sm" data-rm="${i}">✕</button></div>`).join('')}
+      <button class="btn btn-sm" id="am">+ Masă</button><p class="err" id="e"></p><div class="row" style="gap:8px;margin-top:10px"><button class="btn btn-acc" id="s">Salvează</button><span class="grow"></span>${n ? '<button class="btn btn-red" id="del">Șterge</button>' : ''}</div>`;
+    $$('[data-k]', el).forEach((x) => (x.oninput = () => (N[x.dataset.k] = x.value)));
+    $$('[data-m]', el).forEach((x) => (x.oninput = () => { const [i, k] = x.dataset.m.split('.'); N.meals[i][k] = x.value; }));
+    $$('[data-rm]', el).forEach((b) => (b.onclick = () => { N.meals.splice(+b.dataset.rm, 1); draw(); }));
+    $('#am', el).onclick = () => { N.meals.push({ name: 'Gustare', time: '', items: '', kcal: 0, p: 0, c: 0, f: 0 }); draw(); };
+    $('#s', el).onclick = async () => { try { await api('/api/admin/nutrition' + (n ? '/' + n.id : ''), { method: n ? 'PUT' : 'POST', body: N }); closeSheet(); toast('Salvat ✅'); pNutrition(); } catch (e) { $('#e', el).textContent = e.message; } };
+    if ($('#del', el)) $('#del', el).onclick = async () => { if (!(await ask('Ștergi planul?', '', 'Șterge', { danger: true }))) return; await api('/api/admin/nutrition/' + n.id, { method: 'DELETE', body: {} }); closeSheet(); pNutrition(); };
+  };
+  draw();
+}
+
+/* ───────── LISTE SIMPLE (servicii, anunțuri, premii, abonamente) ───────── */
+function simpleForm(title, fields, x, path, after) {
+  const el = sheet(`<h2>${title}</h2><div style="margin-top:12px">${fields.map(([k, l, type, opts]) => type === 'textarea' ? `<div class="field"><label>${l}</label><textarea class="input" data-k="${k}">${esc(x[k] || '')}</textarea></div>` : type === 'select' ? `<div class="field"><label>${l}</label><select class="input" data-k="${k}">${opts.map(([v, t]) => `<option value="${v}" ${x[k] === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>` : type === 'check' ? `<label class="row" style="margin-bottom:12px;gap:10px;cursor:pointer"><input type="checkbox" data-k="${k}" ${x[k] ? 'checked' : ''} style="width:20px;height:20px">${l}</label>` : `<div class="field"><label>${l}</label><input class="input" data-k="${k}" type="${type || 'text'}" value="${esc(x[k] == null ? '' : x[k])}"></div>`).join('')}</div>
+    <p class="err" id="e"></p><div class="row" style="gap:8px"><button class="btn btn-acc" id="s">Salvează</button><span class="grow"></span>${x.id ? '<button class="btn btn-red" id="del">Șterge</button>' : ''}</div>`);
+  $('#s', el).onclick = async () => { const body = {}; $$('[data-k]', el).forEach((i) => (body[i.dataset.k] = i.type === 'checkbox' ? i.checked : i.value)); try { await api(path + (x.id ? '/' + x.id : ''), { method: x.id ? 'PUT' : 'POST', body }); closeSheet(); toast('Salvat ✅'); after(); } catch (e) { $('#e', el).textContent = e.message; } };
+  if ($('#del', el)) $('#del', el).onclick = async () => { if (!(await ask('Ștergi?', '', 'Șterge', { danger: true }))) return; await api(path + '/' + x.id, { method: 'DELETE', body: {} }); closeSheet(); after(); };
+}
+let ptWeek = 0;
+async function pPT() {
+  const { bookings } = await api('/api/admin/bookings'), { services } = await api('/api/admin/services');
+  const st = { pending: '<span class="chip warn">Așteaptă</span>', confirmed: '<span class="chip ok">Confirmat</span>', done: '<span class="chip">Făcut</span>', anulat: '<span class="chip bad">Anulat</span>' };
+  const mon = GymCore.add(todayStr(), -((new Date().getDay() + 6) % 7) + 7 * ptWeek), days = Array.from({ length: 7 }, (_, i) => GymCore.add(mon, i));
+  M().innerHTML = `<div class="ph"><div><h1>Antrenor personal</h1><p>Cereri de antrenament personal din aplicație și serviciile oferite.</p></div><button class="btn btn-acc" id="add">+ Serviciu nou</button></div>
+    <div class="card"><div class="row" style="margin-bottom:12px"><h3 class="grow">Calendarul săptămânii</h3><button class="btn btn-sm" id="wp" aria-label="Săptămâna trecută">${IC('back', 16)}</button><b style="min-width:140px;text-align:center">${fdate(days[0])} – ${fdate(days[6])}</b><button class="btn btn-sm" id="wn" aria-label="Săptămâna viitoare">${IC('chev', 16)}</button></div>
+      <div class="wk">${days.map((d) => `<div class="dcol ${d === todayStr() ? 'td' : ''}"><div class="dh">${esc(fday(d))}</div>${bookings.filter((b) => b.date === d && b.status !== 'anulat').sort((a, b) => a.time.localeCompare(b.time)).map((b) => `<div class="bk ${b.status}" data-bk="${b.id}"><b>${b.time}</b> ${esc(String(b.member || '').split(' ')[0])}<br><span class="muted">${esc(b.service || '')}</span></div>`).join('') || '<small class="muted">liber</small>'}</div>`).join('')}</div>
+      <div class="row muted small" style="gap:14px;margin-top:10px;flex-wrap:wrap"><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--amber)"></i> așteaptă confirmare</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--green)"></i> confirmat</span></div></div>
+    <div class="cols"><div class="card"><h3>Programări</h3>${bookings.map((b) => `<div class="alert"><span class="av">${esc(ini(b.member))}</span><div class="grow"><b>${esc(b.member || '?')}</b> · ${esc(b.service || '')}<br><small>${esc(fday(b.date))} la ${b.time}${b.note ? ' · „' + esc(b.note) + '”' : ''}</small></div>${st[b.status] || ''}${b.status === 'pending' ? `<button class="btn btn-sm btn-acc" data-s="confirmed" data-b="${b.id}">Confirmă</button><button class="btn btn-sm btn-red" data-s="anulat" data-b="${b.id}">Refuză</button>` : b.status === 'confirmed' ? `<button class="btn btn-sm" data-s="done" data-b="${b.id}">✓ Făcut</button>` : ''}<a class="btn btn-sm" href="${waTo(b.phone || '', `Bună, ${String(b.member || '').split(' ')[0]}! În legătură cu antrenamentul din ${fdate(b.date)} la ${b.time}: `)}" target="_blank" rel="noopener">${IC('chat', 16)}</a></div>`).join('') || '<p class="muted">Nicio programare încă.</p>'}</div>
+    <div class="card"><h3>Servicii</h3>${services.map((s) => `<div class="alert"><div class="grow"><b>${esc(s.name)}</b><br><small>${lei(s.price)} · ${s.duration} min</small></div><button class="btn btn-sm" data-sv="${s.id}">Editează</button></div>`).join('')}</div></div>`;
+  $('#wp').onclick = () => { ptWeek--; pPT(); }; $('#wn').onclick = () => { ptWeek++; pPT(); };
+  $$('[data-bk]').forEach((x) => (x.onclick = () => { const b = bookings.find((y) => y.id === x.dataset.bk); const el = sheet(`<h2>${esc(b.member || '')}</h2><p class="muted">${esc(b.service || '')} · ${esc(fday(b.date))} la ${b.time}</p>${b.note ? `<div class="tip">„${esc(b.note)}”</div>` : ''}<div class="row" style="gap:8px;margin-top:16px;flex-wrap:wrap">${b.status === 'pending' ? `<button class="btn btn-acc" data-s2="confirmed">Confirmă</button><button class="btn btn-red" data-s2="anulat">Refuză</button>` : ''}${b.status === 'confirmed' ? `<button class="btn" data-s2="done">Marchează făcut</button><button class="btn btn-red" data-s2="anulat">Anulează</button>` : ''}<a class="btn" href="${waTo(b.phone || '', `Bună, ${String(b.member || '').split(' ')[0]}! `)}" target="_blank" rel="noopener">${IC('chat', 16)} WhatsApp</a></div>`); $$('[data-s2]', el).forEach((y) => (y.onclick = async () => { await api('/api/admin/bookings/' + b.id, { method: 'PUT', body: { status: y.dataset.s2 } }); closeSheet(); toast('Salvat. Membrul a primit notificare.'); pPT(); })); }));
+  $$('[data-b]').forEach((b) => (b.onclick = async () => { await api('/api/admin/bookings/' + b.dataset.b, { method: 'PUT', body: { status: b.dataset.s } }); toast('Salvat — membrul a primit notificare'); pPT(); }));
+  const F = [['name', 'Nume'], ['price', 'Preț (lei)', 'number'], ['duration', 'Durată (minute)', 'number'], ['desc', 'Descriere']];
+  $('#add').onclick = () => simpleForm('Serviciu nou', F, {}, '/api/admin/services', pPT);
+  $$('[data-sv]').forEach((b) => (b.onclick = () => simpleForm('Editează serviciul', F, services.find((s) => s.id === b.dataset.sv), '/api/admin/services', pPT)));
+}
+async function pAnn() {
+  const { announcements } = await api('/api/admin/announcements');
+  const F = [['title', 'Titlu'], ['type', 'Tip', 'select', [['noutate', '📣 Noutate'], ['program', '🕐 Program'], ['oferta', '🏷️ Ofertă'], ['eveniment', '🎉 Eveniment']]], ['body', 'Text', 'textarea'], ['until', 'Vizibil până la (opțional)', 'date'], ['pinned', '📌 Fixat sus (important)', 'check'], ['notify', '🔔 Trimite și ca notificare membrilor activi', 'check']];
+  M().innerHTML = `<div class="ph"><div><h1>Anunțuri</h1><p>Program, noutăți, oferte și evenimente. Apar pe prima pagină a aplicației.</p></div><button class="btn btn-acc" id="add">+ Anunț nou</button></div>
+    <div class="list">${announcements.slice().sort((a, b) => b.date.localeCompare(a.date)).map((a) => `<div class="card row"><div class="grow"><b>${esc(a.title)}</b> ${a.pinned ? '<span class="chip acc">📌</span>' : ''} <span class="chip">${esc(a.type)}</span><div class="muted" style="font-size:.88rem;margin-top:4px">${esc(a.body)}</div><small class="muted">${fdate(a.date, true)}${a.until ? ' · până pe ' + fdate(a.until, true) : ''}</small></div><button class="btn btn-sm" data-a="${a.id}">Editează</button></div>`).join('') || '<p class="muted">Niciun anunț.</p>'}</div>`;
+  $('#add').onclick = () => simpleForm('Anunț nou', F, { type: 'noutate' }, '/api/admin/announcements', pAnn);
+  $$('[data-a]').forEach((b) => (b.onclick = () => simpleForm('Editează anunțul', F.filter((f) => f[0] !== 'notify'), announcements.find((a) => a.id === b.dataset.a), '/api/admin/announcements', pAnn)));
+}
+async function pRewards() {
+  const { rewards } = await api('/api/admin/rewards'); O = await api('/api/admin/overview');
+  const F = [['name', 'Premiu'], ['points', 'Puncte necesare', 'number'], ['desc', 'Descriere']];
+  M().innerHTML = `<div class="ph"><div><h1>Premii pentru consecvență</h1><p>Membrii strâng puncte: antrenament +10, check-in +5, provocarea zilei +5, insignă +50.</p></div><button class="btn btn-acc" id="add">+ Premiu nou</button></div>
+    <div class="cols"><div class="card"><h3>De acordat</h3>${O.redemptions.map((r) => `<div class="alert"><span class="av">🎁</span><div class="grow"><b>${esc(r.member)}</b><br><small>${esc(r.name)} · ${r.points} puncte · ${fdate(r.at)}</small></div><button class="btn btn-sm btn-acc" data-r="${r.id}" data-s="acordat">✓ Acordat</button><button class="btn btn-sm btn-red" data-r="${r.id}" data-s="refuzat">Refuză</button></div>`).join('') || '<p class="muted">Nicio cerere.</p>'}</div>
+    <div class="card"><h3>Premii disponibile</h3>${rewards.map((r) => `<div class="alert"><div class="grow"><b>${esc(r.name)}</b><br><small>${r.points} puncte · ${esc(r.desc || '')}</small></div><button class="btn btn-sm" data-rw="${r.id}">Editează</button></div>`).join('')}</div></div>`;
+  $$('[data-r]').forEach((b) => (b.onclick = async () => { await api('/api/admin/redemptions/' + b.dataset.r, { method: 'PUT', body: { status: b.dataset.s } }); pRewards(); }));
+  $('#add').onclick = () => simpleForm('Premiu nou', F, {}, '/api/admin/rewards', pRewards);
+  $$('[data-rw]').forEach((b) => (b.onclick = () => simpleForm('Editează premiul', F, rewards.find((r) => r.id === b.dataset.rw), '/api/admin/rewards', pRewards)));
+}
+
+/* ───────── SETĂRI ───────── */
+async function pSettings() {
+  O = await api('/api/admin/overview'); const st = O.settings, { plans } = await api('/api/admin/plans');
+  M().innerHTML = `<div class="ph"><div><h1>Setări</h1><p>Datele sălii, abonamentele și culorile aplicației.</p></div></div>
+    <div class="cols"><div class="card"><h3>Sala</h3><div class="g2" style="margin-top:12px">${[['name', 'Numele sălii'], ['tagline', 'Slogan'], ['phone', 'Telefon'], ['whatsapp', 'WhatsApp (număr)'], ['email', 'Email'], ['address', 'Adresă'], ['mapsUrl', 'Link Google Maps'], ['instagram', 'Link Instagram'], ['facebook', 'Link Facebook']].map(([k, l]) => `<div class="field"><label>${l}</label><input class="input" data-k="${k}" value="${esc(st[k] || '')}"></div>`).join('')}
+      <div class="field"><label>Culoarea aplicației</label><input class="input" type="color" data-k="accent" value="${esc(st.accent)}" style="height:48px;padding:4px"></div><div class="field"><label>Ora motivației zilnice</label><select class="input" data-k="dailyHour">${Array.from({ length: 16 }, (_, i) => i + 6).map((h) => `<option value="${h}" ${h === st.dailyHour ? 'selected' : ''}>${h}:00</option>`).join('')}</select></div></div>
+      <h3 style="margin:10px 0">Program</h3><div id="hrs">${st.hours.map((h) => `<div class="g2 hr"><input class="input" value="${esc(h.d)}" style="margin-bottom:8px"><input class="input" value="${esc(h.h)}" style="margin-bottom:8px"></div>`).join('')}</div><button class="btn btn-sm" id="ah">+ Rând</button>
+      <p class="err" id="e"></p><button class="btn btn-acc" id="s" style="margin-top:10px">Salvează</button></div>
+    <div><div class="card"><div class="row"><h3 class="grow">Abonamente și prețuri</h3><button class="btn btn-sm btn-acc" id="ap">+ Abonament</button></div>${plans.map((p) => `<div class="alert"><div class="grow"><b>${esc(p.name)}</b> ${p.active ? '' : '<span class="chip">ascuns</span>'}<br><small>${lei(p.price)} · ${p.days} ${p.days === 1 ? 'zi' : 'zile'} · ${esc(p.desc || '')}</small></div><button class="btn btn-sm" data-plan="${p.id}">Editează</button></div>`).join('')}</div>
+      <div class="card" style="margin-top:14px"><h3>Parola de administrator</h3><div class="field" style="margin-top:10px"><label>Parola actuală</label><input class="input" type="password" id="po"></div><div class="field"><label>Parola nouă</label><input class="input" type="password" id="pn"></div><button class="btn" id="pc">Schimbă parola</button></div>
+      <div class="card" style="margin-top:14px"><h3>Linkuri</h3><p class="muted" style="font-size:.88rem">Aplicația membrilor: <b>${esc(new URL('app.html', location.href).href)}</b><br>Panoul de administrare: <b>${esc(new URL('admin.html', location.href).href)}</b><br>Politica de confidențialitate: <a href="confidentialitate.html" target="_blank" rel="noopener" class="acc">confidentialitate.html</a></p></div></div></div>`;
+  $('#ah').onclick = () => $('#hrs').insertAdjacentHTML('beforeend', '<div class="g2 hr"><input class="input" placeholder="ex: Sâmbătă" style="margin-bottom:8px"><input class="input" placeholder="ex: 09:00 – 18:00" style="margin-bottom:8px"></div>');
+  $('#s').onclick = async () => { const body = {}; $$('[data-k]').forEach((i) => (body[i.dataset.k] = i.value)); body.hours = $$('.hr').map((r) => { const [a, b] = $$('input', r); return { d: a.value, h: b.value }; }).filter((h) => h.d); try { await api('/api/admin/settings', { method: 'PUT', body }); CFG = await api('/api/config'); applyAccent(CFG.settings.accent); $('#gn').textContent = CFG.settings.name; toast('Salvat ✅'); } catch (er) { $('#e').textContent = er.message; } };
+  const F = [['name', 'Nume'], ['price', 'Preț (lei)', 'number'], ['days', 'Valabilitate (zile)', 'number'], ['desc', 'Descriere'], ['active', 'Vizibil în aplicație', 'check']];
+  const after = async () => { CFG = await api('/api/config'); pSettings(); };
+  $('#ap').onclick = () => simpleForm('Abonament nou', F, { active: true }, '/api/admin/plans', after);
+  $$('[data-plan]').forEach((b) => (b.onclick = () => simpleForm('Editează abonamentul', F, plans.find((p) => p.id === b.dataset.plan), '/api/admin/plans', after)));
+  $('#pc').onclick = async () => { try { await api('/api/admin/password', { method: 'PUT', body: { old: $('#po').value, new: $('#pn').value } }); toast('Parola a fost schimbată'); } catch (e) { toast(e.message, 'bad'); } };
+}
+
+/* ───────── utilitare noi ───────── */
+const ciUrl = () => new URL('app.html', location.href).href.split('#')[0] + '#ci-' + (O ? O.checkinCode : '');
+function updBadges() { if (!O) return; const c = O.chatUnread || 0; $('#chb').textContent = c || ''; $('#chb').classList.toggle('hide', !c); }
+function askText(title, label, val = '', danger) {
+  return new Promise((res) => {
+    let done = false; const fin = (v) => { if (done) return; done = true; res(v); closeSheet(); };
+    const el = sheet(`<h2>${esc(title)}</h2><div class="field" style="margin-top:12px"><label for="atx">${esc(label)}</label><input class="input" id="atx" value="${esc(val)}"></div><div class="row" style="gap:8px"><button class="btn btn-ghost" id="an">Renunță</button><span class="grow"></span><button class="btn ${danger ? 'btn-red' : 'btn-acc'}" id="ay">${danger ? 'Șterge definitiv' : 'Continuă'}</button></div>`);
+    $('#atx', el).focus(); $('#ay', el).onclick = () => fin($('#atx', el).value); $('#an', el).onclick = () => fin(null);
+    $('#atx', el).onkeydown = (e) => { if (e.key === 'Enter') fin($('#atx', el).value); };
+    const w = $('#sheet'); $('.sheet-bg', w).onclick = () => fin(null); $('.sheet-x', w).onclick = () => fin(null);
+  });
+}
+function showFull() {
+  const d = document.createElement('div'); d.className = 'fs'; d.setAttribute('role', 'dialog');
+  d.innerHTML = `<div style="font:800 1.1rem var(--fd);letter-spacing:.3em;color:var(--muted);text-transform:uppercase">${esc(S().name)} · check-in</div><div class="qrbox">${QR.svg(ciUrl(), { size: 400 })}</div><div class="bigcode">${esc(O.checkinCode)}</div><div class="muted">Scanează cu camera telefonului sau scrie codul în aplicație · atinge ecranul ca să închizi</div>`;
+  document.body.appendChild(d); try { d.requestFullscreen && d.requestFullscreen().catch(() => {}); } catch {}
+  const close = () => { d.remove(); try { document.fullscreenElement && document.exitFullscreen(); } catch {} removeEventListener('keydown', k); };
+  const k = (e) => { if (e.key === 'Escape') close(); }; d.onclick = close; addEventListener('keydown', k);
+}
+function dlCSV(name, rows) {
+  const csv = '﻿' + rows.map((r) => r.map((c) => `"${String(c == null ? '' : c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  toast('Fișierul se descarcă');
+}
+const STATE_TXT = { active: 'Activ', expiring: 'Expiră curând', expired: 'Expirat', none: 'Fără abonament' };
+async function exportMembers() { const { members } = await api('/api/admin/members'); dlCSV(`membri-${todayStr()}.csv`, [['Nume', 'Telefon', 'Abonament', 'Stare', 'Expiră', 'Ultima vizită', 'Vizite', 'Grupe'], ...members.map((r) => [r.name, r.phone, r.plan, STATE_TXT[r.state], r.end || '', r.lastActive || '', r.visits, r.tags.join(', ')])]); }
+async function exportPayments(mo) { const d = await api('/api/admin/payments?month=' + mo); dlCSV(`plati-${mo}.csv`, [['Data', 'Membru', 'Abonament', 'Sumă (lei)', 'Metodă'], ...d.payments.map((p) => [p.date, p.name, p.plan || '', p.amount, p.method]), [], ['Total', '', '', d.total, '']]); }
+
+/* ───────── RECEPȚIE ───────── */
+let camS = null;
+const stopScan = () => { if (camS) { camS.getTracks().forEach((t) => t.stop()); camS = null; } };
+async function pDesk() {
+  O = await api('/api/admin/overview'); updBadges();
+  const canScan = 'BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+  M().innerHTML = `<div class="ph"><div><h1>Recepție</h1><p>Check-in pentru membri: codul QR de pe ecran, cardul din aplicație sau căutare după nume.</p></div><span class="live">în timp real</span></div>
+    <div class="desk"><div class="card" style="text-align:center"><h3>Codul QR de azi</h3><p class="muted small" style="margin:4px 0 0">Membrii îl scanează cu camera telefonului și intră direct în aplicație cu check-in făcut.</p><div class="qrbox" style="margin:16px auto">${QR.svg(ciUrl(), { size: 260 })}</div><div class="bigcode">${esc(O.checkinCode)}</div><p class="muted small">sau scriu codul în aplicație · se schimbă singur în fiecare zi</p>
+      <div class="row" style="justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-acc" id="fs2">${IC('tv', 18)} Afișează pe ecran</button><button class="btn" id="nc2">${IC('timer', 18)} Cod nou</button></div></div>
+      <div><div class="card"><h3>Check-in manual</h3><p class="muted small" style="margin:4px 0 12px">Caută membrul sau scanează cardul lui din aplicație.</p><div class="search" style="position:relative"><span style="position:absolute;left:14px;top:13px;color:var(--faint)">${IC('search', 18)}</span><input class="input" id="dq" placeholder="Nume sau telefon…" style="padding-left:44px" autocomplete="off"></div><div id="dres" class="list" style="margin-top:10px;gap:0"></div>
+        ${canScan ? `<button class="btn btn-ghost btn-block" id="scan" style="margin-top:10px">${IC('scan', 18)} Scanează cardul membrului</button><div id="camB"></div>` : ''}</div>
+        <div class="card" style="margin-top:14px"><div class="row"><h3 class="grow">Azi la sală</h3><span class="chip acc" id="tdn"></span></div><div id="tdl"></div></div></div></div>`;
+  const drawToday = (o) => { $('#tdn').textContent = o.todayVisits.length; $('#tdl').innerHTML = o.todayVisits.map((r) => `<div class="alert"><span class="av">${esc(ini(r.name))}</span><div class="grow"><b>${esc(r.name)}</b><br><small>${r.ciToday ? 'check-in la ' + r.ciToday : 'a venit azi'} · ${esc(r.plan || 'fără abonament')}</small></div>${stateChip(r)}</div>`).join('') || '<p class="muted">Încă n-a venit nimeni azi.</p>'; };
+  drawToday(O);
+  const doCI = async (id) => {
+    const r = await api(`/api/admin/members/${id}/checkin`, { method: 'POST', body: {} }), m = r.member, st = m.subscription.state;
+    if (st === 'expired' || st === 'none') toast(`${esc(m.name)}: abonament ${st === 'none' ? 'inexistent' : 'expirat'}! Încasează înainte de intrare.`, 'bad');
+    else toast(r.already ? `${esc(m.name)} are deja check-in azi` : `Bine ai venit, ${esc(m.name.split(' ')[0])}! Check-in făcut`);
+    if (st !== 'expired' && st !== 'none' && !r.already) confetti();
+    O = await api('/api/admin/overview'); drawToday(O); $('#dq').value = ''; $('#dres').innerHTML = '';
+  };
+  let h; $('#dq').oninput = (e) => { clearTimeout(h); const q = e.target.value.trim(); if (!q) { $('#dres').innerHTML = ''; return; } h = setTimeout(async () => { const { members } = await api('/api/admin/members?q=' + encodeURIComponent(q)); $('#dres').innerHTML = members.slice(0, 6).map((r) => `<div class="alert"><span class="av">${esc(ini(r.name))}</span><div class="grow"><b>${esc(r.name)}</b><br><small>${esc(r.phone)} · ${r.end ? 'expiră ' + fdate(r.end) : 'fără abonament'}</small></div>${stateChip(r)}<button class="btn btn-sm btn-acc" data-ci="${r.id}">${IC('check', 16)} Check-in</button></div>`).join('') || '<p class="muted">Niciun membru găsit.</p>'; $$('[data-ci]').forEach((b) => (b.onclick = () => doCI(b.dataset.ci))); }, 180); };
+  $('#fs2').onclick = showFull;
+  $('#nc2').onclick = async () => { if (!(await ask('Generezi un cod nou?', 'Codul vechi nu mai merge. Membrii vor folosi noul cod.', 'Cod nou', { icon: 'timer' }))) return; await api('/api/admin/checkin-code', { method: 'POST', body: {} }); pDesk(); };
+  if ($('#scan')) $('#scan').onclick = async () => {
+    if (camS) { stopScan(); $('#camB').innerHTML = ''; return; }
+    try {
+      camS = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); $('#camB').innerHTML = '<video playsinline muted autoplay style="width:100%;border-radius:14px;margin-top:10px;background:#000"></video>';
+      const v = $('#camB video'); v.srcObject = camS; const det = new BarcodeDetector({ formats: ['qr_code'] });
+      const loop = async () => { if (!camS || !document.body.contains(v)) return stopScan(); try { const r = await det.detect(v); const m = r[0] && /^GYM:(\w+)$/.exec(r[0].rawValue); if (m) { await doCI(m[1]); await new Promise((ok) => setTimeout(ok, 2500)); } } catch {} setTimeout(loop, 300); };
+      loop();
+    } catch { $('#camB').innerHTML = '<p class="err">Nu am acces la cameră.</p>'; }
+  };
+  window._quiet = async () => { const o = await api('/api/admin/overview'); O = o; drawToday(o); updBadges(); };
+  if (!window.GymDemo) window._poll = setInterval(() => window._quiet().catch(() => {}), 15000);
+}
+
+/* ───────── MESAJE ───────── */
+let chatSel = null;
+const QUICK = ['Bună! Mulțumim pentru mesaj, revenim imediat.', 'Sigur, te așteptăm!', 'Programul de azi este 06:00 – 22:00.', 'Abonamentul se poate plăti cash sau cu cardul la recepție.'];
+async function pChat() {
+  M().innerHTML = `<div class="ph"><div><h1>Mesaje</h1><p>Conversațiile cu membrii din aplicație. Când răspunzi, membrul primește notificare pe telefon.</p></div><button class="btn btn-acc" id="nw">${IC('plus', 18)} Conversație nouă</button></div><div class="inbox ${chatSel ? 'open' : ''}" id="ib"><div class="thr" id="thr"></div><div class="conv" id="conv"><div class="muted" style="margin:auto;text-align:center;padding:40px">${IC('chat', 40)}<p>Alege o conversație</p></div></div></div>`;
+  const drawThreads = async () => {
+    const { threads } = await api('/api/admin/chats'); O = O || (await api('/api/admin/overview'));
+    $('#thr').innerHTML = threads.map((t) => `<button data-t="${t.id}" class="${t.id === chatSel ? 'on' : ''}"><span class="av">${esc(ini(t.name))}</span><span class="grow"><b>${esc(t.name)}</b><small>${t.from === 'g' ? 'Tu: ' : ''}${esc(t.last)}</small></span><span style="display:grid;justify-items:end;gap:4px"><small class="muted" style="font-size:.7rem">${new Date(t.at).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })}</small>${t.unread ? `<span class="u">${t.unread}</span>` : ''}</span></button>`).join('') || '<p class="muted" style="padding:16px">Nicio conversație încă.</p>';
+    $$('#thr [data-t]').forEach((b) => (b.onclick = () => openConv(b.dataset.t)));
+    O.chatUnread = threads.reduce((a, t) => a + t.unread, 0); updBadges();
+    return threads;
+  };
+  const openConv = async (id) => {
+    chatSel = id; $('#ib').classList.add('open'); $$('#thr [data-t]').forEach((b) => b.classList.toggle('on', b.dataset.t === id));
+    const r = await api('/api/admin/chats/' + id), mm = r.member;
+    $('#conv').innerHTML = `<div class="hd"><button class="iconbtn" id="bk" aria-label="Înapoi" style="${matchMedia('(max-width:900px)').matches ? '' : 'display:none'}">${IC('back', 18)}</button><span class="av">${esc(ini(mm.name))}</span><div class="grow"><b>${esc(mm.name)}</b><br><small class="muted">${esc(mm.phone)} · ${esc(mm.plan || 'fără abonament')}</small></div>${stateChip(mm)}<button class="btn btn-sm" id="om" aria-label="Fișa membrului">${IC('user', 16)}</button></div>
+      <div class="msgs" id="cm"></div><div class="qr-reply">${QUICK.map((q, i) => `<button class="btn btn-sm" data-q="${i}" style="font-weight:600">${esc(q.length > 34 ? q.slice(0, 32) + '…' : q)}</button>`).join('')}</div>
+      <form class="cbar" id="cf"><textarea class="input" id="ct" placeholder="Scrie răspunsul…" aria-label="Răspuns"></textarea><button class="btn btn-acc" aria-label="Trimite" style="width:52px;padding:0">${IC('send', 20)}</button></form>`;
+    const draw = (msgs) => { let last = ''; $('#cm').innerHTML = msgs.map((m) => { const d = m.at.slice(0, 10), sep = d !== last ? `<div style="align-self:center;font-size:.72rem;color:var(--faint);font-weight:700;margin:8px 0 2px">${fday(d)}</div>` : ''; last = d; return `${sep}<div class="bub ${m.from}">${esc(m.text)}<time>${new Date(m.at).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}</time></div>`; }).join('') || '<p class="muted" style="margin:auto">Scrie primul mesaj.</p>'; $('#cm').scrollTop = 1e9; };
+    draw(r.messages); drawThreads();
+    $$('[data-q]').forEach((b) => (b.onclick = () => { $('#ct').value = QUICK[+b.dataset.q]; $('#ct').focus(); }));
+    $('#ct').onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#cf').requestSubmit(); } };
+    $('#cf').onsubmit = async (e) => { e.preventDefault(); const tx = $('#ct').value.trim(); if (!tx) return; $('#ct').value = ''; try { const r2 = await api('/api/admin/chats/' + id, { method: 'POST', body: { text: tx } }); draw(r2.messages); drawThreads(); } catch (er) { toast(er.message, 'bad'); $('#ct').value = tx; } };
+    $('#bk').onclick = () => { chatSel = null; $('#ib').classList.remove('open'); };
+    $('#om').onclick = () => openMember(id);
+    window._convReload = async () => { if (chatSel !== id || !$('#cm')) return; const x = await api('/api/admin/chats/' + id); draw(x.messages); };
+  };
+  const threads = await drawThreads();
+  if (chatSel) openConv(chatSel); else if (threads[0] && !matchMedia('(max-width:900px)').matches) openConv(threads.find((t) => t.unread) ? threads.find((t) => t.unread).id : threads[0].id);
+  $('#nw').onclick = async () => {
+    const { members } = await api('/api/admin/members');
+    const el = sheet(`<h2>Conversație nouă</h2><div class="field" style="margin-top:12px"><label for="cs">Membru</label><input class="input" id="cs" placeholder="Caută…" autocomplete="off"></div><div class="list" id="cr" style="gap:0;max-height:50vh;overflow:auto"></div>`);
+    const draw = () => { const q = $('#cs', el).value.toLowerCase(); $('#cr', el).innerHTML = members.filter((x) => !q || x.name.toLowerCase().includes(q)).slice(0, 30).map((x) => `<button class="alert" data-m="${x.id}" style="background:none;border-left:0;border-right:0;border-top:0;color:inherit;cursor:pointer;text-align:left;width:100%"><span class="av">${esc(ini(x.name))}</span><span class="grow"><b>${esc(x.name)}</b><br><small>${esc(x.phone)}</small></span></button>`).join(''); $$('[data-m]', el).forEach((b) => (b.onclick = () => { closeSheet(); openConv(b.dataset.m); })); };
+    $('#cs', el).oninput = draw; draw(); $('#cs', el).focus();
+  };
+  window._quiet = async () => { await drawThreads(); if (window._convReload) await window._convReload(); };
+  if (!window.GymDemo) window._poll = setInterval(() => window._quiet().catch(() => {}), 8000);
+}
+
+/* ───────── RAPOARTE ───────── */
+async function pReports() {
+  O = await api('/api/admin/overview'); updBadges(); const r = O.reports, s = O.stats;
+  const v30 = r.visits30.reduce((a, x) => a + x.n, 0), hmax = Math.max(1, ...r.heat.flat());
+  const DN = ['Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm', 'Dum'];
+  M().innerHTML = `<div class="ph"><div><h1>Rapoarte</h1><p>Cum evoluează sala: membri, bani, prezență și orele aglomerate.</p></div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" id="xm">${IC('download', 18)} Membri (Excel)</button><button class="btn" id="xp">${IC('download', 18)} Plăți luna asta</button></div></div>
+    <div class="kpis"><div class="kpi hl"><small>Membri înscriși</small><b data-count="${s.total}">0</b><span class="d">${s.active} cu abonament activ</span></div><div class="kpi"><small>Vizite în 30 de zile</small><b data-count="${v30}">0</b><span class="d">~${Math.round(v30 / 30)} pe zi</span></div><div class="kpi"><small>Venit mediu pe membru</small><b><span data-count="${r.ltv}">0</span> lei</b><span class="d">de la înscriere până azi</span></div><div class="kpi"><small>Venit pe 6 luni</small><b><span data-count="${s.revenue.reduce((a, x) => a + x.total, 0)}">0</span> lei</b><span class="d">${s.revenue.reduce((a, x) => a + x.count, 0)} plăți</span></div></div>
+    <div class="cols"><div class="card"><h3>Creșterea numărului de membri</h3><p class="muted small" style="margin:2px 0 8px">Total înscriși la final de lună, ultimele 12 luni</p>${lineChart(r.growth.map((x) => ({ v: x.total, l: MONTHS[+x.month.slice(5) - 1] })), { h: 220, label: 'Membri', min: 0 })}</div>
+      <div class="card"><h3>Abonamente active pe tip</h3><div style="margin-top:14px">${donut(r.mix.map((x) => ({ l: x.name, v: x.n })), { sub: 'activi', label: 'Abonamente' })}</div></div></div>
+    <div class="cols"><div class="card"><h3>Venituri pe luni</h3>${barChart(s.revenue.map((x) => ({ v: x.total, l: MONTHS[+x.month.slice(5) - 1] })), { fmt: (v) => (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v), label: 'Venituri' })}</div>
+      <div class="card"><h3>Membri noi pe luni</h3>${barChart(r.growth.slice(-6).map((x) => ({ v: x.added, l: MONTHS[+x.month.slice(5) - 1] })), { label: 'Membri noi' })}</div></div>
+    <div class="card" style="margin-top:14px"><div class="row" style="flex-wrap:wrap"><div class="grow"><h3>Orele aglomerate</h3><p class="muted small" style="margin:2px 0 12px">Check-in-uri din ultimele 8 săptămâni, pe zile și ore. Bun pentru programarea antrenorilor și a curățeniei.</p></div></div>
+      <div style="overflow-x:auto"><div class="heat" style="min-width:560px"><span></span>${Array.from({ length: 17 }, (_, i) => `<span>${6 + i}</span>`).join('')}${r.heat.map((row, d) => `<span>${DN[d]}</span>${row.map((n, hh) => `<i title="${DN[d]} ${6 + hh}:00 · ${n} check-in" style="opacity:${n ? 0.12 + (n / hmax) * 0.88 : 0.05}"></i>`).join('')}`).join('')}</div></div></div>
+    <div class="cols"><div class="card"><h3>Vizite în ultimele 30 de zile</h3>${barChart(r.visits30.map((x, i) => ({ v: x.n, l: i % 5 === 0 || i === 29 ? String(+x.date.slice(8)) : '' })), { label: 'Vizite', fmt: () => '' })}</div>
+      <div class="card"><h3>Cei mai activi (30 de zile)</h3>${r.top.map((x, i) => `<div class="alert"><span class="av" style="${i === 0 ? 'background:linear-gradient(140deg,#FFD66B,#E9A100);color:#2a1a00' : ''}">${i + 1}</span><div class="grow"><b>${esc(x.name)}</b></div><b>${x.n} vizite</b></div>`).join('')}</div></div>`;
+  $('#xm').onclick = exportMembers; $('#xp').onclick = () => exportPayments(todayStr().slice(0, 7));
+}
+
+if (window.GymDemo) window.GymDemoRefresh = () => { if ($('#sheet') || $('.fs') || $('#app').classList.contains('hide')) return; if (document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && !window._quiet) return; (window._quiet ? window._quiet() : go(page)); };
+boot().catch((e) => { document.body.innerHTML = `<p style="padding:30px">${esc(e.message)}</p>`; });
+</script>
+</body>
+</html>
