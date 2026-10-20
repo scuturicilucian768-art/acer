@@ -821,7 +821,7 @@ let deferredInstall = null;
 addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; if (tab === 'home' && H) render(); });
 function installBanner() {
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone, ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  if (standalone || LS.get('gymInstX') || (!deferredInstall && !ios) || window.GymDemo) return H.me.pushOn ? '' : pushRow();
+  if (standalone || LS.get('gymInstX') || (!deferredInstall && !ios) || (window.GymDemo && window.parent !== window)) return H.me.pushOn ? '' : pushRow();
   return `<div class="banner"><span class="bi">${IC('download', 20)}</span><div class="grow"><b>Pune aplicația pe telefon</b><div class="muted" style="font-size:.84rem">${deferredInstall ? 'O deschizi dintr-o atingere, ca pe orice aplicație.' : 'Apasă Partajează în Safari, apoi „Adaugă pe ecranul principal”.'}</div></div>${deferredInstall ? '<button class="btn btn-acc btn-sm" id="inst">Instalează</button>' : ''}<button class="btn btn-sm" id="instX" aria-label="Închide" style="background:none">${IC('x', 16)}</button></div>`;
 }
 function bindInstall() {
@@ -829,7 +829,7 @@ function bindInstall() {
   if ($('#instX')) $('#instX').onclick = () => { LS.set('gymInstX', '1'); render(); };
   bindPush();
 }
-if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.GymDemo) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && location.protocol.startsWith('http') && window.parent === window) navigator.serviceWorker.register('sw.js').catch(() => {});
 if (window.GymDemo) window.GymDemoRefresh = () => { if ($('#chat') && window.GymChatReload) { window.GymChatReload(); return; } if (H && !WO && !$('#sheet') && !$('#login:not(.hide)')) refresh().catch(() => {}); };
 boot().catch((e) => { $('#splash').classList.add('out'); document.body.insertAdjacentHTML('beforeend', `<div class="login"><h1>Ups</h1><p class="muted">${esc(e.message)}</p><button class="btn btn-acc" onclick="location.reload()">Reîncearcă</button></div>`); });
 </script>

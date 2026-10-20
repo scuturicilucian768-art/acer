@@ -18,6 +18,12 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
 .logo svg{width:26px;height:26px}
 h1{font-family:var(--fd);font-size:clamp(1.4rem,2.6vw,2rem);margin:0;letter-spacing:-.01em;text-wrap:balance}
 .sub{color:var(--muted);margin:2px 0 0;font-size:.95rem}
+.open{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ob{display:grid;gap:3px;padding:16px 18px;border-radius:16px;background:var(--panel);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:1.02rem}
+.ob small{font-weight:500;color:var(--muted);font-size:.82rem}
+.ob.acc{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.ob.acc small{color:rgba(11,11,14,.7)}
+.ob:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .tag{margin-left:auto;font-size:.78rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 12px;max-width:100%}
 .tag b{color:var(--ink)}
 .switch{display:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:5px;gap:5px}
@@ -48,6 +54,7 @@ h1{font-family:var(--fd);font-size:clamp(1.4rem,2.6vw,2rem);margin:0;letter-spac
   .phone iframe{border-radius:24px}
   .browser iframe{height:78vh;min-height:560px}
   .tag{margin-left:0}
+  .open{grid-template-columns:1fr}
 }
 </style>
 <div class="wrap">
@@ -56,6 +63,10 @@ h1{font-family:var(--fd);font-size:clamp(1.4rem,2.6vw,2rem);margin:0;letter-spac
     <div><h1>FORMA Gym · aplicația sălii</h1><p class="sub">Aplicația membrilor și panoul de administrare, legate între ele în timp real. Încearcă-le pe amândouă.</p></div>
     <p class="tag"><b>Demo interactiv</b> · date de exemplu · numele sălii se schimbă din Setări</p>
   </header>
+  <div class="open">
+    <a href="app.html" target="_blank" rel="noopener" class="ob acc"><span>Deschide aplicația membrilor</span><small>pe tot ecranul · telefon 0740000000, parola 1234</small></a>
+    <a href="admin.html" target="_blank" rel="noopener" class="ob"><span>Deschide panoul de administrare</span><small>pe tot ecranul · parola admin</small></a>
+  </div>
 
   <div class="switch" role="tablist" aria-label="Alege ecranul">
     <button id="tab-m" class="on" role="tab" aria-selected="true" data-s="m">📱 Membru</button>

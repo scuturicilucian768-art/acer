@@ -14,19 +14,29 @@
   let top = window;
   try { if (window.parent !== window && window.parent.document) top = window.parent; } catch (e) {}
   let host = top.GymHost;
+  // pe tot ecranul (nu în pagina de prezentare): datele rămân salvate pe telefon între deschideri
+  const solo = top === window, KEY = 'gymDemoDB_v3';
+  const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
   if (!host) {
     host = { db: null, listeners: [] };
-    host.db = GymSeed.base(ctx); GymSeed.demo(host.db, ctx); host.db.admin = ctx.hash('admin');
+    let saved = null; if (solo) try { saved = JSON.parse(ls.get(KEY) || 'null'); } catch (e) {}
+    if (saved && saved.members) host.db = saved;
+    else { host.db = GymSeed.base(ctx); GymSeed.demo(host.db, ctx); host.db.admin = ctx.hash('admin'); }
     top.GymHost = host;
   }
+  const persist = () => { if (solo) ls.set(KEY, JSON.stringify(host.db)); };
   const db = host.db;
   host.wins = (host.wins || []).filter((w) => { try { return !w.closed && w.document; } catch (e) { return false; } }); host.wins.push(window);
   ctx.push = (m, data) => host.listeners.slice().forEach((f) => { try { f(m.id, data); } catch (e) {} });
-  if (!host.jobsOn) { host.jobsOn = true; GymCore.jobs(db, ctx); setInterval(() => GymCore.jobs(db, ctx), 60e3); }
+  if (!host.jobsOn) { host.jobsOn = true; GymCore.jobs(db, ctx); persist(); setInterval(() => { if (GymCore.jobs(db, ctx)) persist(); }, 60e3); }
+  // aplicația și panoul deschise în taburi diferite pe același dispozitiv se văd între ele
+  if (solo) addEventListener('storage', (e) => { if (e.key !== KEY || !e.newValue) return; try { const nd = JSON.parse(e.newValue); Object.keys(db).forEach((k) => delete db[k]); Object.assign(db, nd); } catch (er) { return; } if (window.GymDemoRefresh) window.GymDemoRefresh(); });
 
   // fiecare fereastră are sesiunea ei; în demo intrăm direct (membru sau admin)
   const as = new URLSearchParams(location.search).get('as');
+  const SK = 'gymDemoSess_' + (/admin/.test(location.pathname) ? 'admin' : 'member');
   let session = null;
+  if (solo) try { session = JSON.parse(ls.get(SK) || 'null'); } catch (e) {}
   if (as === 'admin') session = { role: 'admin' };
   if (as === 'member') { const m = db.members.find((x) => x.phone === '0740000000'); if (m) session = { role: 'member', id: m.id }; }
 
@@ -37,13 +47,15 @@
       const [p, qs] = path.split('?');
       let body = opt.body;
       const out = GymCore.route(db, { method: opt.method || (body !== undefined ? 'POST' : 'GET'), path: p, body: clone(body) || {}, query: Object.fromEntries(new URLSearchParams(qs || '')), session }, ctx);
-      if ('session' in out) session = out.session;
+      if ('session' in out) { session = out.session; if (solo) ls.set(SK, JSON.stringify(session)); }
       if (out.status >= 400) { const e = new Error((out.data && out.data.error) || 'A apărut o eroare.'); e.status = out.status; throw e; }
+      if ((opt.method || (body !== undefined ? 'POST' : 'GET')) !== 'GET') persist();
       // celelalte ferestre (membru / admin) se actualizează singure, ca în realitate
       if ((opt.method || (body !== undefined ? 'POST' : 'GET')) !== 'GET') setTimeout(() => host.wins.forEach((w) => { if (w !== window) try { w.GymDemoRefresh && w.GymDemoRefresh(); } catch (e) {} }), 250);
       return clone(out.data);
     },
-    pushOn() { const m = session && db.members.find((x) => x.id === session.id); if (m && !(m.push || []).length) m.push = [{ endpoint: 'demo' }]; },
+    pushOn() { const m = session && db.members.find((x) => x.id === session.id); if (m && !(m.push || []).length) m.push = [{ endpoint: 'demo' }]; persist(); },
+    reset() { try { localStorage.removeItem(KEY); } catch (e) {} location.reload(); },
   };
 
   // notificare push simulată: apare sus, ca pe telefon
