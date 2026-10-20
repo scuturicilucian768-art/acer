@@ -20,14 +20,15 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 /* splash */
 #splash{position:fixed;inset:0;z-index:500;background:var(--bg);display:grid;place-content:center;justify-items:center;gap:16px;transition:opacity .45s,visibility .45s}
 #splash.out{opacity:0;visibility:hidden}
-#splash .lg{width:84px;height:84px;border-radius:26px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;animation:pulse 1.4s ease-in-out infinite;box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 50%,transparent)}
+#splash .lg{width:190px;height:190px;border-radius:50%;display:grid;place-items:center;animation:pulse 1.6s ease-in-out infinite;overflow:hidden}
+#splash .lg img{width:100%;height:100%;object-fit:cover}
 #splash b{font-family:var(--fd);font-weight:900;font-size:1.3rem;letter-spacing:.06em;text-transform:uppercase}
 @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 45%,transparent);transform:scale(1)}60%{box-shadow:0 0 0 26px transparent;transform:scale(1.04)}100%{box-shadow:0 0 0 0 transparent;transform:scale(1)}}
 /* antet */
 .top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);padding:calc(10px + env(safe-area-inset-top)) 16px 10px}
 .top .in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px}
 .brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);font-weight:900;font-size:clamp(.82rem,3.9vw,1.05rem);text-transform:uppercase;letter-spacing:.01em;flex:1;min-width:0}
-.brand i{width:34px;height:34px;border-radius:11px;background:var(--acc);display:grid;place-items:center;color:var(--acc-ink);flex:none}
+.brand i{width:36px;height:36px;border-radius:11px;background:#000;display:grid;place-items:center;flex:none;overflow:hidden;border:1px solid color-mix(in srgb,var(--acc) 35%,transparent)}
 .brand b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .iconbtn{position:relative;width:42px;height:42px;border-radius:14px;border:1px solid var(--line2);background:var(--card);display:grid;place-items:center;cursor:pointer;color:var(--ink);flex:none}
 .iconbtn .bd{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--red);color:#fff;font-size:.68rem;font-weight:800;display:grid;place-items:center;border:2px solid var(--bg)}
@@ -53,7 +54,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .mc-f.warn{background:radial-gradient(120% 120% at 100% 0%,rgba(255,194,61,.3),transparent 55%),linear-gradient(140deg,#24242C,#121217 70%)}
 .mc-top{display:flex;align-items:center;gap:10px;position:relative}
 .mc-top b{font-family:var(--fd);text-transform:uppercase;letter-spacing:.08em;font-size:.86rem;flex:1}
-.mc-logo{width:28px;height:28px;border-radius:9px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center}
+.mc-logo{width:30px;height:30px;border-radius:9px;background:#000;display:grid;place-items:center;overflow:hidden;flex:none}
 .mc-mid{display:flex;justify-content:space-between;align-items:center;gap:12px;position:relative}
 .mc-mid .k{font-size:.7rem;font-weight:800;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
 .mc-mid .plan{font-family:var(--fd);font-size:1.55rem;font-weight:900;line-height:1.1;margin-top:2px}
@@ -267,7 +268,8 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .toggle.on::after{left:25px;background:var(--acc-ink)}
 /* login */
 .login{min-height:100vh;display:grid;align-content:center;padding:30px 20px;max-width:440px;margin:0 auto;position:relative}
-.login .logo{width:70px;height:70px;border-radius:22px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;margin-bottom:22px;box-shadow:0 20px 50px -10px color-mix(in srgb,var(--acc) 60%,transparent)}
+.login .logo{width:170px;height:170px;border-radius:50%;margin:0 auto 14px;overflow:hidden;box-shadow:0 20px 60px -10px color-mix(in srgb,var(--acc) 45%,transparent)}
+.login .logo img{width:100%;height:100%;object-fit:cover}
 .login h1{font-size:2.6rem;line-height:1}
 .blobs{position:fixed;inset:0;overflow:hidden;z-index:-1;pointer-events:none}
 .blobs i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;animation:float 9s ease-in-out infinite}
@@ -314,7 +316,7 @@ let CFG = null, H = null, EX = [], tab = 'home';
 const exById = (id) => EX.find((e) => e.id === id) || { id, name: id, muscle: '', steps: [] };
 const S = () => CFG.settings;
 const TABS = ['home', 'train', 'progress', 'food', 'me'];
-$('#spl').innerHTML = IC('bolt', 40); $('#bLogo').innerHTML = IC('bolt', 18);
+$('#spl').innerHTML = '<img src="img/logo.jpg" alt="">'; $('#bLogo').innerHTML = '<img src="img/logo-mark.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
 $$('.tabs button').forEach((b) => b.insertAdjacentHTML('afterbegin', IC(b.dataset.i, 24)));
 $('#bell').innerHTML = IC('bell', 20); $('#chatB').innerHTML = IC('chat', 20);
 const e1rm = (kg, reps) => (kg && reps ? kg * (1 + Math.min(reps, 15) / 30) : 0);
@@ -337,7 +339,7 @@ function hideSplash(t0) { setTimeout(() => $('#splash').classList.add('out'), Ma
 function showLogin() {
   $('#shell').classList.add('hide'); const L = $('#login'); L.classList.remove('hide');
   L.innerHTML = `<div class="blobs"><i style="width:340px;height:340px;background:var(--acc);top:-120px;right:-140px;opacity:.28"></i><i style="width:300px;height:300px;background:var(--vio);bottom:-80px;left:-120px;animation-delay:-4s"></i></div>
-    <div class="login stagger"><div class="logo">${IC('bolt', 36)}</div><h1>${esc(S().name)}</h1><p class="muted" style="margin:10px 0 26px">${esc(S().tagline || '')}</p>
+    <div class="login stagger"><div class="logo"><img src="img/logo.jpg" alt="Logo ${esc(S().name)}"></div><h1>${esc(S().name)}</h1><p class="muted" style="margin:10px 0 26px">${esc(S().tagline || '')}</p>
     <form id="lf"><div class="field"><label for="lp">Telefon</label><input class="input" id="lp" type="tel" inputmode="tel" autocomplete="tel" placeholder="07xx xxx xxx" required></div>
     <div class="field"><label for="lw">Parola</label><input class="input" id="lw" type="password" autocomplete="current-password" required></div>
     <p class="err" id="le"></p><button class="btn btn-acc btn-block" style="padding:15px">Intră în cont ${IC('arrow', 18)}</button></form>
@@ -377,7 +379,7 @@ function cardHtml() {
   const cls = s.state === 'expired' || s.state === 'none' ? 'exp' : s.state === 'expiring' ? 'warn' : '';
   return `<div class="mc3" id="mc" role="button" tabindex="0" aria-label="Cardul de membru. Atinge ca să vezi codul QR."><div class="mc-in">
     <div class="face mc-f ${cls}">
-      <div class="mc-top"><span class="mc-logo">${IC('bolt', 16)}</span><b>${esc(S().name)}</b>${chipFor(s)}</div>
+      <div class="mc-top"><span class="mc-logo"><img src="img/logo-mark.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></span><b>${esc(S().name)}</b>${chipFor(s)}</div>
       <div class="mc-mid"><div class="grow"><div class="k">Abonament</div><div class="plan">${esc(s.plan ? s.plan.name : 'Fără abonament')}</div><div class="muted small" style="margin-top:4px">${s.end ? (s.state === 'expired' ? 'A expirat pe ' : 'Valabil până pe ') + fdate(s.end, true) : 'Treci pe la recepție'}</div></div>
         ${ring(left == null ? 0 : left / total, left == null ? '–' : `<span data-count="${left}">0</span>`, left === 1 ? 'zi' : 'zile', 96)}</div>
       <div class="mc-bot"><span class="nm">${esc(me.name)}</span><span class="mc-hint">${IC('qr', 16)} Cardul tău</span></div>
@@ -501,7 +503,7 @@ let chatPoll = null;
 async function openChat(prefill) {
   if ($('#chat')) return;
   const el = document.createElement('div'); el.className = 'chat'; el.id = 'chat'; document.body.appendChild(el); document.body.classList.add('noscroll');
-  el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="cx" aria-label="Înapoi">${IC('back', 20)}</button><span class="mc-logo" style="width:40px;height:40px;border-radius:13px">${IC('bolt', 20)}</span><div class="grow"><b>${esc(S().name)}</b><div class="muted small">Recepția și antrenorii · răspundem de obicei în câteva ore</div></div></div>
+  el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="cx" aria-label="Înapoi">${IC('back', 20)}</button><span class="mc-logo" style="width:40px;height:40px;border-radius:13px"><img src="img/logo-mark.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></span><div class="grow"><b>${esc(S().name)}</b><div class="muted small">Recepția și antrenorii · răspundem de obicei în câteva ore</div></div></div>
     <div class="msgs" id="msgs"><div class="skel" style="height:60px;width:70%"></div></div>
     <form class="cbar" id="cf"><textarea class="input" id="ct" rows="1" placeholder="Scrie un mesaj…" aria-label="Mesaj"></textarea><button class="btn btn-acc" aria-label="Trimite">${IC('send', 20)}</button></form>`;
   const draw = (msgs) => {

@@ -104,7 +104,7 @@
         name: 'Fitness Empire Telciu', tagline: 'Devino cea mai bună versiune a ta', phone: '', whatsapp: '', email: '',
         address: '', mapsUrl: '', instagram: '', facebook: '',
         hours: [{ d: 'Luni – Vineri', h: '06:00 – 22:00' }, { d: 'Sâmbătă', h: '08:00 – 20:00' }, { d: 'Duminică', h: '09:00 – 16:00' }],
-        accent: '#D4FF3A', dailyHour: 8, checkinCode: String(1000 + Math.floor(ctx.rand() * 9000)), checkinDate: t, weeklyGoal: 3,
+        accent: '#A8E63C', dailyHour: 8, checkinCode: String(1000 + Math.floor(ctx.rand() * 9000)), checkinDate: t, weeklyGoal: 3,
       },
       plans: [
         { id: 'pl_month', name: 'Lunar', price: 150, days: 30, desc: 'Acces nelimitat 30 de zile', active: true },

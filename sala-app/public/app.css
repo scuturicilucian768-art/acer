@@ -1,6 +1,6 @@
 :root{
   --bg:#0A0A0C;--bg2:#111115;--card:#17171C;--card2:#1E1E25;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
-  --ink:#F4F4F6;--muted:#9A9AA8;--faint:#5E5E6B;--acc:#D4FF3A;--acc-ink:#0A0A0C;--vio:#8B6CFF;--red:#FF5A6E;--amber:#FFC23D;--green:#3DDC97;
+  --ink:#F4F4F6;--muted:#9A9AA8;--faint:#5E5E6B;--acc:#A8E63C;--acc-ink:#0A0A0C;--vio:#8B6CFF;--red:#FF5A6E;--amber:#FFC23D;--green:#3DDC97;
   --r:20px;--r2:14px;--sh:0 18px 40px -18px rgba(0,0,0,.8);
   --fd:'Archivo','Inter Display','Inter',system-ui,sans-serif;--fb:'Inter','Inter Display',system-ui,sans-serif;--fq:'Fraunces','Caladea',Georgia,serif;
   color-scheme:dark;

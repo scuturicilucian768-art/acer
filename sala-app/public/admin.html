@@ -17,7 +17,7 @@ body{min-height:100vh}
 .alert .grow{min-width:0}
 .side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--bg2);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
 .side .brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px;font-family:var(--fd);font-weight:900;text-transform:uppercase;font-size:1.02rem}
-.side .brand i{width:32px;height:32px;border-radius:10px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;font-style:normal}
+.side .brand i{width:36px;height:36px;border-radius:10px;background:#000;display:grid;place-items:center;font-style:normal;overflow:hidden;flex:none}
 .side button{display:flex;align-items:center;gap:12px;border:0;background:none;padding:11px 12px;border-radius:12px;cursor:pointer;font-weight:700;color:var(--muted);text-align:left;font-size:.94rem}
 .side button .ic{opacity:.85}
 .side .brand i .ic{opacity:1}
@@ -163,7 +163,7 @@ body{min-height:100vh}
 <script>
 let page = 'dash', O = null, CFG = null;
 $$('.side [data-i]').forEach((b) => b.insertAdjacentHTML('afterbegin', IC(b.dataset.i, 20)));
-$('#bl').innerHTML = IC('bolt', 18); $('#menu').innerHTML = IC('grid', 20); $('#appL').innerHTML = IC('phone', 16) + ' Aplicația membrilor';
+$('#bl').innerHTML = '<img src="img/logo-mark.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">'; $('#menu').innerHTML = IC('grid', 20); $('#appL').innerHTML = IC('phone', 16) + ' Aplicația membrilor';
 const M = () => $('#main');
 const stateChip = (r) => r.state === 'active' ? '<span class="chip ok">Activ</span>' : r.state === 'expiring' ? `<span class="chip warn">Expiră ${r.daysLeft === 0 ? 'azi' : `în ${r.daysLeft} ${r.daysLeft === 1 ? 'zi' : 'zile'}`}</span>` : r.state === 'expired' ? '<span class="chip bad">Expirat</span>' : '<span class="chip">Fără abonament</span>';
 const ini = (n) => String(n || '?').split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
@@ -180,7 +180,7 @@ async function boot() {
 }
 function showSetup() {
   $('#app').classList.add('hide'); const L = $('#login'); L.classList.remove('hide');
-  L.innerHTML = `<div class="login"><form class="card" id="sf" style="max-width:460px"><div style="width:56px;height:56px;border-radius:16px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;margin-bottom:16px">${IC('bolt', 28)}</div><h1 style="font-size:1.8rem">Bun venit!</h1><p class="muted" style="margin:6px 0 20px">Configurează sala în 1 minut. Restul (prețuri, program, culori) le schimbi oricând din Setări.</p>
+  L.innerHTML = `<div class="login"><form class="card" id="sf" style="max-width:460px"><img src="img/logo.jpg" alt="" style="width:120px;height:120px;border-radius:50%;display:block;margin-bottom:12px"><h1 style="font-size:1.8rem">Bun venit!</h1><p class="muted" style="margin:6px 0 20px">Configurează sala în 1 minut. Restul (prețuri, program, culori) le schimbi oricând din Setări.</p>
     <div class="field"><label for="s1">Numele sălii *</label><input class="input" id="s1" required autocomplete="organization" value="${esc(CFG.settings.name || '')}"></div>
     <div class="g2"><div class="field"><label for="s2">Telefon</label><input class="input" id="s2" type="tel" placeholder="07xx xxx xxx"></div><div class="field"><label for="s3">WhatsApp</label><input class="input" id="s3" type="tel" placeholder="același ca telefonul"></div></div>
     <div class="field"><label for="s4">Adresa</label><input class="input" id="s4" autocomplete="street-address"></div>
@@ -195,7 +195,7 @@ function showSetup() {
 }
 function showLogin() {
   $('#app').classList.add('hide'); const L = $('#login'); L.classList.remove('hide');
-  L.innerHTML = `<div class="login"><form class="card" id="lf"><div style="width:56px;height:56px;border-radius:16px;background:var(--acc);display:grid;place-items:center;font-size:1.6rem;margin-bottom:16px">⚡</div><h1 style="font-size:1.8rem">Administrare</h1><p class="muted" style="margin:6px 0 20px">${esc(CFG.settings.name)}</p>
+  L.innerHTML = `<div class="login"><form class="card" id="lf"><img src="img/logo.jpg" alt="" style="width:120px;height:120px;border-radius:50%;display:block;margin-bottom:12px"><h1 style="font-size:1.8rem">Administrare</h1><p class="muted" style="margin:6px 0 20px">${esc(CFG.settings.name)}</p>
     <div class="field"><label>Parola</label><input class="input" type="password" id="pw" autocomplete="current-password" required></div><p class="err" id="le"></p><button class="btn btn-acc btn-block">Intră</button>${window.GymDemo ? '<p class="tip" style="margin-top:14px">Demo: parola <b>admin</b></p>' : ''}</form></div>`;
   $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/api/admin/login', { method: 'POST', body: { password: $('#pw').value } }); boot(); } catch (er) { $('#le').textContent = er.message; } };
 }
