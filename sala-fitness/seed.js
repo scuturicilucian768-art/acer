@@ -101,8 +101,8 @@
     const t = ctx.today();
     return {
       settings: {
-        name: 'FORMA Gym', tagline: 'Devino cea mai bună versiune a ta', phone: '0700 000 000', whatsapp: '40700000000', email: 'contact@formagym.ro',
-        address: 'Str. Exemplu nr. 1, Bistrița', mapsUrl: 'https://maps.google.com/?q=Bistrita', instagram: '', facebook: '',
+        name: 'Fitness Empire Telciu', tagline: 'Devino cea mai bună versiune a ta', phone: '', whatsapp: '', email: '',
+        address: '', mapsUrl: '', instagram: '', facebook: '',
         hours: [{ d: 'Luni – Vineri', h: '06:00 – 22:00' }, { d: 'Sâmbătă', h: '08:00 – 20:00' }, { d: 'Duminică', h: '09:00 – 16:00' }],
         accent: '#D4FF3A', dailyHour: 8, checkinCode: String(1000 + Math.floor(ctx.rand() * 9000)), checkinDate: t, weeklyGoal: 3,
       },
@@ -115,11 +115,7 @@
       ],
       members: [], exercises: EXERCISES, programs: PROGRAMS, nutrition: NUTRITION,
       dailyLib: DAILY, daily: {},
-      announcements: [
-        { id: 'an_1', type: 'program', title: 'Program de sărbători', body: 'De Crăciun și Revelion sala are program redus: 10:00 – 16:00. Pe 1 ianuarie e închis.', date: t, pinned: true },
-        { id: 'an_2', type: 'oferta', title: 'Adu un prieten', body: 'Vino cu un prieten nou și primiți amândoi 7 zile gratuit la următorul abonament.', date: t, pinned: false },
-        { id: 'an_3', type: 'eveniment', title: 'Concurs de tracțiuni', body: 'Sâmbătă de la 12:00. Premii pentru primii 3: abonament gratuit, tricou și shake-uri.', date: t, pinned: false },
-      ],
+      announcements: [],
       services: [
         { id: 'sv_pt', name: 'Antrenament personal 60 min', price: 80, duration: 60, desc: 'Antrenor alături de tine tot antrenamentul' },
         { id: 'sv_eval', name: 'Evaluare + plan personalizat', price: 120, duration: 45, desc: 'Măsurători, obiective și program făcut pentru tine' },
@@ -138,6 +134,13 @@
 
   /* membri demonstrativi, ca demo-ul să arate „plin” */
   function demo(db, ctx) {
+    Object.assign(db.settings, { name: 'Fitness Empire Telciu', phone: '0700 000 000', whatsapp: '40700000000', email: '', address: 'Telciu, jud. Bistrița-Năsăud', mapsUrl: 'https://maps.google.com/?q=Telciu' });
+    const t0 = ctx.today();
+    db.announcements = [
+      { id: 'an_1', type: 'program', title: 'Program de sărbători', body: 'De Crăciun și Revelion sala are program redus: 10:00 – 16:00. Pe 1 ianuarie e închis.', date: t0, pinned: true },
+      { id: 'an_2', type: 'oferta', title: 'Adu un prieten', body: 'Vino cu un prieten nou și primiți amândoi 7 zile gratuit la următorul abonament.', date: t0, pinned: false },
+      { id: 'an_3', type: 'eveniment', title: 'Concurs de tracțiuni', body: 'Sâmbătă de la 12:00. Premii pentru primii 3: abonament gratuit, tricou și shake-uri.', date: t0, pinned: false },
+    ];
     const t = ctx.today(), add = (d, n) => { const x = new Date(d + 'T12:00:00Z'); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
     const names = ['Andrei Pop', 'Maria Rus', 'Ionuț Moldovan', 'Alexandra Pintea', 'Vlad Sabău', 'Elena Mureșan', 'Darius Bota', 'Ioana Cîmpean', 'Raul Șuteu', 'Bianca Tărțan', 'Cristian Lazăr', 'Diana Lupșan', 'Florin Rad', 'Andreea Mocan', 'Sebastian Coman', 'Larisa Pașca', 'Mihai Dragoș', 'Roxana Ilieș', 'Tudor Man', 'Paula Sas', 'George Ilisie', 'Denisa Cozma', 'Robert Nistor', 'Iulia Pop'];
     const plans = ['pl_month', 'pl_month', 'pl_student', 'pl_3m', 'pl_month', 'pl_year', 'pl_month', 'pl_3m'];

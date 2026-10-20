@@ -26,7 +26,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 /* antet */
 .top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);padding:calc(10px + env(safe-area-inset-top)) 16px 10px}
 .top .in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px}
-.brand{display:flex;align-items:center;gap:10px;font-family:var(--fd);font-weight:900;font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em;flex:1;min-width:0}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--fd);font-weight:900;font-size:clamp(.82rem,3.9vw,1.05rem);text-transform:uppercase;letter-spacing:.01em;flex:1;min-width:0}
 .brand i{width:34px;height:34px;border-radius:11px;background:var(--acc);display:grid;place-items:center;color:var(--acc-ink);flex:none}
 .brand b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .iconbtn{position:relative;width:42px;height:42px;border-radius:14px;border:1px solid var(--line2);background:var(--card);display:grid;place-items:center;cursor:pointer;color:var(--ink);flex:none}
@@ -342,6 +342,7 @@ function showLogin() {
     <div class="field"><label for="lw">Parola</label><input class="input" id="lw" type="password" autocomplete="current-password" required></div>
     <p class="err" id="le"></p><button class="btn btn-acc btn-block" style="padding:15px">Intră în cont ${IC('arrow', 18)}</button></form>
     <p class="muted" style="font-size:.88rem;margin-top:18px">Parola ți-o dă recepția când îți faci abonamentul. ${S().whatsapp ? `<a href="${waLink(S().whatsapp, 'Bună! Am nevoie de ajutor să intru în aplicația sălii.')}" target="_blank" rel="noopener" class="acc">Ai nevoie de ajutor?</a>` : ''}</p>
+    <p class="muted" style="font-size:.78rem;margin-top:14px">Folosind aplicația ești de acord cu <a href="confidentialitate.html" class="acc">politica de confidențialitate</a>.</p>
     ${window.GymDemo ? '<p class="tip" style="margin-top:18px">Demo: telefon <b>0740000000</b>, parola <b>1234</b></p>' : ''}</div>`;
   $('#lf').onsubmit = async (e) => {
     e.preventDefault(); $('#le').textContent = '';
@@ -390,7 +391,7 @@ function vHome(v) {
   const prog = H.program, nd = prog ? prog.days[H.nextDay] : null, firstEx = nd ? exById((nd.items.find((i) => !/min/.test(i.reps)) || nd.items[0] || {}).ex) : null;
   const mon = CoreAdd(H.today, -((new Date(H.today + 'T12:00:00').getDay() + 6) % 7)), cal = H.calendar;
   const wdots = ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((l, i) => { const k = CoreAdd(mon, i), on = /[wc]/.test(cal[k] || ''); return `<span><i class="${on ? 'on' : ''} ${k === H.today ? 'td' : ''}">${on ? IC('check', 12) : ''}</i>${l}</span>`; }).join('');
-  const c = H.crowd, LV = ['Închis sau gol', 'Liniște', 'Moderat', 'Aglomerat'], curH = new Date().getHours(), peak = c.hours.reduce((a, x) => (x.n > a.n ? x : a), { n: -1 });
+  const c = H.crowd, LV = ['Sala e liberă', 'Liniște', 'Moderat', 'Aglomerat'], curH = new Date().getHours(), peak = c.hours.reduce((a, x) => (x.n > a.n ? x : a), { n: -1 });
   const mx = Math.max(1, ...c.hours.map((x) => x.n), c.now);
   const b = H.board, top3 = b.top.slice(0, 3);
   v.innerHTML = `
@@ -785,7 +786,8 @@ function vMe(v) {
       ${S().instagram ? `<a href="${esc(S().instagram)}" target="_blank" rel="noopener"><span class="mi">${IC('camera', 18)}</span>Instagram<span class="ar">${IC('chev', 18)}</span></a>` : ''}
       ${S().facebook ? `<a href="${esc(S().facebook)}" target="_blank" rel="noopener"><span class="mi">${IC('users', 18)}</span>Facebook<span class="ar">${IC('chev', 18)}</span></a>` : ''}
     </div>
-    <button class="btn btn-ghost btn-block" id="out" style="margin-top:22px">${IC('logout', 18)} Ieși din cont</button>`;
+    <a href="confidentialitate.html" class="muted small" style="display:block;text-align:center;margin-top:18px">Politica de confidențialitate</a>
+    <button class="btn btn-ghost btn-block" id="out" style="margin-top:12px">${IC('logout', 18)} Ieși din cont</button>`;
   $('#sub').onclick = openSub; $('#ann').onclick = openAnns; $('#chatM').onclick = () => openChat(); $('#genM').onclick = openGen;
   $('#pushT').onclick = togglePush;
   $('#lbT').onclick = async () => { await act('/api/me', { hideBoard: !me.hideBoard }, 'PUT'); toast(H.me.hideBoard ? 'Nu mai apari în clasament' : 'Apari în clasament'); render(); };

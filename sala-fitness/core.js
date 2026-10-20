@@ -256,13 +256,25 @@
   function route(db, req, ctx) {
     const { method: m, path: p, body = {}, query: q = {}, session: s } = req, t = ctx.today();
     let r;
-    if (p === '/api/config' && m === 'GET') return ok({ settings: pubSettings(db.settings), plans: db.plans.filter((x) => x.active), services: db.services, pushKey: ctx.vapidPublic || null, demo: !!ctx.demo });
+    if (p === '/api/config' && m === 'GET') return ok({ settings: pubSettings(db.settings), plans: db.plans.filter((x) => x.active), services: db.services, pushKey: ctx.vapidPublic || null, demo: !!ctx.demo, setup: !db.admin });
     if (p === '/api/whoami' && m === 'GET') return ok({ role: s ? s.role : null });
     if (p === '/api/logout' && m === 'POST') return ok({ ok: true }, 200, { session: null });
     if (p === '/api/login' && m === 'POST') {
       const k = phoneKey(body.phone), mem = db.members.find((x) => phoneKey(x.phone) === k);
       if (!mem || !ctx.check(String(body.password || ''), mem.pass)) return no(401, 'Telefonul sau parola nu sunt corecte. Parola ți-o dă recepția sălii.');
       return ok({ ok: true }, 200, { session: { role: 'member', id: mem.id } });
+    }
+    // prima pornire: proprietarul sălii își alege parola și datele sălii
+    if (p === '/api/setup' && m === 'POST') {
+      if (db.admin) return no(403, 'Sala e deja configurată. Intră cu parola de administrator.');
+      const pw = String(body.password || '');
+      if (pw.length < 6) return no(400, 'Parola trebuie să aibă minim 6 caractere.');
+      const name = clean(body.name, 80); if (name.length < 2) return no(400, 'Scrie numele sălii.');
+      const st = db.settings; st.name = name;
+      for (const k of ['phone', 'address', 'email']) if (body[k] !== undefined) st[k] = clean(body[k], 200);
+      st.whatsapp = String(body.whatsapp || body.phone || '').replace(/\D/g, '').replace(/^0/, '40');
+      db.admin = ctx.hash(pw);
+      return ok({ ok: true }, 200, { session: { role: 'admin' } });
     }
     if (p === '/api/admin/login' && m === 'POST') {
       if (!db.admin) return no(400, 'Parola de administrator nu e setată pe server.');

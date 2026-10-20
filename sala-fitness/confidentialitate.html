@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Confidențialitate</title>
+<meta name="theme-color" content="#0A0A0C">
+<link rel="icon" href="img/icon-192.png">
+<link rel="stylesheet" href="app.css">
+<style>
+.doc{max-width:720px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 60px max(18px, env(safe-area-inset-left));line-height:1.6}
+.doc h1{font-size:2rem;margin:10px 0 6px}
+.doc h2{font-size:1.15rem;margin:26px 0 6px}
+.doc p,.doc li{color:#C9C9D2}
+.doc a{color:var(--acc)}
+</style>
+</head>
+<body>
+<main class="doc">
+  <a href="app.html">← Înapoi la aplicație</a>
+  <h1>Politica de confidențialitate</h1>
+  <p class="muted" id="who">Aplicația sălii</p>
+
+  <h2>Cine se ocupă de datele tale</h2>
+  <p>Datele din aplicație sunt administrate de <b class="gn">sală</b>, care este operatorul datelor. Pentru orice întrebare despre datele tale, scrie-ne sau vino la recepție: <span id="contact"></span>.</p>
+
+  <h2>Ce date folosim</h2>
+  <ul>
+    <li>Nume, telefon și, dacă le dai, email, data nașterii, sex și înălțime.</li>
+    <li>Abonamentul tău și plățile făcute la sală.</li>
+    <li>Prezențele (check-in), antrenamentele înregistrate, provocările bifate și punctele.</li>
+    <li>Greutatea, măsurătorile și mesele bifate, dacă le notezi.</li>
+    <li>Pozele de progres, dacă le încarci. Acestea sunt private: le vezi doar tu, nici personalul sălii nu are acces la ele.</li>
+    <li>Mesajele pe care le trimiți sălii din aplicație.</li>
+  </ul>
+
+  <h2>De ce le folosim</h2>
+  <ul>
+    <li>Ca să gestionăm abonamentul și accesul în sală.</li>
+    <li>Ca să-ți arătăm progresul, programul de antrenament și planul alimentar.</li>
+    <li>Ca să-ți trimitem notificări: reamintiri de abonament, motivația zilei, anunțuri. Notificările pe telefon le pornești și le oprești tu, din Profil.</li>
+  </ul>
+
+  <h2>Clasamentul lunii</h2>
+  <p>În clasament apar doar prenumele și inițiala numelui, cu punctele lunii. Poți ieși din clasament oricând, din Profil.</p>
+
+  <h2>Cât le păstrăm și cine le vede</h2>
+  <p>Datele se păstrează cât timp ești membru. Le vede doar personalul sălii, cu excepția pozelor de progres, care sunt doar ale tale. Nu vindem și nu dăm datele altor firme.</p>
+
+  <h2>Drepturile tale</h2>
+  <p>Poți cere oricând să vezi, să corectezi sau să ștergi datele tale. Cererea o faci la recepție sau prin mesaj. Ștergerea contului elimină tot istoricul, inclusiv pozele. Ai și dreptul să te adresezi Autorității Naționale de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP).</p>
+
+  <h2>Cookie-uri</h2>
+  <p>Aplicația folosește un singur cookie, necesar ca să rămâi conectat. Nu folosim cookie-uri de reclamă sau de urmărire.</p>
+</main>
+<script>
+fetch('api/config').then((r) => r.json()).then((c) => {
+  const s = c.settings || {};
+  document.querySelectorAll('.gn').forEach((e) => (e.textContent = s.name || 'sala'));
+  document.getElementById('who').textContent = s.name || 'Aplicația sălii';
+  document.getElementById('contact').textContent = [s.phone, s.email, s.address].filter(Boolean).join(' · ') || 'la recepție';
+}).catch(() => {});
+</script>
+</body>
+</html>

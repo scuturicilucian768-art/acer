@@ -173,9 +173,25 @@ const S = () => CFG.settings;
 
 async function boot() {
   CFG = await api('/api/config'); applyAccent(CFG.settings.accent);
+  if (CFG.setup) return showSetup();
   const w = await api('/api/whoami'); if (w.role !== 'admin') return showLogin();
   $('#login').classList.add('hide'); $('#app').classList.remove('hide'); $('#gn').textContent = S().name;
   go(location.hash.slice(1) || 'dash');
+}
+function showSetup() {
+  $('#app').classList.add('hide'); const L = $('#login'); L.classList.remove('hide');
+  L.innerHTML = `<div class="login"><form class="card" id="sf" style="max-width:460px"><div style="width:56px;height:56px;border-radius:16px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;margin-bottom:16px">${IC('bolt', 28)}</div><h1 style="font-size:1.8rem">Bun venit!</h1><p class="muted" style="margin:6px 0 20px">Configurează sala în 1 minut. Restul (prețuri, program, culori) le schimbi oricând din Setări.</p>
+    <div class="field"><label for="s1">Numele sălii *</label><input class="input" id="s1" required autocomplete="organization" value="${esc(CFG.settings.name || '')}"></div>
+    <div class="g2"><div class="field"><label for="s2">Telefon</label><input class="input" id="s2" type="tel" placeholder="07xx xxx xxx"></div><div class="field"><label for="s3">WhatsApp</label><input class="input" id="s3" type="tel" placeholder="același ca telefonul"></div></div>
+    <div class="field"><label for="s4">Adresa</label><input class="input" id="s4" autocomplete="street-address"></div>
+    <div class="g2"><div class="field"><label for="s5">Parola panoului *</label><input class="input" id="s5" type="password" minlength="6" required autocomplete="new-password"></div><div class="field"><label for="s6">Repetă parola *</label><input class="input" id="s6" type="password" required autocomplete="new-password"></div></div>
+    <p class="err" id="se"></p><button class="btn btn-acc btn-block">Pornește aplicația</button></form></div>`;
+  $('#sf').onsubmit = async (e) => {
+    e.preventDefault(); $('#se').textContent = '';
+    if ($('#s5').value !== $('#s6').value) return ($('#se').textContent = 'Parolele nu sunt la fel.');
+    try { await api('/api/setup', { method: 'POST', body: { name: $('#s1').value, phone: $('#s2').value, whatsapp: $('#s3').value, address: $('#s4').value, password: $('#s5').value } }); CFG = await api('/api/config'); applyAccent(CFG.settings.accent); toast('Sala e gata! Adaugă primii membri.'); boot(); }
+    catch (er) { $('#se').textContent = er.message; }
+  };
 }
 function showLogin() {
   $('#app').classList.add('hide'); const L = $('#login'); L.classList.remove('hide');
@@ -492,7 +508,7 @@ async function pSettings() {
       <p class="err" id="e"></p><button class="btn btn-acc" id="s" style="margin-top:10px">Salvează</button></div>
     <div><div class="card"><div class="row"><h3 class="grow">Abonamente și prețuri</h3><button class="btn btn-sm btn-acc" id="ap">+ Abonament</button></div>${plans.map((p) => `<div class="alert"><div class="grow"><b>${esc(p.name)}</b> ${p.active ? '' : '<span class="chip">ascuns</span>'}<br><small>${lei(p.price)} · ${p.days} ${p.days === 1 ? 'zi' : 'zile'} · ${esc(p.desc || '')}</small></div><button class="btn btn-sm" data-plan="${p.id}">Editează</button></div>`).join('')}</div>
       <div class="card" style="margin-top:14px"><h3>Parola de administrator</h3><div class="field" style="margin-top:10px"><label>Parola actuală</label><input class="input" type="password" id="po"></div><div class="field"><label>Parola nouă</label><input class="input" type="password" id="pn"></div><button class="btn" id="pc">Schimbă parola</button></div>
-      <div class="card" style="margin-top:14px"><h3>Linkuri</h3><p class="muted" style="font-size:.88rem">Aplicația membrilor: <b>${esc(new URL('app.html', location.href).href)}</b><br>Panoul de administrare: <b>${esc(new URL('admin.html', location.href).href)}</b></p></div></div></div>`;
+      <div class="card" style="margin-top:14px"><h3>Linkuri</h3><p class="muted" style="font-size:.88rem">Aplicația membrilor: <b>${esc(new URL('app.html', location.href).href)}</b><br>Panoul de administrare: <b>${esc(new URL('admin.html', location.href).href)}</b><br>Politica de confidențialitate: <a href="confidentialitate.html" target="_blank" rel="noopener" class="acc">confidentialitate.html</a></p></div></div></div>`;
   $('#ah').onclick = () => $('#hrs').insertAdjacentHTML('beforeend', '<div class="g2 hr"><input class="input" placeholder="ex: Sâmbătă" style="margin-bottom:8px"><input class="input" placeholder="ex: 09:00 – 18:00" style="margin-bottom:8px"></div>');
   $('#s').onclick = async () => { const body = {}; $$('[data-k]').forEach((i) => (body[i.dataset.k] = i.value)); body.hours = $$('.hr').map((r) => { const [a, b] = $$('input', r); return { d: a.value, h: b.value }; }).filter((h) => h.d); try { await api('/api/admin/settings', { method: 'PUT', body }); CFG = await api('/api/config'); applyAccent(CFG.settings.accent); $('#gn').textContent = CFG.settings.name; toast('Salvat ✅'); } catch (er) { $('#e').textContent = er.message; } };
   const F = [['name', 'Nume'], ['price', 'Preț (lei)', 'number'], ['days', 'Valabilitate (zile)', 'number'], ['desc', 'Descriere'], ['active', 'Vizibil în aplicație', 'check']];
