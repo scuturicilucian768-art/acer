@@ -256,7 +256,11 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .water button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(180deg,#5FB8FF,#2E7DD1);transition:height .4s cubic-bezier(.3,1.3,.5,1)}
 .water button.on::after{height:82%}
 /* profil */
-.avatar{width:74px;height:74px;border-radius:24px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;font-family:var(--fd);font-weight:900;font-size:1.8rem;flex:none}
+.avatar{width:84px;height:84px;border-radius:50%;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;font-family:var(--fd);font-weight:900;font-size:1.9rem;flex:none}
+.avb{position:relative;border:0;cursor:pointer;padding:0;box-shadow:0 0 0 3px var(--bg),0 0 0 5px color-mix(in srgb,var(--acc) 70%,transparent)}
+.avb img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.avb .avc{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#000;display:grid;place-items:center;border:3px solid var(--bg)}
+.mc-av{width:30px;height:30px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;border:2px solid color-mix(in srgb,var(--acc) 60%,transparent)}
 .menu{display:grid;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden}
 .menu button,.menu a{display:flex;align-items:center;gap:12px;padding:15px 16px;border:0;background:none;border-bottom:1px solid var(--line);cursor:pointer;text-align:left;font-weight:600;text-decoration:none;color:inherit;width:100%}
 .menu > :last-child{border-bottom:0}
@@ -429,9 +433,9 @@ function cardHtml() {
       <div class="mc-top"><span class="mc-logo"><img src="img/logo-mark.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></span><b>${esc(S().name)}</b>${chipFor(s)}</div>
       <div class="mc-mid"><div class="grow"><div class="k">Abonament</div><div class="plan">${esc(s.plan ? s.plan.name : 'Fără abonament')}</div><div class="muted small" style="margin-top:4px">${s.end ? (s.state === 'expired' ? 'A expirat pe ' : 'Valabil până pe ') + fdate(s.end, true) : 'Treci pe la recepție'}</div></div>
         ${ring(left == null ? 0 : left / total, left == null ? '–' : `<span data-count="${left}">0</span>`, left === 1 ? 'zi' : 'zile', 96)}</div>
-      <div class="mc-bot"><span><span class="nm">${esc(me.name)}</span><br><span class="rkline">${GymFig.rankBadge(me.rank.idx, 16)} ${esc(me.rank.name)}</span></span><span class="mc-hint">${IC('qr', 16)} Cardul tău</span></div>
+      <div class="mc-bot"><span>${me.avatar ? `<img class="mc-av" src="${esc(avUrl(me.avatar))}" alt="">` : ''}<span class="nm">${esc(me.name)}</span><br><span class="rkline">${GymFig.rankBadge(me.rank.idx, 16)} ${esc(me.rank.name)}</span></span><span class="mc-hint">${IC('qr', 16)} Cardul tău</span></div>
     </div>
-    <div class="face mc-b"><div class="qrbox">${QR.svg(H.memberCode, { size: 150 })}</div><div class="grow"><small>Card de membru</small><b>${esc(me.name)}</b><small>Arată codul la recepție pentru intrare.</small><br><button class="btn btn-sm" id="subD" style="margin-top:10px;background:#0A0A0C;color:#fff">Abonament și plăți</button></div></div>
+    <div class="face mc-b"><div class="qrbox">${QR.svg(H.memberCode, { size: 150 })}</div><div class="grow"><small>Card de membru</small><b style="display:flex;align-items:center;gap:8px">${me.avatar ? `<img src="${esc(avUrl(me.avatar))}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none">` : ''}${esc(me.name)}</b><small>Arată codul la recepție pentru intrare.</small><br><button class="btn btn-sm" id="subD" style="margin-top:10px;background:#0A0A0C;color:#fff">Abonament și plăți</button></div></div>
   </div></div>`;
 }
 function vHome(v) {
@@ -545,6 +549,25 @@ function lightbox(list, i) {
   const close = () => { el.remove(); removeEventListener('keydown', key); };
   let sx = null; el.addEventListener('touchstart', (e) => (sx = e.touches[0].clientX), { passive: true }); el.addEventListener('touchend', (e) => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1); sx = null; });
   addEventListener('keydown', key); draw();
+}
+/* ── poza de profil ── */
+function cropSquare(file, size) { return new Promise((res) => { const img = new Image(); img.onload = () => { const s0 = Math.min(img.width, img.height), c = document.createElement('canvas'); c.width = c.height = size; c.getContext('2d').drawImage(img, (img.width - s0) / 2, (img.height - s0) / 2, s0, s0, 0, 0, size, size); c.toBlob((b) => res(b), 'image/jpeg', 0.86); }; img.onerror = () => res(null); img.src = URL.createObjectURL(file); }); }
+function openAvatar() {
+  const me = H.me;
+  const el = sheet(`<div style="text-align:center"><h2 style="padding:0">Poza de profil</h2><p class="muted small">O vezi tu și echipa sălii, ca să te recunoască la recepție.</p>
+    <div class="avatar" style="width:150px;height:150px;margin:16px auto;font-size:3rem;overflow:hidden">${me.avatar ? `<img src="${esc(avUrl(me.avatar))}" alt="" style="width:100%;height:100%;object-fit:cover">` : esc(me.name.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase())}</div>
+    <label class="btn btn-acc btn-block" style="cursor:pointer">${IC('camera', 18)} ${me.avatar ? 'Schimbă poza' : 'Alege o poză'}<input type="file" accept="image/*" id="avf" hidden></label>
+    ${me.avatar ? `<button class="btn btn-ghost btn-block" id="avd" style="margin-top:8px">${IC('trash', 18)} Șterge poza</button>` : ''}<p class="err" id="ave"></p></div>`);
+  $('#avf', el).onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return; $('#ave', el).textContent = '';
+    try {
+      const b = await cropSquare(f, window.GymDemo ? 320 : 600); if (!b) throw new Error('Poza nu a putut fi citită.');
+      if (window.GymDemo) { const url = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); H = await api('/api/me/avatar', { method: 'POST', body: { file: url } }); }
+      else H = await api('/api/me/avatar', { method: 'POST', raw: b, type: 'image/jpeg' });
+      closeSheet(); toast('Poza de profil a fost salvată'); render();
+    } catch (er) { $('#ave', el).textContent = er.message; }
+  };
+  if ($('#avd', el)) $('#avd', el).onclick = async () => { H = await api('/api/me/avatar', { method: 'DELETE', body: {} }); closeSheet(); toast('Poza a fost ștearsă'); render(); };
 }
 function openSub() {
   const me = H.me, s = me.subscription, pays = (me.payments || []).slice().reverse();
@@ -879,7 +902,7 @@ function drawPlans() { $('#np').innerHTML = H.nutritionPlans.filter((p) => !H.nu
 function vMe(v) {
   const me = H.me, ini = me.name.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
   const M = (id, ic, label, right) => `<button id="${id}"><span class="mi">${IC(ic, 18)}</span>${label}${right || `<span class="ar">${IC('chev', 18)}</span>`}</button>`;
-  v.innerHTML = `<div class="row" style="padding:18px 0 10px;gap:16px"><span class="avatar">${esc(ini)}</span><div class="grow"><h1 style="font-size:1.6rem">${esc(me.name)}</h1><div class="muted">${esc(me.phone)}</div><div style="margin-top:6px">${chipFor(me.subscription)}</div></div></div>
+  v.innerHTML = `<div class="row" style="padding:18px 0 10px;gap:16px"><button class="avatar avb" id="avB" aria-label="Schimbă poza de profil">${me.avatar ? `<img src="${esc(avUrl(me.avatar))}" alt="">` : esc(ini)}<span class="avc">${IC('camera', 15)}</span></button><div class="grow"><h1 style="font-size:1.6rem">${esc(me.name)}</h1><div class="muted">${esc(me.phone)}</div><div style="margin-top:6px">${chipFor(me.subscription)}</div></div></div>
     ${rankCard(me).replace('id="rkC"', 'id="rkP"')}
     <div class="kp" style="margin-top:10px"><div class="st"><b data-count="${me.points.balance}">0</b><small>puncte</small></div><div class="st"><b data-count="${me.badges.filter((b) => b.earned).length}">0</b><small>insigne</small></div><div class="st"><b>${H.board.me && H.board.me.rank ? '#' + H.board.me.rank : '–'}</b><small>în clasament</small></div></div>
     <div class="sec"><h2>Despre mine</h2><button id="ed">Editează</button></div>
@@ -905,6 +928,7 @@ function vMe(v) {
     </div>
     <a href="confidentialitate.html" class="muted small" style="display:block;text-align:center;margin-top:18px">Politica de confidențialitate</a>
     <button class="btn btn-ghost btn-block" id="out" style="margin-top:12px">${IC('logout', 18)} Ieși din cont</button>`;
+  $('#avB').onclick = openAvatar;
   $('#rkP').onclick = openRanks; if ($('#galM')) $('#galM').onclick = () => openGallery();
   $('#sub').onclick = openSub; $('#ann').onclick = openAnns; $('#chatM').onclick = () => openChat(); $('#genM').onclick = openGen;
   $('#pushT').onclick = togglePush;

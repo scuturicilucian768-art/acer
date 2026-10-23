@@ -22,6 +22,7 @@ const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const UPLOADS = path.join(DATA_DIR, 'photos');
 const GALLERY = path.join(DATA_DIR, 'gallery');
+const AVATARS = path.join(DATA_DIR, 'avatars');
 const PUBLIC = path.join(__dirname, 'public');
 const TZ = 'Europe/Bucharest';
 
@@ -37,7 +38,7 @@ const b64u = (buf) => Buffer.from(buf).toString('base64url');
 let db; let timer = null;
 const baseCtx = { today, hour, time: hhmm, nowISO: () => new Date().toISOString(), uid: (p) => p + '_' + crypto.randomBytes(6).toString('hex'), rand: () => crypto.randomInt(1e9) / 1e9, hash, check };
 function load() {
-  fs.mkdirSync(UPLOADS, { recursive: true }); fs.mkdirSync(GALLERY, { recursive: true });
+  fs.mkdirSync(UPLOADS, { recursive: true }); fs.mkdirSync(GALLERY, { recursive: true }); fs.mkdirSync(AVATARS, { recursive: true });
   
   if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
   else { db = Seed.base(baseCtx); if (process.env.SEED_DEMO === '1') Seed.demo(db, baseCtx); }
@@ -133,6 +134,22 @@ const server = http.createServer(async (req, res) => {
         const file = crypto.randomBytes(12).toString('hex') + ext; fs.writeFileSync(path.join(UPLOADS, file), buf);
         const out = Core.route(db, { method: 'POST', path: p, body: { file }, query: {}, session }, ctx); save(); return send(res, out.status, out.data);
       }
+      // poza de profil: o vede membrul și personalul sălii
+      if (p === '/api/me/avatar' && req.method === 'POST' && (req.headers['content-type'] || '').startsWith('image/')) {
+        if (!session || session.role !== 'member') return send(res, 401, { error: 'Intră în cont.' });
+        const ext = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }[(req.headers['content-type'] || '').split(';')[0]]; if (!ext) return send(res, 400, { error: 'Doar poze JPG, PNG sau WEBP.' });
+        let buf; try { buf = await readBody(req, 5e6); } catch { return send(res, 413, { error: 'Poza e prea mare.' }); }
+        const file = crypto.randomBytes(12).toString('hex') + ext; fs.writeFileSync(path.join(AVATARS, file), buf);
+        const out = Core.route(db, { method: 'POST', path: p, body: { file }, query: {}, session }, ctx);
+        if (out.data && /^[a-f0-9]{24}\.\w+$/.test(out.data.avatarRemoved || '')) fs.rm(path.join(AVATARS, out.data.avatarRemoved), () => {});
+        save(); return send(res, out.status, out.data);
+      }
+      if ((r = /^\/api\/avatar\/([a-f0-9]{24}\.(?:jpg|png|webp))$/.exec(p)) && req.method === 'GET') {
+        if (!session) return send(res, 401, { error: 'Intră în cont.' });
+        const owner = db.members.find((x) => x.avatar === r[1]);
+        if (!owner || (session.role !== 'admin' && session.id !== owner.id)) return send(res, 403, { error: 'Privat.' });
+        res.writeHead(200, { 'Content-Type': MIME[path.extname(r[1])], 'Cache-Control': 'private, max-age=604800' }); return fs.createReadStream(path.join(AVATARS, r[1])).pipe(res);
+      }
       // galeria sălii: încărcare de către admin, vizualizare publică
       if (p === '/api/admin/gallery' && req.method === 'POST' && (req.headers['content-type'] || '').startsWith('image/')) {
         if (!session || session.role !== 'admin') return send(res, 401, { error: 'Intră ca administrator.' });
@@ -157,6 +174,7 @@ const server = http.createServer(async (req, res) => {
       if ('session' in out) setCookie(req, res, out.session); else if (session && Date.now() - (session.iat || 0) > 864e5) setCookie(req, res, session);
       for (const f of [].concat(out.data && out.data.files || [], out.data && out.data.removed || [])) if (/^[a-f0-9]{24}\.\w+$/.test(f)) fs.rm(path.join(UPLOADS, f), () => {});
       if (out.data && /^[a-f0-9]{24}\.\w+$/.test(out.data.galleryRemoved || '')) fs.rm(path.join(GALLERY, out.data.galleryRemoved), () => {});
+      if (out.data && /^[a-f0-9]{24}\.\w+$/.test(out.data.avatarRemoved || '')) fs.rm(path.join(AVATARS, out.data.avatarRemoved), () => {});
       if (req.method !== 'GET' || p === '/api/me') save();
       return send(res, out.status, out.data);
     }

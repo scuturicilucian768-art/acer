@@ -149,7 +149,7 @@
   const pubSettings = (s) => { const { checkinCode, checkinDate, dailySent, ...r } = s; return r; };
   function memberRow(db, m, t) {
     const s = subOf(db, m, t), la = lastActive(m);
-    return { id: m.id, name: m.name, phone: m.phone, tags: m.tags || [], plan: s.plan ? s.plan.name : '', state: s.state, end: s.end, daysLeft: s.daysLeft, lastActive: la, idle: la ? diff(t, la) : null, createdAt: m.createdAt, visits: trainDays(m).size, rk: rankOf(pointsOf(db, m, t).earned).idx, pushOn: (m.push || []).length > 0, ciToday: (m.ciAt || {})[t] || null };
+    return { id: m.id, name: m.name, avatar: m.avatar || '', phone: m.phone, tags: m.tags || [], plan: s.plan ? s.plan.name : '', state: s.state, end: s.end, daysLeft: s.daysLeft, lastActive: la, idle: la ? diff(t, la) : null, createdAt: m.createdAt, visits: trainDays(m).size, rk: rankOf(pointsOf(db, m, t).earned).idx, pushOn: (m.push || []).length > 0, ciToday: (m.ciAt || {})[t] || null };
   }
   /* ---------- rangurile Empire (după punctele câștigate în total) ---------- */
   const RANKS = [
@@ -346,6 +346,8 @@
         me.measures = (me.measures || []).filter((w) => w.date !== x.date); me.measures.push(x); me.measures.sort((a, b) => a.date.localeCompare(b.date));
         return ok(homeFor(db, me, t, ctx));
       }
+      if (p === '/api/me/avatar' && m === 'POST') { if (!body.file) return no(400, 'Alege o poză.'); const old = me.avatar || null; me.avatar = String(body.file); return ok({ ...homeFor(db, me, t, ctx), avatarRemoved: old }); }
+      if (p === '/api/me/avatar' && m === 'DELETE') { const old = me.avatar || null; me.avatar = ''; return ok({ ...homeFor(db, me, t, ctx), avatarRemoved: old }); }
       if (p === '/api/me/photo' && m === 'POST') {
         if (!body.file) return no(400, 'Alege o poză.');
         me.photos = me.photos || []; me.photos.push({ id: ctx.uid('ph'), date: t, file: String(body.file), note: clean(body.note, 80) });
@@ -438,7 +440,7 @@
         let pw = null; if (body.resetPassword) { pw = String(body.password || '').trim() || phoneKey(mem.phone).slice(-4); mem.pass = ctx.hash(pw); }
         return ok({ member: memberFull(db, mem, t), password: pw });
       }
-      if (!sub && m === 'DELETE') { db.members = db.members.filter((x) => x.id !== mem.id); db.bookings = db.bookings.filter((b) => b.memberId !== mem.id); return ok({ ok: true, files: (mem.photos || []).map((x) => x.file) }); }
+      if (!sub && m === 'DELETE') { db.members = db.members.filter((x) => x.id !== mem.id); db.bookings = db.bookings.filter((b) => b.memberId !== mem.id); return ok({ ok: true, files: (mem.photos || []).map((x) => x.file), avatarRemoved: mem.avatar || null }); }
       if (sub === '/payment' && m === 'POST') { const e = addPayment(db, mem, t, ctx, body); if (e) return no(400, e); notify(db, ctx, [mem], 'Abonament activ ✅', `Abonamentul tău e valabil până pe ${mem.sub.end.split('-').reverse().join('.')}. Spor la antrenamente!`, 'abonament'); return ok({ member: memberFull(db, mem, t) }, 201); }
       if ((r = /^\/payment\/(\w+)$/.exec(sub)) && m === 'DELETE') { mem.payments = (mem.payments || []).filter((x) => x.id !== r[1]); return ok({ member: memberFull(db, mem, t) }); }
       if (sub === '/checkin' && m === 'POST') { mem.checkins = mem.checkins || []; const already = mem.checkins.includes(t); if (!already) { mem.checkins.push(t); mem.ciAt = mem.ciAt || {}; mem.ciAt[t] = ctx.time ? ctx.time() : ''; } return ok({ member: memberFull(db, mem, t), already }); }
@@ -464,7 +466,7 @@
       if (m === 'DELETE') { db.gallery = db.gallery.filter((y) => y.id !== x.id); return ok({ ok: true, galleryRemoved: x.file }); }
     }
     if (p === A + '/chats' && m === 'GET') {
-      const th = db.members.filter((x) => (x.chat || []).length).map((x) => { const last = x.chat[x.chat.length - 1]; return { id: x.id, name: x.name, phone: x.phone, last: last.text, from: last.from, at: last.at, unread: x.chat.filter((y) => y.from === 'm' && !y.read).length }; }).sort((a, b) => b.at.localeCompare(a.at));
+      const th = db.members.filter((x) => (x.chat || []).length).map((x) => { const last = x.chat[x.chat.length - 1]; return { id: x.id, name: x.name, avatar: x.avatar || '', phone: x.phone, last: last.text, from: last.from, at: last.at, unread: x.chat.filter((y) => y.from === 'm' && !y.read).length }; }).sort((a, b) => b.at.localeCompare(a.at));
       return ok({ threads: th });
     }
     if ((r = /^\/api\/admin\/chats\/(\w+)$/.exec(p))) {
