@@ -15,7 +15,7 @@
   try { if (window.parent !== window && window.parent.document) top = window.parent; } catch (e) {}
   let host = top.GymHost;
   // pe tot ecranul (nu în pagina de prezentare): datele rămân salvate pe telefon între deschideri
-  const solo = top === window, KEY = 'gymDemoDB_v7';
+  const solo = top === window, KEY = 'gymDemoDB_v8';
   const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
   if (!host) {
     host = { db: null, listeners: [] };

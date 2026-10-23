@@ -469,6 +469,10 @@
       if (body.whatsapp !== undefined) st.whatsapp = String(body.whatsapp).replace(/\D/g, '').replace(/^0/, '40');
       if (body.accent && /^#[0-9a-f]{6}$/i.test(body.accent)) st.accent = body.accent;
       if (body.dailyHour !== undefined) st.dailyHour = num(body.dailyHour, 0, 23) || 0;
+      if (body.autoIdle !== undefined) st.autoIdle = body.autoIdle === true || body.autoIdle === 'true';
+      if (body.idleHour !== undefined) st.idleHour = num(body.idleHour, 6, 22) || 17;
+      if (body.idleText7 !== undefined) st.idleText7 = text(body.idleText7, 400);
+      if (body.idleText14 !== undefined) st.idleText14 = text(body.idleText14, 400);
       if (Array.isArray(body.hours)) st.hours = body.hours.slice(0, 7).map((h) => ({ d: clean(h.d, 40), h: clean(h.h, 40) })).filter((h) => h.d);
       return ok({ settings: st });
     }
@@ -535,6 +539,7 @@
   }
 
   /* ---------- sarcini automate (pe server, la fiecare minut) ---------- */
+  const IDLE_DEF = { 7: 'Nu te-am mai văzut de o săptămână. Hai azi, chiar și pentru 30 de minute. Fiecare antrenament contează!', 14: 'Au trecut două săptămâni de la ultimul antrenament. Abonamentul tău e încă activ, nu-l lăsa să treacă degeaba. Te așteptăm!' };
   function jobs(db, ctx) {
     const t = ctx.today(), hour = ctx.hour(), st = db.settings; let dirty = false;
     // cod nou de check-in în fiecare zi
@@ -544,6 +549,23 @@
     if (hour >= (st.dailyHour || 8) && st.dailySent !== t) {
       st.dailySent = t; dirty = true; const d = dailyFor(db, t);
       for (const m of db.members) if ((m.push || []).length && subOf(db, m, t).state !== 'expired' && ctx.push) ctx.push(m, { title: 'Motivația zilei 💪', body: `„${d.quote}” · Provocarea de azi: ${d.challenge}`, url: '/app.html', tag: 'daily' });
+    }
+    // mesaj automat pentru cine n-a mai venit (abonament activ, 7 și 14 zile de absență)
+    if (st.autoIdle !== false && hour >= (st.idleHour || 17)) {
+      const sentNow = { 7: 0, 14: 0 };
+      for (const m of db.members) {
+        const s0 = subOf(db, m, t); if (s0.state !== 'active' && s0.state !== 'expiring') continue;
+        const la = lastActive(m) || m.createdAt; if (!la) continue;
+        const idle = diff(t, la), key = idle >= 14 ? 14 : idle >= 7 ? 7 : 0; if (!key) continue;
+        m.idleNotified = m.idleNotified || {}; const k = la + ':' + key; if (m.idleNotified[k]) continue;
+        if (key === 7 && idle >= 14) { m.idleNotified[la + ':7'] = true; }
+        m.idleNotified[k] = true; dirty = true;
+        const first = String(m.name || '').split(' ')[0];
+        const txt = String((key === 7 ? st.idleText7 : st.idleText14) || IDLE_DEF[key]).replace(/\{nume\}/g, first);
+        notify(db, ctx, [m], key === 7 ? `Ne e dor de tine, ${first}! 💪` : `${first}, te așteptăm înapoi`, txt, 'revino');
+        sentNow[key]++;
+      }
+      for (const key of [7, 14]) if (sentNow[key]) { db.sent.unshift({ id: ctx.uid('sn'), title: `Automat: n-au mai venit de ${key} zile`, body: String((key === 7 ? st.idleText7 : st.idleText14) || IDLE_DEF[key]), target: 'auto', count: sentNow[key], pushed: 0, at: ctx.nowISO(), auto: true }); db.sent = db.sent.slice(0, 100); }
     }
     // reamintiri de expirare: cu 3 zile înainte și în ziua expirării
     if (hour >= 10) for (const m of db.members) {
