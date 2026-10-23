@@ -128,7 +128,7 @@
         { id: 'rw_towel', name: 'Prosop cu logo', points: 800, desc: 'Prosop de sală' },
         { id: 'rw_week', name: '7 zile gratuite', points: 1500, desc: 'Se adaugă la abonament' },
       ],
-      redemptions: [], sent: [], admin: null,
+      redemptions: [], sent: [], gallery: [], admin: null,
     };
   }
 

@@ -289,6 +289,24 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .notif.new{border-color:color-mix(in srgb,var(--acc) 50%,transparent)}
 .notif p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
 .small{font-size:.84rem}
+.gstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
+.gstrip::-webkit-scrollbar{display:none}
+.gstrip button{flex:0 0 76%;aspect-ratio:4/3;border-radius:22px;overflow:hidden;scroll-snap-align:start;position:relative;border:1px solid var(--line2);padding:0;cursor:pointer;background:#000}
+.gstrip img,.ggrid img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
+.gstrip button:active img{transform:scale(1.04)}
+.gcap{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.85));color:#fff;text-align:left;font-weight:700;font-size:.9rem}
+.gcap small{display:block;color:var(--acc);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800}
+.gal-ov{position:fixed;inset:0;z-index:130;background:var(--bg);overflow:auto;animation:vin .3s}
+.ggrid{columns:2;column-gap:8px;padding:12px 12px calc(30px + env(safe-area-inset-bottom))}
+.ggrid button{display:block;width:100%;margin:0 0 8px;break-inside:avoid;border:0;padding:0;border-radius:16px;overflow:hidden;cursor:pointer;background:#000}
+.ggrid button:nth-child(3n+1) img{aspect-ratio:3/4}.ggrid button:nth-child(3n+2) img{aspect-ratio:1}.ggrid button:nth-child(3n) img{aspect-ratio:4/3}
+.lbx{position:fixed;inset:0;z-index:180;background:rgba(0,0,0,.96);display:grid;grid-template-rows:auto 1fr auto;animation:vin .25s;touch-action:pan-y}
+.lbx .lt{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 14px 10px;color:#fff}
+.lbx .li{display:grid;place-items:center;min-height:0;position:relative}
+.lbx .li img{max-width:100%;max-height:100%;object-fit:contain;transition:opacity .25s}
+.lbx .lc{padding:12px 18px calc(18px + env(safe-area-inset-bottom));color:#ddd;text-align:center;min-height:56px}
+.lbx .nv{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;display:grid;place-items:center;cursor:pointer}
+.login-bg{position:fixed;inset:0 0 auto 0;height:46vh;z-index:-1;background-size:cover;background-position:center;opacity:.35;-webkit-mask:linear-gradient(#000 30%,transparent);mask:linear-gradient(#000 30%,transparent)}
 .hero-logo{position:relative;width:min(64vw,250px);aspect-ratio:1;margin:14px auto 0;display:grid;place-items:center}
 .hero-logo::before{content:"";position:absolute;inset:-18%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--acc) 38%,transparent) 0%,transparent 65%);animation:hlGlow 4s ease-in-out infinite}
 .hl-ring{position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,var(--acc) 50deg,transparent 110deg,transparent 200deg,color-mix(in srgb,var(--acc) 70%,#fff) 250deg,transparent 310deg);animation:hlSpin 6s linear infinite;-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px))}
@@ -333,7 +351,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 <script src="fig.js?v=3"></script>
 <script src="qr.js?v=3"></script>
 <script>
-let CFG = null, H = null, EX = [], tab = 'home';
+let CFG = null, H = null, EX = [], tab = 'home', GAL = { sections: [], photos: [] };
 const exById = (id) => EX.find((e) => e.id === id) || { id, name: id, muscle: '', steps: [] };
 const S = () => CFG.settings;
 const TABS = ['home', 'train', 'progress', 'food', 'me'];
@@ -347,6 +365,7 @@ const thumb = (ex) => GymFig.figure(ex, { still: true });
 async function boot() {
   const t0 = performance.now();
   CFG = await api('/api/config'); applyAccent(S().accent);
+  try { GAL = await api('/api/gallery'); } catch {}
   document.title = S().name; $('#gName').textContent = S().name; $('#spn').textContent = S().name;
   try { H = await api('/api/me'); } catch (e) { if (e.status === 401) { hideSplash(t0); return showLogin(); } throw e; }
   EX = (await api('/api/exercises')).exercises;
@@ -365,7 +384,8 @@ function openExFromQR(id) {
 function hideSplash(t0) { setTimeout(() => $('#splash').classList.add('out'), Math.max(0, 650 - (performance.now() - t0))); }
 function showLogin() {
   $('#shell').classList.add('hide'); const L = $('#login'); L.classList.remove('hide');
-  L.innerHTML = `<div class="blobs"><i style="width:340px;height:340px;background:var(--acc);top:-120px;right:-140px;opacity:.28"></i><i style="width:300px;height:300px;background:var(--vio);bottom:-80px;left:-120px;animation-delay:-4s"></i></div>
+  const bgp = GAL.photos.find((x) => x.cat === 'sala') || GAL.photos[0];
+  L.innerHTML = `${bgp ? `<div class="login-bg" style="background-image:url('${esc(galUrl(bgp.file))}')"></div>` : ''}<div class="blobs"><i style="width:340px;height:340px;background:var(--acc);top:-120px;right:-140px;opacity:.28"></i><i style="width:300px;height:300px;background:var(--vio);bottom:-80px;left:-120px;animation-delay:-4s"></i></div>
     <div class="login stagger"><div class="logo"><img src="img/logo.jpg" alt="Logo ${esc(S().name)}"></div><h1>${esc(S().name)}</h1><p class="muted" style="margin:10px 0 26px">${esc(S().tagline || '')}</p>
     <form id="lf"><div class="field"><label for="lp">Telefon</label><input class="input" id="lp" type="tel" inputmode="tel" autocomplete="tel" placeholder="07xx xxx xxx" required></div>
     <div class="field"><label for="lw">Parola</label><input class="input" id="lw" type="password" autocomplete="current-password" required></div>
@@ -397,7 +417,7 @@ function render(anim) {
   $('#chatB').innerHTML = IC('chat', 20) + (c ? `<span class="bd">${c}</span>` : '');
   countUp(v); GymFig.animate(v); checkRankUp();
 }
-async function refresh(p) { H = p || (await api('/api/me')); render(); }
+async function refresh(p) { H = p || (await api('/api/me')); if (!p) try { GAL = await api('/api/gallery'); } catch {} render(); }
 const act = async (path, body, method) => { try { const r = await api(path, { method: method || 'POST', body }); if (r && r.me) H = r; return r; } catch (e) { toast(e.message, 'bad'); throw e; } };
 
 /* ───────── ACASĂ ───────── */
@@ -450,6 +470,7 @@ function vHome(v) {
     <div class="card">${top3.length >= 3 ? `<div class="podium">${[1, 0, 2].map((i) => { const x = top3[i]; return `<div class="p${i + 1}"><span class="av">${esc(x.name.split(' ').map((y) => y[0]).join(''))}</span><small>${esc(x.name)}</small><small class="muted">${x.pts} p</small><span class="st2" style="height:${[64, 44, 32][i]}px">${i + 1}</span></div>`; }).join('')}</div>` : ''}
       <div class="lbrow me"><span class="n">${b.me && b.me.rank ? b.me.rank : '–'}</span><b class="grow">Tu</b><b class="acc">${b.me ? b.me.pts : 0} puncte</b></div>
       <p class="muted small" style="margin:10px 0 0">Antrenament +10 · Check-in +5 · Provocarea zilei +5. Se resetează la început de lună.</p></div>
+    ${GAL.photos.length ? `<div class="sec"><h2>Sala noastră</h2><button id="galAll">Toate pozele</button></div><div class="gstrip">${GAL.photos.slice().sort((a, b) => (a.cat === 'sala' ? 0 : 1) - (b.cat === 'sala' ? 0 : 1)).slice(0, 12).map((x) => `<button data-gp="${x.id}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || 'Fitness Empire')}" loading="lazy"><span class="gcap"><small>${esc((GAL.sections.find((s) => s.id === x.cat) || {}).name || '')}</small>${esc(x.caption || '')}</span></button>`).join('')}</div>` : ''}
     ${H.announcements.length ? `<div class="sec"><h2>Noutăți de la sală</h2><button id="allAnn">Toate</button></div><div class="list">${H.announcements.slice(0, 2).map(annHtml).join('')}</div>` : ''}
     <div class="sec"><h2>Contact rapid</h2></div>
     <div class="contact">
@@ -467,6 +488,8 @@ function vHome(v) {
   $('#qaT').onclick = () => go('train'); $('#qaM').onclick = () => openChat(); $('#qaL').onclick = openBoard; $('#lbAll').onclick = openBoard;
   if ($('#startW')) $('#startW').onclick = () => startWorkout(prog, H.nextDay);
   if ($('#allAnn')) $('#allAnn').onclick = openAnns;
+  if ($('#galAll')) $('#galAll').onclick = () => openGallery();
+  $$('[data-gp]', v).forEach((b) => (b.onclick = () => { const all = GAL.photos.slice().sort((a, b2) => (a.cat === 'sala' ? 0 : 1) - (b2.cat === 'sala' ? 0 : 1)).slice(0, 12); lightbox(all, all.findIndex((x) => x.id === b.dataset.gp)); }));
   bindInstall();
 }
 const CoreAdd = (d, n) => GymCore.add(d, n);
@@ -491,6 +514,36 @@ const ANN = { program: ['clock', 'Program'], noutate: ['megaphone', 'Noutate'], 
 const annHtml = (a) => `<div class="card ann ${a.type}"><div class="row"><span class="chip">${IC(ANN[a.type][0], 14)} ${ANN[a.type][1]}</span>${a.pinned ? '<span class="chip acc">Important</span>' : ''}<span class="grow"></span><small class="muted">${fdate(a.date)}</small></div><h3 style="margin-top:10px">${esc(a.title)}</h3><p>${esc(a.body)}</p></div>`;
 const estMin = (day) => Math.round(day.items.reduce((a, i) => a + (/min/.test(i.reps) ? parseInt(i.reps) || 10 : i.sets * (0.8 + (i.rest || 60) / 60)), 0) + 5);
 
+/* ── galeria sălii ── */
+function openGallery(cat) {
+  const secs = GAL.sections.filter((s) => GAL.photos.some((x) => x.cat === s.id));
+  let cur = cat || '';
+  const el = document.createElement('div'); el.className = 'gal-ov'; el.id = 'galov'; document.body.appendChild(el); document.body.classList.add('noscroll');
+  const draw = () => {
+    const list = GAL.photos.filter((x) => !cur || x.cat === cur);
+    el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="gx" aria-label="Înapoi">${IC('back', 20)}</button><div class="grow"><b>${esc(S().name)}</b><div class="muted small">${GAL.photos.length} poze</div></div></div>
+      <div class="filters" style="padding:12px 12px 0"><button data-gc="" class="${cur ? '' : 'on'}">Toate</button>${secs.map((s) => `<button data-gc="${s.id}" class="${cur === s.id ? 'on' : ''}">${esc(s.name)}</button>`).join('')}</div>
+      <div class="ggrid">${list.map((x, i) => `<button data-gi="${i}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || '')}" loading="lazy"></button>`).join('')}</div>`;
+    $('#gx', el).onclick = () => { el.remove(); if (!$('.wo') && !$('#chat')) document.body.classList.remove('noscroll'); };
+    $$('[data-gc]', el).forEach((b) => (b.onclick = () => { cur = b.dataset.gc; draw(); }));
+    $$('[data-gi]', el).forEach((b) => (b.onclick = () => lightbox(list, +b.dataset.gi)));
+  };
+  draw();
+}
+function lightbox(list, i) {
+  const el = document.createElement('div'); el.className = 'lbx'; el.setAttribute('role', 'dialog'); document.body.appendChild(el);
+  const draw = () => { const x = list[i], sec = (GAL.sections.find((s) => s.id === x.cat) || {}).name || '';
+    el.innerHTML = `<div class="lt"><b class="grow">${esc(sec)}</b><small style="color:#aaa">${i + 1} / ${list.length}</small><button class="iconbtn" id="lx" aria-label="Închide" style="background:rgba(255,255,255,.1);border:0">${IC('x', 20)}</button></div>
+      <div class="li"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || '')}">${list.length > 1 ? `<button class="nv" id="lp" style="left:10px" aria-label="Poza anterioară">${IC('back', 22)}</button><button class="nv" id="ln" style="right:10px" aria-label="Poza următoare">${IC('chev', 22)}</button>` : ''}</div>
+      <div class="lc">${esc(x.caption || '')}</div>`;
+    $('#lx', el).onclick = close; if ($('#lp', el)) { $('#lp', el).onclick = (e) => { e.stopPropagation(); step(-1); }; $('#ln', el).onclick = (e) => { e.stopPropagation(); step(1); }; }
+  };
+  const step = (d) => { i = (i + d + list.length) % list.length; draw(); };
+  const key = (e) => { if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') step(-1); if (e.key === 'ArrowRight') step(1); };
+  const close = () => { el.remove(); removeEventListener('keydown', key); };
+  let sx = null; el.addEventListener('touchstart', (e) => (sx = e.touches[0].clientX), { passive: true }); el.addEventListener('touchend', (e) => { if (sx === null) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1); sx = null; });
+  addEventListener('keydown', key); draw();
+}
 function openSub() {
   const me = H.me, s = me.subscription, pays = (me.payments || []).slice().reverse();
   sheet(`<h2>Abonamentul meu</h2>${chipFor(s)}
@@ -837,6 +890,7 @@ function vMe(v) {
       ${M('lbT', 'trophy', 'Apar în clasament', `<span class="toggle ${me.hideBoard ? '' : 'on'}"></span>`)}
       ${M('genM', 'spark', 'Antrenor inteligent')}
       ${M('ann', 'megaphone', 'Anunțuri și evenimente')}
+      ${GAL.photos.length ? M('galM', 'camera', 'Galerie foto') : ''}
       ${M('pw', 'lock', 'Schimbă parola')}
     </div>
     <div class="sec"><h2>Sala</h2></div>
@@ -849,7 +903,7 @@ function vMe(v) {
     </div>
     <a href="confidentialitate.html" class="muted small" style="display:block;text-align:center;margin-top:18px">Politica de confidențialitate</a>
     <button class="btn btn-ghost btn-block" id="out" style="margin-top:12px">${IC('logout', 18)} Ieși din cont</button>`;
-  $('#rkP').onclick = openRanks;
+  $('#rkP').onclick = openRanks; if ($('#galM')) $('#galM').onclick = () => openGallery();
   $('#sub').onclick = openSub; $('#ann').onclick = openAnns; $('#chatM').onclick = () => openChat(); $('#genM').onclick = openGen;
   $('#pushT').onclick = togglePush;
   $('#lbT').onclick = async () => { await act('/api/me', { hideBoard: !me.hideBoard }, 'PUT'); toast(H.me.hideBoard ? 'Nu mai apari în clasament' : 'Apari în clasament'); render(); };

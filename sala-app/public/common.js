@@ -10,7 +10,8 @@ const fdate = (d, year) => { if (!d) return '–'; const x = pd(d); return `${x.
 const fday = (d) => { const x = pd(d); return `${DAYS[x.getDay()]}, ${x.getDate()} ${MONTHS[x.getMonth()]}`; };
 const lei = (n) => `${Number(n || 0).toLocaleString('ro-RO')} lei`;
 const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
-const photoUrl = (f) => (String(f).startsWith('data:') ? f : '/api/photo/' + f);
+const galUrl = (f) => (String(f).startsWith('data:') ? f : 'api/gallery/' + f);
+const photoUrl = (f) => (String(f).startsWith('data:') ? f : 'api/photo/' + f);
 const waLink = (num, text) => `https://wa.me/${String(num || '').replace(/\D/g, '')}${text ? '?text=' + encodeURIComponent(text) : ''}`;
 
 async function api(path, opt = {}) {

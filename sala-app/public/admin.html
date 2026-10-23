@@ -66,6 +66,13 @@ body{min-height:100vh}
 .login{min-height:100vh;display:grid;place-items:center;padding:20px}
 .login .card{width:100%;max-width:400px;padding:28px}
 .mob-top{display:none}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.gph{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:grid}
+.gph img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#000}
+.gph .gb{padding:10px;display:grid;gap:8px}
+.gph .gb .input{padding:9px 10px;font-size:.88rem}
+.drop{border:2px dashed color-mix(in srgb,var(--acc) 50%,transparent);border-radius:18px;padding:26px;text-align:center;cursor:pointer;background:color-mix(in srgb,var(--acc) 5%,transparent);display:grid;justify-items:center;gap:6px}
+.drop.over{background:color-mix(in srgb,var(--acc) 14%,transparent)}
 .printsheet{position:fixed;inset:0;z-index:400;background:#fff;color:#000;overflow:auto}
 .ps-bar{position:sticky;top:0;display:flex;align-items:center;gap:10px;padding:12px 18px;background:#0A0A0C;color:#fff}
 .ps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:18px;max-width:900px;margin:0 auto}
@@ -155,6 +162,7 @@ body{min-height:100vh}
       <button data-p="programs" data-i="dumbbell">Antrenamente</button>
       <button data-p="nutrition" data-i="food">Nutriție</button>
       <button data-p="pt" data-i="calendar">Antrenor personal<em class="bd hide" id="ptb"></em></button>
+      <button data-p="gallery" data-i="camera">Galerie foto</button>
       <button data-p="ann" data-i="megaphone">Anunțuri</button>
       <button data-p="rewards" data-i="gift">Premii</button>
       <button data-p="settings" data-i="settings">Setări</button>
@@ -210,12 +218,12 @@ function showLogin() {
     <div class="field"><label>Parola</label><input class="input" type="password" id="pw" autocomplete="current-password" required></div><p class="err" id="le"></p><button class="btn btn-acc btn-block">Intră</button>${window.GymDemo ? '<p class="tip" style="margin-top:14px">Demo: parola <b>admin</b></p>' : ''}</form></div>`;
   $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/api/admin/login', { method: 'POST', body: { password: $('#pw').value } }); boot(); } catch (er) { $('#le').textContent = er.message; } };
 }
-const TITLES = { dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', payments: 'Plăți și restanțe', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', pt: 'Antrenor personal', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
+const TITLES = { gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', payments: 'Plăți și restanțe', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', pt: 'Antrenor personal', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
 function go(p) {
   page = TITLES[p] ? p : 'dash'; history.replaceState(null, '', '#' + page);
   $$('.side [data-p]').forEach((b) => b.classList.toggle('on', b.dataset.p === page)); $('#mtitle').textContent = TITLES[page]; $('#side').classList.remove('open');
   M().innerHTML = '<div class="skel" style="height:60px;margin-bottom:14px"></div><div class="skel" style="height:220px"></div>'; M().classList.remove('stagger'); clearInterval(window._poll); window._quiet = null; window._convReload = null; stopScan();
-  const fn = ({ dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, payments: pPayments, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, pt: pPT, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
+  const fn = ({ gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, payments: pPayments, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, pt: pPT, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
   fn().then(() => { M().classList.add('stagger'); countUp(M()); if (!window._quiet && ['dash', 'members', 'payments', 'pt', 'rewards'].includes(page)) window._quiet = async () => { await fn(); countUp(M()); }; }).catch((e) => { if (e.status === 401) return showLogin(); M().innerHTML = `<p class="err">${esc(e.message)}</p>`; });
   scrollTo(0, 0);
 }
@@ -421,6 +429,38 @@ function bindQR(exercises) {
     const close = () => { d.remove(); document.body.classList.remove('printing'); };
     $('#pc', d).onclick = close; $('#pp', d).onclick = () => { try { window.print(); } catch { toast('Tipărirea nu e disponibilă aici.', 'bad'); } };
   };
+}
+/* ───────── GALERIE FOTO ───────── */
+let galCat = 'sala';
+function shrinkImg(file, max, q) { return new Promise((res) => { const img = new Image(); img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => res(b), 'image/jpeg', q); }; img.onerror = () => res(null); img.src = URL.createObjectURL(file); }); }
+async function pGallery() {
+  const { sections, photos } = await api('/api/gallery');
+  const list = photos.filter((x) => x.cat === galCat);
+  M().innerHTML = `<div class="ph"><div><h1>Galerie foto</h1><p>Pozele apar în aplicația membrilor, pe prima pagină și în galerie. Pune poze cu sala, aparatele, echipa și evenimentele.</p></div></div>
+    <div class="pill-tabs">${sections.map((s) => `<button data-c="${s.id}" class="${s.id === galCat ? 'on' : ''}">${esc(s.name)} (${photos.filter((x) => x.cat === s.id).length})</button>`).join('')}</div>
+    <label class="drop" id="drop">${IC('camera', 30)}<b>Adaugă poze în „${esc(sections.find((s) => s.id === galCat).name)}”</b><small class="muted">Apasă sau trage pozele aici. Poți alege mai multe deodată.</small><input type="file" accept="image/*" multiple id="gf" hidden></label>
+    <p class="muted small" id="gup" style="min-height:1.2em;margin:8px 0"></p>
+    <div class="gal">${list.map((x, i) => `<div class="gph"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption)}" loading="lazy"><div class="gb"><input class="input" data-cap="${x.id}" value="${esc(x.caption || '')}" placeholder="Descriere (opțional)" aria-label="Descriere"><div class="row" style="gap:6px"><button class="btn btn-sm" data-mv="${x.id}" data-d="-1" ${i ? '' : 'disabled'} aria-label="Mută în față">${IC('back', 16)}</button><button class="btn btn-sm" data-mv="${x.id}" data-d="1" ${i < list.length - 1 ? '' : 'disabled'} aria-label="Mută în spate">${IC('chev', 16)}</button><select class="input" data-cat="${x.id}" style="padding:7px 8px" aria-label="Secțiune">${sections.map((s) => `<option value="${s.id}" ${s.id === x.cat ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select><button class="btn btn-sm btn-red" data-del="${x.id}" aria-label="Șterge">${IC('trash', 16)}</button></div></div></div>`).join('') || '<p class="muted">Nicio poză în secțiunea asta încă.</p>'}</div>
+    ${galCat === 'transformari' ? '<div class="tip" style="margin-top:14px">Pune poze înainte/după doar cu acordul scris al membrului.</div>' : ''}`;
+  $$('[data-c]').forEach((b) => (b.onclick = () => { galCat = b.dataset.c; pGallery(); }));
+  const upload = async (files) => {
+    files = [...files].filter((f) => /^image\//.test(f.type)); if (!files.length) return;
+    let k = 0;
+    for (const f of files) {
+      $('#gup').textContent = `Se încarcă ${++k} din ${files.length}…`;
+      try {
+        if (window.GymDemo) { const b = await shrinkImg(f, 1100, 0.78); const url = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); await api('/api/admin/gallery', { method: 'POST', body: { file: url, cat: galCat } }); }
+        else { const b = await shrinkImg(f, 1800, 0.85); await api('/api/admin/gallery?cat=' + galCat, { method: 'POST', raw: b, type: 'image/jpeg' }); }
+      } catch (e) { toast(e.message, 'bad'); }
+    }
+    toast(files.length === 1 ? 'Poza a fost adăugată' : `${files.length} poze adăugate`); pGallery();
+  };
+  $('#gf').onchange = (e) => upload(e.target.files);
+  const d = $('#drop'); d.ondragover = (e) => { e.preventDefault(); d.classList.add('over'); }; d.ondragleave = () => d.classList.remove('over'); d.ondrop = (e) => { e.preventDefault(); d.classList.remove('over'); upload(e.dataTransfer.files); };
+  $$('[data-cap]').forEach((i) => (i.onchange = async () => { await api('/api/admin/gallery/' + i.dataset.cap, { method: 'PUT', body: { caption: i.value } }); toast('Descriere salvată'); }));
+  $$('[data-cat]').forEach((i) => (i.onchange = async () => { await api('/api/admin/gallery/' + i.dataset.cat, { method: 'PUT', body: { cat: i.value } }); toast('Mutată'); pGallery(); }));
+  $$('[data-mv]').forEach((b) => (b.onclick = async () => { await api('/api/admin/gallery/' + b.dataset.mv, { method: 'PUT', body: { move: +b.dataset.d } }); pGallery(); }));
+  $$('[data-del]').forEach((b) => (b.onclick = async () => { if (!(await ask('Ștergi poza?', 'Dispare din aplicația membrilor.', 'Șterge', { danger: true }))) return; await api('/api/admin/gallery/' + b.dataset.del, { method: 'DELETE', body: {} }); pGallery(); }));
 }
 function editProgram(p, exercises) {
   const P = p ? JSON.parse(JSON.stringify(p)) : { name: '', goal: '', level: 'mediu', desc: '', days: [{ name: 'Ziua 1', items: [] }] };

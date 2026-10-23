@@ -265,6 +265,7 @@
     return { growth, mix: Object.entries(mix).map(([name, n]) => ({ name, n })).sort((a, b) => b.n - a.n), heat, weekday: wd, visits30, top, ltv };
   }
 
+  const GALLERY_SECTIONS = [{ id: 'sala', name: 'Sala noastră' }, { id: 'aparate', name: 'Aparate' }, { id: 'echipa', name: 'Echipa' }, { id: 'evenimente', name: 'Evenimente' }, { id: 'transformari', name: 'Transformări' }];
   /* ---------- rute ---------- */
   function route(db, req, ctx) {
     const { method: m, path: p, body = {}, query: q = {}, session: s } = req, t = ctx.today();
@@ -294,6 +295,8 @@
       if (!ctx.check(String(body.password || ''), db.admin)) return no(401, 'Parolă greșită.');
       return ok({ ok: true }, 200, { session: { role: 'admin' } });
     }
+    // galeria sălii: publică (se vede și pe pagina de logare)
+    if (p === '/api/gallery' && m === 'GET') return ok({ sections: GALLERY_SECTIONS, photos: (db.gallery || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0)) });
     if (p === '/api/exercises' && m === 'GET') { if (!s) return no(401, 'Intră în cont.'); return ok({ exercises: db.exercises }); }
 
     /* ======== MEMBRU ======== */
@@ -441,6 +444,24 @@
       if (sub === '/checkin' && m === 'POST') { mem.checkins = mem.checkins || []; const already = mem.checkins.includes(t); if (!already) { mem.checkins.push(t); mem.ciAt = mem.ciAt || {}; mem.ciAt[t] = ctx.time ? ctx.time() : ''; } return ok({ member: memberFull(db, mem, t), already }); }
       if (sub === '/notify' && m === 'POST') { const title = clean(body.title, 80), b = text(body.body, 500); if (!title || !b) return no(400, 'Scrie titlul și mesajul.'); return ok(notify(db, ctx, [mem], title, b)); }
       return no(404, 'Nu există.');
+    }
+    if (p === A + '/gallery' && m === 'POST') {
+      if (!body.file) return no(400, 'Alege o poză.');
+      db.gallery = db.gallery || [];
+      if (db.gallery.length >= 200) return no(400, 'Galeria e plină (maxim 200 de poze). Șterge câteva mai vechi.');
+      const cat = GALLERY_SECTIONS.some((x) => x.id === body.cat) ? body.cat : 'sala';
+      const x = { id: ctx.uid('gl'), file: String(body.file), cat, caption: clean(body.caption, 140), order: Math.max(0, ...db.gallery.map((y) => y.order || 0)) + 1, date: t };
+      db.gallery.push(x); return ok({ item: x }, 201);
+    }
+    if ((r = /^\/api\/admin\/gallery\/(\w+)$/.exec(p))) {
+      const x = (db.gallery || []).find((y) => y.id === r[1]); if (!x) return no(404, 'Poza nu există.');
+      if (m === 'PUT') {
+        if (body.caption !== undefined) x.caption = clean(body.caption, 140);
+        if (body.cat && GALLERY_SECTIONS.some((y) => y.id === body.cat)) x.cat = body.cat;
+        if (body.move) { const same = db.gallery.filter((y) => y.cat === x.cat).sort((a, b) => a.order - b.order), i = same.indexOf(x), j = i + (body.move < 0 ? -1 : 1); if (same[j]) { const o = same[j].order; same[j].order = x.order; x.order = o; } }
+        return ok({ item: x });
+      }
+      if (m === 'DELETE') { db.gallery = db.gallery.filter((y) => y.id !== x.id); return ok({ ok: true, galleryRemoved: x.file }); }
     }
     if (p === A + '/chats' && m === 'GET') {
       const th = db.members.filter((x) => (x.chat || []).length).map((x) => { const last = x.chat[x.chat.length - 1]; return { id: x.id, name: x.name, phone: x.phone, last: last.text, from: last.from, at: last.at, unread: x.chat.filter((y) => y.from === 'm' && !y.read).length }; }).sort((a, b) => b.at.localeCompare(a.at));

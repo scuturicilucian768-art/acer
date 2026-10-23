@@ -21,6 +21,7 @@ const PORT = Number(process.env.PORT) || 3000;
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const UPLOADS = path.join(DATA_DIR, 'photos');
+const GALLERY = path.join(DATA_DIR, 'gallery');
 const PUBLIC = path.join(__dirname, 'public');
 const TZ = 'Europe/Bucharest';
 
@@ -36,7 +37,8 @@ const b64u = (buf) => Buffer.from(buf).toString('base64url');
 let db; let timer = null;
 const baseCtx = { today, hour, time: hhmm, nowISO: () => new Date().toISOString(), uid: (p) => p + '_' + crypto.randomBytes(6).toString('hex'), rand: () => crypto.randomInt(1e9) / 1e9, hash, check };
 function load() {
-  fs.mkdirSync(UPLOADS, { recursive: true });
+  fs.mkdirSync(UPLOADS, { recursive: true }); fs.mkdirSync(GALLERY, { recursive: true });
+  
   if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
   else { db = Seed.base(baseCtx); if (process.env.SEED_DEMO === '1') Seed.demo(db, baseCtx); }
   if (!db.secret) db.secret = crypto.randomBytes(32).toString('hex');
@@ -131,6 +133,18 @@ const server = http.createServer(async (req, res) => {
         const file = crypto.randomBytes(12).toString('hex') + ext; fs.writeFileSync(path.join(UPLOADS, file), buf);
         const out = Core.route(db, { method: 'POST', path: p, body: { file }, query: {}, session }, ctx); save(); return send(res, out.status, out.data);
       }
+      // galeria sălii: încărcare de către admin, vizualizare publică
+      if (p === '/api/admin/gallery' && req.method === 'POST' && (req.headers['content-type'] || '').startsWith('image/')) {
+        if (!session || session.role !== 'admin') return send(res, 401, { error: 'Intră ca administrator.' });
+        const ext = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }[(req.headers['content-type'] || '').split(';')[0]]; if (!ext) return send(res, 400, { error: 'Doar poze JPG, PNG sau WEBP.' });
+        let buf; try { buf = await readBody(req, 12e6); } catch { return send(res, 413, { error: 'Poza e prea mare (maxim 12 MB).' }); }
+        const file = crypto.randomBytes(12).toString('hex') + ext; fs.writeFileSync(path.join(GALLERY, file), buf);
+        const out = Core.route(db, { method: 'POST', path: p, body: { file, cat: url.searchParams.get('cat'), caption: url.searchParams.get('caption') || '' }, query: {}, session }, ctx); save(); return send(res, out.status, out.data);
+      }
+      if ((r = /^\/api\/gallery\/([a-f0-9]{24}\.(?:jpg|png|webp))$/.exec(p)) && req.method === 'GET') {
+        const f = path.join(GALLERY, r[1]); if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
+        res.writeHead(200, { 'Content-Type': MIME[path.extname(r[1])], 'Cache-Control': 'public, max-age=2592000, immutable' }); return fs.createReadStream(f).pipe(res);
+      }
       if ((r = /^\/api\/photo\/([a-f0-9]{24}\.(?:jpg|png|webp))$/.exec(p)) && req.method === 'GET') {
         if (!session) return send(res, 401, { error: 'Intră în cont.' });
         const owner = db.members.find((m) => (m.photos || []).some((x) => x.file === r[1]));
@@ -142,6 +156,7 @@ const server = http.createServer(async (req, res) => {
       const out = Core.route(db, { method: req.method, path: p, body, query: Object.fromEntries(url.searchParams), session }, ctx);
       if ('session' in out) setCookie(req, res, out.session); else if (session && Date.now() - (session.iat || 0) > 864e5) setCookie(req, res, session);
       for (const f of [].concat(out.data && out.data.files || [], out.data && out.data.removed || [])) if (/^[a-f0-9]{24}\.\w+$/.test(f)) fs.rm(path.join(UPLOADS, f), () => {});
+      if (out.data && /^[a-f0-9]{24}\.\w+$/.test(out.data.galleryRemoved || '')) fs.rm(path.join(GALLERY, out.data.galleryRemoved), () => {});
       if (req.method !== 'GET' || p === '/api/me') save();
       return send(res, out.status, out.data);
     }
