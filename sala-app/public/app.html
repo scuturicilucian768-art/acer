@@ -289,6 +289,14 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .notif.new{border-color:color-mix(in srgb,var(--acc) 50%,transparent)}
 .notif p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
 .small{font-size:.84rem}
+.hero-logo{position:relative;width:min(64vw,250px);aspect-ratio:1;margin:14px auto 0;display:grid;place-items:center}
+.hero-logo::before{content:"";position:absolute;inset:-18%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--acc) 38%,transparent) 0%,transparent 65%);animation:hlGlow 4s ease-in-out infinite}
+.hl-ring{position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,var(--acc) 50deg,transparent 110deg,transparent 200deg,color-mix(in srgb,var(--acc) 70%,#fff) 250deg,transparent 310deg);animation:hlSpin 6s linear infinite;-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px))}
+.hl-img{position:relative;width:100%;height:100%;border-radius:50%;overflow:hidden;box-shadow:0 0 0 1px color-mix(in srgb,var(--acc) 30%,transparent),0 24px 60px -16px color-mix(in srgb,var(--acc) 55%,transparent);animation:hlIn .9s cubic-bezier(.2,1.3,.4,1) both}
+.hl-img img{width:100%;height:100%;object-fit:cover;transform:scale(1.04)}
+@keyframes hlSpin{to{transform:rotate(360deg)}}
+@keyframes hlGlow{50%{opacity:.55;transform:scale(.94)}}
+@keyframes hlIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
 .rkcard{display:flex;align-items:center;gap:14px;margin-top:10px;padding:14px 16px;border-radius:22px;background:radial-gradient(120% 140% at 0% 0%,color-mix(in srgb,var(--rkc,#A8E63C) 22%,transparent),transparent 60%),var(--card);border:1px solid var(--line2);cursor:pointer;width:100%;text-align:left;color:inherit}
 .rkcard .k{font-size:.68rem;font-weight:800;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
 .rkcard b.rn{font-family:var(--fd);font-size:1.35rem;display:block;line-height:1.1}
@@ -416,7 +424,8 @@ function vHome(v) {
   const mx = Math.max(1, ...c.hours.map((x) => x.n), c.now);
   const b = H.board, top3 = b.top.slice(0, 3);
   v.innerHTML = `
-    <div class="hello"><small>${esc(fday(H.today))}</small><h1>${hi}, ${esc(first)}</h1></div>
+    <div class="hero-logo"><div class="hl-ring"></div><div class="hl-img"><img src="img/logo.jpg" alt="Logo ${esc(S().name)}"></div></div>
+    <div class="hello" style="text-align:center;padding-top:6px"><small>${esc(fday(H.today))}</small><h1>${hi}, ${esc(first)}</h1></div>
     <div>${installBanner()}${cardHtml()}</div>
     <div class="qa">
       <button id="qaC" class="${H.checkedInToday ? 'done' : ''}"><span class="q">${IC(H.checkedInToday ? 'check' : 'qr', 22)}</span>${H.checkedInToday ? 'Ești la sală' : 'Check-in'}</button>
