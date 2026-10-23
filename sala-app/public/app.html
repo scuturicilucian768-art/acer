@@ -470,6 +470,7 @@ function vHome(v) {
     <div class="card">${top3.length >= 3 ? `<div class="podium">${[1, 0, 2].map((i) => { const x = top3[i]; return `<div class="p${i + 1}"><span class="av">${esc(x.name.split(' ').map((y) => y[0]).join(''))}</span><small>${esc(x.name)}</small><small class="muted">${x.pts} p</small><span class="st2" style="height:${[64, 44, 32][i]}px">${i + 1}</span></div>`; }).join('')}</div>` : ''}
       <div class="lbrow me"><span class="n">${b.me && b.me.rank ? b.me.rank : '–'}</span><b class="grow">Tu</b><b class="acc">${b.me ? b.me.pts : 0} puncte</b></div>
       <p class="muted small" style="margin:10px 0 0">Antrenament +10 · Check-in +5 · Provocarea zilei +5. Se resetează la început de lună.</p></div>
+    ${!GAL.photos.length ? `<div class="sec"><h2>Galerie foto</h2><button id="galAll">Deschide</button></div><div class="gstrip">${GAL.sections.map((sc, i) => `<button data-gs="${sc.id}" style="background:radial-gradient(120% 100% at 30% 0%,color-mix(in srgb,var(--acc) ${22 - i * 3}%,transparent),transparent 70%),var(--card)"><span style="position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:8px;color:var(--acc)">${IC(['home', 'dumbbell', 'users', 'star', 'chart'][i], 34)}</span><span class="gcap"><small>${esc(sc.name)}</small>Pozele vin în curând</span></button>`).join('')}</div>` : ''}
     ${GAL.photos.length ? `<div class="sec"><h2>Sala noastră</h2><button id="galAll">Toate pozele</button></div><div class="gstrip">${GAL.photos.slice().sort((a, b) => (a.cat === 'sala' ? 0 : 1) - (b.cat === 'sala' ? 0 : 1)).slice(0, 12).map((x) => `<button data-gp="${x.id}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || 'Fitness Empire')}" loading="lazy"><span class="gcap"><small>${esc((GAL.sections.find((s) => s.id === x.cat) || {}).name || '')}</small>${esc(x.caption || '')}</span></button>`).join('')}</div>` : ''}
     ${H.announcements.length ? `<div class="sec"><h2>Noutăți de la sală</h2><button id="allAnn">Toate</button></div><div class="list">${H.announcements.slice(0, 2).map(annHtml).join('')}</div>` : ''}
     <div class="sec"><h2>Contact rapid</h2></div>
@@ -489,6 +490,7 @@ function vHome(v) {
   if ($('#startW')) $('#startW').onclick = () => startWorkout(prog, H.nextDay);
   if ($('#allAnn')) $('#allAnn').onclick = openAnns;
   if ($('#galAll')) $('#galAll').onclick = () => openGallery();
+  $$('[data-gs]', v).forEach((b) => (b.onclick = () => openGallery(b.dataset.gs)));
   $$('[data-gp]', v).forEach((b) => (b.onclick = () => { const all = GAL.photos.slice().sort((a, b2) => (a.cat === 'sala' ? 0 : 1) - (b2.cat === 'sala' ? 0 : 1)).slice(0, 12); lightbox(all, all.findIndex((x) => x.id === b.dataset.gp)); }));
   bindInstall();
 }
@@ -516,14 +518,14 @@ const estMin = (day) => Math.round(day.items.reduce((a, i) => a + (/min/.test(i.
 
 /* ── galeria sălii ── */
 function openGallery(cat) {
-  const secs = GAL.sections.filter((s) => GAL.photos.some((x) => x.cat === s.id));
+  const secs = GAL.sections;
   let cur = cat || '';
   const el = document.createElement('div'); el.className = 'gal-ov'; el.id = 'galov'; document.body.appendChild(el); document.body.classList.add('noscroll');
   const draw = () => {
     const list = GAL.photos.filter((x) => !cur || x.cat === cur);
     el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="gx" aria-label="Înapoi">${IC('back', 20)}</button><div class="grow"><b>${esc(S().name)}</b><div class="muted small">${GAL.photos.length} poze</div></div></div>
       <div class="filters" style="padding:12px 12px 0"><button data-gc="" class="${cur ? '' : 'on'}">Toate</button>${secs.map((s) => `<button data-gc="${s.id}" class="${cur === s.id ? 'on' : ''}">${esc(s.name)}</button>`).join('')}</div>
-      <div class="ggrid">${list.map((x, i) => `<button data-gi="${i}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || '')}" loading="lazy"></button>`).join('')}</div>`;
+      ${list.length ? `<div class="ggrid">${list.map((x, i) => `<button data-gi="${i}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || '')}" loading="lazy"></button>`).join('')}</div>` : `<div style="display:grid;justify-items:center;gap:10px;text-align:center;padding:60px 24px;color:var(--muted)">${IC('camera', 44)}<b style="color:var(--ink)">Încă nu sunt poze aici</b><span class="small">Sala adaugă pozele în curând.</span></div>`}`;
     $('#gx', el).onclick = () => { el.remove(); if (!$('.wo') && !$('#chat')) document.body.classList.remove('noscroll'); };
     $$('[data-gc]', el).forEach((b) => (b.onclick = () => { cur = b.dataset.gc; draw(); }));
     $$('[data-gi]', el).forEach((b) => (b.onclick = () => lightbox(list, +b.dataset.gi)));
@@ -890,7 +892,7 @@ function vMe(v) {
       ${M('lbT', 'trophy', 'Apar în clasament', `<span class="toggle ${me.hideBoard ? '' : 'on'}"></span>`)}
       ${M('genM', 'spark', 'Antrenor inteligent')}
       ${M('ann', 'megaphone', 'Anunțuri și evenimente')}
-      ${GAL.photos.length ? M('galM', 'camera', 'Galerie foto') : ''}
+      ${M('galM', 'camera', 'Galerie foto')}
       ${M('pw', 'lock', 'Schimbă parola')}
     </div>
     <div class="sec"><h2>Sala</h2></div>
