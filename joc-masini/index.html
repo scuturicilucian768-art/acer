@@ -42,7 +42,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:#07090c;color:var(--in
   padding:12px 16px 12px;width:250px;display:grid;gap:6px}
 #rpm{position:relative;height:9px;border-radius:2px;background:rgba(244,239,228,.1);overflow:hidden}
 #rpmFill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#d9d2c2,var(--ink) 70%,var(--accent) 88%,var(--redline))}
-#rpmRed{position:absolute;inset:0 0 0 auto;width:9.7%;background:repeating-linear-gradient(90deg,rgba(255,74,54,.45) 0 3px,transparent 3px 6px)}
+#rpmRed{position:absolute;inset:0 0 0 auto;width:7.4%;background:repeating-linear-gradient(90deg,rgba(255,74,54,.45) 0 3px,transparent 3px 6px)}
 .readout{display:flex;align-items:flex-end;gap:12px}
 #gear{width:44px;height:52px;display:grid;place-items:center;border:1.5px solid var(--faint);border-radius:6px;font-size:36px;font-weight:800;line-height:1}
 #gear.shift{color:var(--accent);border-color:var(--accent)}
@@ -93,6 +93,8 @@ h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(54px,9vw,
 .ctl dd{margin:0}
 #go{justify-self:start;font:800 20px var(--display);letter-spacing:.12em;text-transform:uppercase;color:#120a02;background:var(--accent);border:0;border-radius:8px;padding:14px 28px;cursor:pointer}
 #go:hover{filter:brightness(1.08)}
+#go:disabled{background:rgba(244,239,228,.14);color:var(--dim);cursor:progress}
+.credits{margin:0;font-size:11px;line-height:1.5;color:var(--dim);max-width:52ch}
 button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
 @media (max-width:640px){
@@ -143,14 +145,14 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
 <div id="intro">
   <div class="card">
-    <div class="eyebrow">Lamborghini Urus · Coasta de Azur</div>
+    <div class="eyebrow">Ferrari 458 Italia · Coasta de Azur</div>
     <h1>Circuitul Riviera</h1>
-    <p class="lede">Un tur de 2,6 km printre chiparoși, cu fizică reală: transfer de greutate, aderență limitată a pneurilor, cutie automată cu 8 trepte și tracțiune integrală. Intră prea tare în viraj și mașina subvirează.</p>
+    <p class="lede">Un Ferrari 458 Italia modelat în detaliu, pe un tur de 2,6 km printre chiparoși. V8 de 4,5 litri până la 9.000 rpm, cutie cu dublu ambreiaj cu 7 trepte și tracțiune spate. Frânează prea târziu și iese din viraj; accelerează prea tare și scapă spatele.</p>
     <div class="specs">
-      <div><span class="lbl">Putere</span><b>650 CP</b></div>
-      <div><span class="lbl">Cuplu</span><b>850 Nm</b></div>
-      <div><span class="lbl">0–100</span><b>3,6 s</b></div>
-      <div><span class="lbl">Masă</span><b>2.200 kg</b></div>
+      <div><span class="lbl">Putere</span><b>570 CP</b></div>
+      <div><span class="lbl">Cuplu</span><b>540 Nm</b></div>
+      <div><span class="lbl">0–100</span><b>3,4 s</b></div>
+      <div><span class="lbl">Masă</span><b>1.485 kg</b></div>
     </div>
     <div class="opt">
       <span class="lbl">Ora</span>
@@ -171,11 +173,15 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
       <dt>C · N · R</dt><dd>cameră · zi/noapte · repoziționare</dd>
       <dt>E · M</dt><dd>controlul stabilității (ESC) · sunet</dd>
     </dl>
-    <button type="button" id="go">Pornește motorul</button>
+    <button type="button" id="go" disabled>Se încarcă Ferrari 458…</button>
+    <p class="credits">Model 3D: Ferrari 458 Italia de vicent091036 (Sketchfab). Cer: Venice Sunset, Poly Haven (CC0). Joc neoficial, fără legătură cu Ferrari.</p>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
 <script>
 (() => {
 'use strict';
@@ -204,6 +210,8 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const MAXANI = renderer.capabilities.getMaxAnisotropy();
+const isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+if (isTouch) renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0xffffff, 250, 2600);
@@ -264,7 +272,7 @@ scene.add(sky);
 const envScene = new THREE.Scene();
 envScene.add(new THREE.Mesh(new THREE.SphereGeometry(100, 32, 16), skyMat));
 const pmrem = new THREE.PMREMGenerator(renderer);
-let envRT = null;
+let envRT = null, hdrEnv = null;
 
 const starGeo = new THREE.BufferGeometry();
 {
@@ -283,7 +291,7 @@ const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.5);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffffff, 3);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.set(isTouch ? 1024 : 2048, isTouch ? 1024 : 2048);
 Object.assign(sun.shadow.camera, { left: -45, right: 45, top: 45, bottom: -45, near: 1, far: 700 });
 sun.shadow.bias = -0.0004;
 sun.shadow.normalBias = 0.03;
@@ -533,95 +541,75 @@ S.forEach(p => trackCenter.add(p)); trackCenter.divideScalar(N);
   }
 }
 
-// ---------- car model ----------
+// ---------- car model: Ferrari 458 Italia (glTF) ----------
 const PAINTS = [
-  { name: 'Nero Noctis', hex: '#0b0c0f', metal: 0.55, rough: 0.3 },
-  { name: 'Giallo Auge', hex: '#e8b10e', metal: 0.25, rough: 0.32 },
-  { name: 'Bianco Monocerus', hex: '#e9e9e6', metal: 0.15, rough: 0.35 },
-  { name: 'Verde Mantis', hex: '#5fae1d', metal: 0.4, rough: 0.3 }
+  { name: 'Rosso Corsa', hex: '#c40c0c' },
+  { name: 'Giallo Modena', hex: '#f0b400' },
+  { name: 'Nero Daytona', hex: '#0b0c10' },
+  { name: 'Bianco Avus', hex: '#ecece8' },
+  { name: 'Blu Tour de France', hex: '#1b3c8f' }
 ];
-const paint = new THREE.MeshPhysicalMaterial({ color: C(PAINTS[0].hex), metalness: 0.55, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.05 });
-const trim = new THREE.MeshStandardMaterial({ color: C('#111214'), roughness: 0.75, metalness: 0.1 });
-const glass = new THREE.MeshPhysicalMaterial({ color: C('#06080b'), metalness: 0.3, roughness: 0.03, clearcoat: 1, clearcoatRoughness: 0.02 });
-const chrome = new THREE.MeshStandardMaterial({ color: C('#c9ccd1'), metalness: 1, roughness: 0.16 });
-const headMat = new THREE.MeshStandardMaterial({ color: C('#ffffff'), emissive: C('#eaf2ff'), emissiveIntensity: 1.2 });
-const tailMat = new THREE.MeshStandardMaterial({ color: C('#3a0503'), emissive: C('#ff1a0a'), emissiveIntensity: 0.6 });
-const revMat = new THREE.MeshStandardMaterial({ color: C('#222'), emissive: C('#ffffff'), emissiveIntensity: 0 });
+const paint = new THREE.MeshPhysicalMaterial({ color: C(PAINTS[0].hex), metalness: 1, roughness: 0.5, clearcoat: 1, clearcoatRoughness: 0.03 });
+const detailMat = new THREE.MeshStandardMaterial({ color: C('#d6d6d6'), metalness: 1, roughness: 0.32 });
+const glassMat = new THREE.MeshPhysicalMaterial({ color: C('#15181d'), metalness: 0.2, roughness: 0, clearcoat: 1, transparent: true, opacity: 0.55 });
+let tailMat = null, headMat = null, steeringWheel = null, steeringBase = null;
 
 const carRoot = new THREE.Group(), body = new THREE.Group();
 carRoot.add(body); scene.add(carRoot);
-function ext(shape, depth, bevel) {
-  const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 3, curveSegments: 10 });
-  g.translate(0, 0, -depth / 2); g.rotateY(-Math.PI / 2);
-  return g;
-}
-function part(geo, mat, x, y, z, shadow = true) {
-  const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = shadow; body.add(m); return m;
-}
-{
-  const lo = new THREE.Shape();
-  lo.moveTo(-2.4, 0.4); lo.lineTo(-2.56, 0.62); lo.lineTo(-2.56, 0.95); lo.quadraticCurveTo(-2.5, 1.1, -2.2, 1.13);
-  lo.lineTo(1.25, 1.13); lo.lineTo(2.3, 0.98); lo.quadraticCurveTo(2.6, 0.92, 2.6, 0.62); lo.lineTo(2.48, 0.4); lo.closePath();
-  part(ext(lo, 1.84, 0.07), paint, 0, 0, 0);
-  const gh = new THREE.Shape();
-  gh.moveTo(-2.1, 1.12); gh.lineTo(-1.5, 1.56); gh.lineTo(0.25, 1.6); gh.lineTo(1.3, 1.12); gh.closePath();
-  part(ext(gh, 1.52, 0.05), glass, 0, 0, 0);
-  const roof = new THREE.Shape();
-  roof.moveTo(-1.55, 1.55); roof.lineTo(0.28, 1.59); roof.lineTo(0.22, 1.67); roof.lineTo(-1.45, 1.63); roof.closePath();
-  part(ext(roof, 1.46, 0.04), paint, 0, 0, 0);
-  part(new THREE.BoxGeometry(1.66, 0.42, 0.14), paint, 0, 1.34, -0.62);
-  part(new THREE.BoxGeometry(2.0, 0.2, 4.6), trim, 0, 0.5, 0);
-  part(new THREE.BoxGeometry(1.5, 0.3, 0.12), trim, 0, 0.62, 2.62);
-  part(new THREE.BoxGeometry(1.9, 0.08, 0.3), trim, 0, 0.42, 2.5);
-  part(new THREE.BoxGeometry(1.7, 0.04, 0.26), paint, 0, 1.66, -1.52);
-  for (const sx of [-1, 1]) {
-    const hl = part(new THREE.BoxGeometry(0.52, 0.05, 0.06), headMat, sx * 0.62, 0.86, 2.6, false); hl.rotation.z = sx * 0.22;
-    const hl2 = part(new THREE.BoxGeometry(0.3, 0.05, 0.06), headMat, sx * 0.78, 0.78, 2.58, false); hl2.rotation.z = -sx * 0.5;
-    part(new THREE.BoxGeometry(0.22, 0.13, 0.09), paint, sx * 1.07, 1.2, 1.02);
-    part(new THREE.BoxGeometry(0.32, 0.22, 0.1), trim, sx * 0.86, 0.55, 2.6);
-    for (const ex of [0.5, 0.68]) {
-      const pipe = part(new THREE.CylinderGeometry(0.055, 0.055, 0.16, 12), chrome, sx * ex, 0.5, -2.56, false); pipe.rotation.x = Math.PI / 2;
-    }
-    const arch = new THREE.TorusGeometry(0.47, 0.075, 6, 16, Math.PI); arch.rotateY(Math.PI / 2);
-    for (const wz of [1.55, -1.45]) part(arch, trim, sx * 0.99, 0.38, wz);
-  }
-  part(new THREE.BoxGeometry(1.78, 0.05, 0.06), tailMat, 0, 1.0, -2.6, false);
-  part(new THREE.BoxGeometry(0.3, 0.06, 0.05), revMat, 0, 0.62, -2.6, false);
-}
 const wheels = [];
-{
-  const tireMat = new THREE.MeshStandardMaterial({ color: C('#141414'), roughness: 0.92 });
-  const rimMat = new THREE.MeshStandardMaterial({ color: C('#2a2c30'), metalness: 0.9, roughness: 0.28 });
-  const caliperMat = new THREE.MeshStandardMaterial({ color: C('#d9a41a'), roughness: 0.4 });
-  const tireG = new THREE.CylinderGeometry(0.37, 0.37, 0.31, 30); tireG.rotateZ(Math.PI / 2);
-  const rimG = new THREE.CylinderGeometry(0.27, 0.27, 0.32, 24); rimG.rotateZ(Math.PI / 2);
-  const spokeG = new THREE.BoxGeometry(0.05, 0.5, 0.07);
-  for (const [x, z, front] of [[0.9, 1.55, true], [-0.9, 1.55, true], [0.9, -1.45, false], [-0.9, -1.45, false]]) {
-    const pivot = new THREE.Group(); pivot.position.set(x, 0.37, z);
-    const spin = new THREE.Group(); pivot.add(spin);
-    const tire = new THREE.Mesh(tireG, tireMat); tire.castShadow = true; spin.add(tire);
-    spin.add(new THREE.Mesh(rimG, rimMat));
-    for (let k = 0; k < 5; k++) {
-      const sp = new THREE.Mesh(spokeG, chrome); sp.position.x = Math.sign(x) * 0.15; sp.rotation.x = k / 5 * TAU; spin.add(sp);
-    }
-    const cal = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.2, 0.26), caliperMat); cal.position.set(Math.sign(x) * 0.09, 0.12, front ? -0.08 : 0.08); pivot.add(cal);
-    carRoot.add(pivot);
-    wheels.push({ pivot, spin, front, x, z });
+const MODEL_SHIFT = 0.382; // moves the model so the centre of mass (42/58 split) sits at the origin
+
+function setupCar(gltf, aoTex) {
+  const model = gltf.scene;
+  const holder = new THREE.Group();
+  holder.rotation.y = Math.PI;            // the model faces -z; the physics faces +z
+  holder.position.z = MODEL_SHIFT;
+  holder.add(model); body.add(holder);
+  const DARK = ['Leather', 'Interior_dark', 'Interior_light', 'Carpet', 'plastic_gray'];  // black interior
+  model.traverse(o => {
+    if (!o.isMesh) return;
+    o.castShadow = true;
+    if (DARK.includes(o.material.name)) { o.material = o.material.clone(); o.material.color.multiplyScalar(0.18); }
+  });
+  const setMat = (name, mat) => { const o = model.getObjectByName(name); if (o) o.traverse(m => { if (m.isMesh) m.material = mat; }); };
+  setMat('body', paint);
+  ['rim_fl', 'rim_fr', 'rim_rl', 'rim_rr', 'trim'].forEach(n => setMat(n, detailMat));
+  setMat('glass', glassMat);
+  const tail = model.getObjectByName('lights_red');
+  if (tail && tail.isMesh) { tailMat = tail.material = tail.material.clone(); tailMat.emissive = C('#ff1a0a'); tailMat.emissiveIntensity = 0.5; }
+  const head = model.getObjectByName('lights');
+  if (head && head.isMesh) { headMat = head.material = head.material.clone(); headMat.emissive = C('#eef3ff'); headMat.emissiveIntensity = 0.3; }
+  steeringWheel = model.getObjectByName('steering_wheel');
+  if (steeringWheel) steeringBase = steeringWheel.quaternion.clone();
+
+  if (aoTex) {
+    const ao = new THREE.Mesh(new THREE.PlaneGeometry(0.655 * 4, 1.3 * 4), new THREE.MeshBasicMaterial({ map: aoTex, blending: THREE.MultiplyBlending, toneMapped: false, transparent: true, depthWrite: false }));
+    ao.rotation.x = -Math.PI / 2; ao.position.y = 0.03; ao.renderOrder = 2;
+    holder.add(ao);
   }
+
+  // re-parent each wheel under a steering pivot and a spin group; the brake caliper stays on the pivot
+  carRoot.position.set(0, 0, 0); carRoot.rotation.set(0, 0, 0); body.rotation.set(0, 0, 0);
+  carRoot.updateMatrixWorld(true);
+  for (const [name, front] of [['wheel_fl', true], ['wheel_fr', true], ['wheel_rl', false], ['wheel_rr', false]]) {
+    const node = model.getObjectByName(name);
+    if (!node) continue;
+    const p = node.getWorldPosition(new THREE.Vector3());
+    const pivot = new THREE.Group(); pivot.position.copy(p); carRoot.add(pivot);
+    const spin = new THREE.Group(); pivot.add(spin);
+    pivot.updateMatrixWorld(true);
+    const caliper = node.getObjectByName('brake');
+    spin.attach(node);
+    if (caliper) pivot.attach(caliper);
+    wheels.push({ pivot, spin, front, x: p.x, z: p.z });
+  }
+  state.carReady = true;
 }
-const blob = new THREE.Mesh(new THREE.PlaneGeometry(2.7, 5.6), new THREE.MeshBasicMaterial({
-  map: canvasTex(64, 128, (g, w, h) => {
-    const gr = g.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, h / 2);
-    gr.addColorStop(0, 'rgba(0,0,0,.75)'); gr.addColorStop(0.6, 'rgba(0,0,0,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-    g.fillStyle = gr; g.fillRect(0, 0, w, h);
-  }, false), transparent: true, depthWrite: false
-}));
-blob.rotation.x = -Math.PI / 2; blob.position.y = 0.035; carRoot.add(blob);
 
 const headSpots = [];
 for (const sx of [-1, 1]) {
   const sp = new THREE.SpotLight(0xf2f5ff, 0, 160, 0.45, 0.55, 1.2);
-  sp.position.set(sx * 0.7, 0.85, 2.4);
+  sp.position.set(sx * 0.62, 0.62, 2.45);
   sp.target.position.set(sx * 1.6, 0, 28);
   carRoot.add(sp, sp.target);
   headSpots.push(sp);
@@ -653,14 +641,15 @@ function addMark(w, x, z, on) {
 }
 
 // ---------- vehicle physics (dynamic bicycle model, Pacejka-style tyres) ----------
-const G = 9.81, M = 2200, IZ = 4100, CG_F = 1.45, CG_R = 1.55, WB = CG_F + CG_R, CG_H = 0.62, RW = 0.37;
-const GEARS = [5.0, 3.2, 2.14, 1.72, 1.31, 1.0, 0.82, 0.64], FINAL = 3.55, REV = 4.2;
-const IDLE = 850, REDLINE = 6500, LIMITER = 6900;
+// Ferrari 458 Italia: 1485 kg + driver, 42/58 weight split, 4.5 L V8 to 9000 rpm, 7-speed dual-clutch, rear-wheel drive
+const G = 9.81, M = 1560, IZ = 2600, CG_F = 1.537, CG_R = 1.113, WB = CG_F + CG_R, CG_H = 0.45, RW = 0.345;
+const GEARS = [3.08, 2.19, 1.63, 1.29, 1.03, 0.84, 0.69], FINAL = 4.44, REV = 2.65;
+const IDLE = 1000, REDLINE = 8800, LIMITER = 9000, RPM_MAX = 9500;
 function torque(rpm) {
-  if (rpm < 1000) return 480;
-  if (rpm < 2250) return 480 + (rpm - 1000) / 1250 * 370;
-  if (rpm < 4500) return 850;
-  return 850 - (rpm - 4500) / 2300 * 170;
+  if (rpm < 1500) return 300;
+  if (rpm < 3000) return 300 + (rpm - 1500) / 1500 * 160;
+  if (rpm < 6000) return 460 + (rpm - 3000) / 3000 * 80;
+  return 540 - (rpm - 6000) / 3000 * 95;
 }
 // rear tyres are stiffer than the fronts so the car settles into mild understeer, like a road car
 const tyreF = a => Math.sin(1.5 * Math.atan(9 * a));
@@ -680,7 +669,7 @@ function physics(dt, inp) {
   let u = car.vx * s + car.vz * c, v = car.vx * c - car.vz * s;
   const al = Math.abs(car.lat);
   car.surface = al <= HW ? 'asfalt' : al <= HW + CURB ? 'bordură' : 'pietriș';
-  const mu = car.surface === 'asfalt' ? 1.05 : car.surface === 'bordură' ? 0.95 : 0.6;
+  const mu = car.surface === 'asfalt' ? 1.15 : car.surface === 'bordură' ? 1.0 : 0.6;
 
   // direction selection: brake to a stop, keep holding to engage reverse
   if (car.gear > 0 && inp.down > 0.05 && inp.up < 0.05 && u < 0.4) car.gear = -1;
@@ -693,18 +682,18 @@ function physics(dt, inp) {
   const ratio = car.gear > 0 ? GEARS[car.gear - 1] * FINAL : REV * FINAL;
   const wheelRpm = Math.abs(u) / RW * 60 / TAU;
   let rpm = wheelRpm * ratio;
-  const slip = clamp(1 - Math.abs(u) / 9, 0, 1);
-  rpm = clamp(Math.max(rpm, IDLE + thr * 2200 * slip), IDLE, LIMITER + 100);
+  const slip = clamp(1 - Math.abs(u) / 12, 0, 1);   // clutch slip at launch
+  rpm = clamp(Math.max(rpm, IDLE + thr * 3800 * slip), IDLE, LIMITER + 100);
   car.rpm = lerp(car.rpm, rpm, 1 - Math.exp(-dt * 18));
 
   // automatic gearbox
   if (car.shiftT > 0) car.shiftT -= dt;
   else if (car.gear > 0) {
-    if (car.rpm > REDLINE && car.gear < GEARS.length) { car.gear++; car.shiftT = 0.2; }
+    if (car.rpm > REDLINE && car.gear < GEARS.length) { car.gear++; car.shiftT = 0.08; }
     else if (car.gear > 1) {
       const lower = wheelRpm * GEARS[car.gear - 2] * FINAL;
       const kick = thr > 0.6;
-      if (lower < (kick ? 5800 : 3200) && car.rpm < (kick ? 3300 : 1700)) { car.gear--; car.shiftT = 0.15; }
+      if (lower < (kick ? 8200 : 4200) && car.rpm < (kick ? 4500 : 2300)) { car.gear--; car.shiftT = 0.08; }
     }
   }
 
@@ -716,19 +705,21 @@ function physics(dt, inp) {
   let Fdrive = 0;
   if (car.shiftT <= 0 && car.rpm < LIMITER) Fdrive = thr * torque(car.rpm) * ratio * 0.9 / RW;
   if (car.gear === -1) Fdrive = u < -9 ? 0 : -Fdrive;
-  const maxTrac = mu * (Fzf + Fzr) * 0.96;          // traction control
-  Fdrive = clamp(Fdrive, -maxTrac, maxTrac);
+  const maxTrac = mu * 1.06 * Fzr * 0.97;           // traction control on the driven rear axle
+  // with ESC on, engine torque is cut as the rear starts to slide (like Ferrari's F1-Trac); with it off you can power-slide
+  const escCut = state.esc && !inp.hb ? clamp(1 - (Math.abs(car.ar) - 0.06) * 7, 0.2, 1) : 1;
+  Fdrive = clamp(Fdrive, -maxTrac, maxTrac) * escCut;
   const dir = Math.sign(u);
   let Fbrake = 0;
   if (Math.abs(u) < 0.6 && brk > 0.1) { u *= 0.85; v *= 0.85; car.r *= 0.85; }
   else Fbrake = -dir * brk * mu * M * G * 0.98;   // ABS keeps it at the grip limit
   const Fhb = inp.hb ? -dir * mu * Fzr * 0.8 : 0;
-  const Fxf = Fdrive * 0.4 + Fbrake * 0.62;
-  const Fxr = Fdrive * 0.6 + Fbrake * 0.38 + Fhb;
+  const Fxf = Fbrake * 0.6;
+  const Fxr = Fdrive + Fbrake * 0.4 + Fhb;
 
   // steering: less lock at speed, finite rack speed
   const spd = Math.abs(u);
-  const maxSteer = 0.6 / (1 + spd * 0.055);
+  const maxSteer = 0.55 / (1 + spd * 0.05);
   car.steer = approach(car.steer, inp.steer * maxSteer, dt * (Math.abs(inp.steer) > 0.01 ? 2.4 : 3.2));
 
   // lateral tyre forces
@@ -741,7 +732,7 @@ function physics(dt, inp) {
   Fyr *= Math.sqrt(Math.max(0.05, 1 - (Fxr / (mu * Fzr)) ** 2));
   car.af = af; car.ar = ar;
 
-  const Fdrag = 0.62 * u * Math.abs(u);
+  const Fdrag = 0.47 * u * Math.abs(u);
   const Froll = 0.015 * M * G * clamp(u, -1, 1) + (car.surface === 'pietriș' ? 550 * u : 0);
   const Fx = Fxf + Fxr - Fdrag - Froll;
 
@@ -828,7 +819,6 @@ function readInput(dt) {
   inp.hb = hb;
 }
 
-const isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 document.querySelectorAll('#touch button').forEach(b => {
   const k = b.dataset.k;
   const on = e => { e.preventDefault(); touchKeys[k] = true; b.classList.add('on'); };
@@ -899,17 +889,17 @@ function setNight(on) {
   stars.visible = L.stars; pools.visible = on;
   lampHeadMat.emissiveIntensity = on ? 3 : 0;
   headSpots.forEach(s => { s.intensity = on ? 5 : 0; });
-  headMat.emissiveIntensity = on ? 3 : 1.2;
+  if (headMat) headMat.emissiveIntensity = on ? 3 : 0.3;
   if (envRT) envRT.dispose();
   envRT = pmrem.fromScene(envScene, 0.02);
-  scene.environment = envRT.texture;
+  scene.environment = !on && hdrEnv ? hdrEnv : envRT.texture;
   for (const b of document.querySelectorAll('#optTime button')) b.setAttribute('aria-pressed', String((b.dataset.v === '1') === on));
   if (state.playing) toast(on ? 'Noapte' : 'Apus de soare');
 }
 function setPaint(i) {
   const P = PAINTS[i];
   state.paint = i;
-  paint.color.copy(C(P.hex)); paint.metalness = P.metal; paint.roughness = P.rough;
+  paint.color.copy(C(P.hex));
   document.querySelectorAll('#optPaint button').forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
 }
 
@@ -951,7 +941,7 @@ function updateHUD() {
   hud.spd.textContent = kmh;
   const gearTxt = car.gear === -1 ? 'R' : String(car.gear);
   if (gearTxt !== hud.gear.textContent) { hud.gear.textContent = gearTxt; hud.gear.classList.add('shift'); setTimeout(() => hud.gear.classList.remove('shift'), 250); }
-  hud.rpmFill.style.width = (car.rpm / 7200 * 100).toFixed(1) + '%';
+  hud.rpmFill.style.width = (car.rpm / RPM_MAX * 100).toFixed(1) + '%';
   hud.rpmVal.textContent = Math.round(car.rpm / 50) * 50 + ' rpm';
   hud.surf.textContent = car.escOn ? 'ESC' : state.esc ? car.surface : car.surface + ' · ESC oprit';
   hud.surf.style.color = car.escOn ? 'var(--accent)' : '';
@@ -992,7 +982,7 @@ function resetCar() {
 }
 
 // ---------- camera ----------
-const CAMS = ['Urmărire', 'Capotă', 'Transmisie TV'];
+const CAMS = ['Urmărire', 'Cockpit', 'Transmisie TV'];
 const tvSpots = [];
 for (let k = 0; k < Math.floor(TRACK_LEN / 150); k++) {
   const i = Math.round((k * 150 + 40) / TRACK_LEN * N) % N, side = k % 2 ? 1 : -1, off = BW + 9 + rand() * 10;
@@ -1007,32 +997,32 @@ function cycleCamera() {
 }
 function snapChase() {
   camYaw = car.yaw;
-  camera.position.set(car.x - Math.sin(camYaw) * 6.5, 2.2, car.z - Math.cos(camYaw) * 6.5);
+  camera.position.set(car.x - Math.sin(camYaw) * 5.4, 1.65, car.z - Math.cos(camYaw) * 5.4);
 }
 const angLerp = (a, b, t) => a + (((b - a + Math.PI) % TAU + TAU) % TAU - Math.PI) * t;
 function updateCamera(dt, time) {
   const speed = Math.hypot(car.vx, car.vz);
   if (!state.playing) {
     const a = time * 0.12 + 2.2;
-    camera.position.set(car.x + Math.sin(car.yaw + a) * 8.5, 2.1 + Math.sin(time * 0.3) * 0.3, car.z + Math.cos(car.yaw + a) * 8.5);
-    camera.fov = 42;
-    camLook.set(car.x, 0.9, car.z);
+    camera.position.set(car.x + Math.sin(car.yaw + a) * 7.5, 1.3 + Math.sin(time * 0.3) * 0.25, car.z + Math.cos(car.yaw + a) * 7.5);
+    camera.fov = 40;
+    camLook.set(car.x, 0.55, car.z);
     camera.lookAt(camLook);
   } else if (state.cam === 0) {
     const velYaw = speed > 3 ? Math.atan2(car.vx, car.vz) : car.yaw;
     const want = car.gear === -1 && car.u < -1 ? car.yaw : angLerp(car.yaw, velYaw, 0.35);
     camYaw = angLerp(camYaw, want, 1 - Math.exp(-dt * 3.2));
-    const dist = 6.4 + clamp(speed / 80, 0, 1) * 1.2;
-    camTarget.set(car.x - Math.sin(camYaw) * dist, 2.1 + clamp(speed / 80, 0, 1) * 0.2, car.z - Math.cos(camYaw) * dist);
+    const dist = 5.4 + clamp(speed / 80, 0, 1) * 1.1;
+    camTarget.set(car.x - Math.sin(camYaw) * dist, 1.65 + clamp(speed / 80, 0, 1) * 0.15, car.z - Math.cos(camYaw) * dist);
     camera.position.lerp(camTarget, 1 - Math.exp(-dt * 10));
-    camLook.set(car.x + Math.sin(car.yaw) * 3.5, 1.05, car.z + Math.cos(car.yaw) * 3.5);
+    camLook.set(car.x + Math.sin(car.yaw) * 3.5, 0.75, car.z + Math.cos(car.yaw) * 3.5);
     camera.fov = lerp(camera.fov, 58 + clamp(speed / 75, 0, 1) * 16, 1 - Math.exp(-dt * 3));
     camera.lookAt(camLook);
   } else if (state.cam === 1) {
     carRoot.updateMatrixWorld();
-    body.localToWorld(camera.position.set(0, 1.36, 0.45));
-    body.localToWorld(camLook.set(0, 1.15, 30));
-    camera.fov = 68;
+    body.localToWorld(camera.position.set(0.36, 0.93, 0.08));
+    body.localToWorld(camLook.set(0.36, 0.86, 30));
+    camera.fov = 72;
     camera.lookAt(camLook);
   } else {
     let best = tvIdx, bd = Infinity;
@@ -1056,6 +1046,7 @@ function updateCamera(dt, time) {
 }
 
 // ---------- visuals per frame ----------
+const tmpQ = new THREE.Quaternion(), Y_AXIS = new THREE.Vector3(0, 1, 0);
 function updateCarVisual(dt) {
   carRoot.position.set(car.x, 0, car.z);
   carRoot.rotation.y = car.yaw;
@@ -1067,8 +1058,8 @@ function updateCarVisual(dt) {
     if (w.front) w.pivot.rotation.y = car.steer;
     w.spin.rotation.x += car.u / RW * dt;
   }
-  tailMat.emissiveIntensity = car.brk > 0.1 && Math.abs(car.u) > 0.3 ? 4 : state.night ? 1.6 : 0.6;
-  revMat.emissiveIntensity = car.gear === -1 ? 2.5 : 0;
+  if (steeringWheel) steeringWheel.quaternion.copy(steeringBase).multiply(tmpQ.setFromAxisAngle(Y_AXIS, -car.steer * 9));
+  if (tailMat) tailMat.emissiveIntensity = car.brk > 0.1 && Math.abs(car.u) > 0.3 ? 5 : car.gear === -1 ? 2 : state.night ? 1.6 : 0.5;
 
   if (state.playing) {
     const s = Math.sin(car.yaw), c = Math.cos(car.yaw), speed = Math.abs(car.u);
@@ -1086,7 +1077,7 @@ function updateSun() {
 }
 
 // ---------- intro ----------
-const state = { playing: false, night: false, paint: 0, cam: 0, muted: false, esc: true };
+const state = { playing: false, night: false, paint: 0, cam: 0, muted: false, esc: true, carReady: false };
 const paintRow = $('optPaint');
 PAINTS.forEach((p, i) => {
   const b = document.createElement('button');
@@ -1132,6 +1123,57 @@ function frame(now) {
   renderer.render(scene, camera);
 }
 
+async function fetchB64(url, onProgress) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(url);
+  let text;
+  const total = +r.headers.get('content-length') || 0;
+  if (onProgress && total && r.body && r.body.getReader) {
+    const reader = r.body.getReader(), parts = [];
+    let got = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      parts.push(value); got += value.length;
+      onProgress(Math.min(1, got / total));
+    }
+    const all = new Uint8Array(got); let o = 0;
+    for (const p of parts) { all.set(p, o); o += p.length; }
+    text = new TextDecoder().decode(all);
+  } else text = await r.text();
+  const bin = atob(text.trim()), out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out.buffer;
+}
+function loadAssets() {
+  const go = $('go');
+  const draco = new THREE.DRACOLoader();
+  draco.setDecoderPath('assets/draco/');
+  draco.setDecoderConfig({ type: 'js' });
+  const gltfLoader = new THREE.GLTFLoader();
+  gltfLoader.setDRACOLoader(draco);
+  // the model and sky are stored as base64 text so any static host will serve them
+  const model = fetchB64('assets/ferrari.glb.txt', f => { go.textContent = 'Se încarcă Ferrari 458… ' + Math.round(f * 100) + '%'; })
+    .then(buf => { go.textContent = 'Se pregătește mașina…'; return new Promise((res, rej) => gltfLoader.parse(buf, 'assets/', res, rej)); });
+  const ao = new Promise(res => new THREE.TextureLoader().load('assets/ferrari_ao.png', res, undefined, () => res(null)));
+  const hdr = fetchB64('assets/venice_sunset_1k.hdr.txt').then(buf => {
+    const d = new THREE.RGBELoader().setDataType(THREE.UnsignedByteType).parse(buf);
+    const t = new THREE.DataTexture(d.data, d.width, d.height, d.format, d.type);
+    t.encoding = THREE.RGBEEncoding; t.minFilter = t.magFilter = THREE.NearestFilter; t.generateMipmaps = false; t.flipY = true; t.needsUpdate = true;
+    return t;
+  }).catch(() => null);
+  return Promise.all([model, ao, hdr]).then(([gltf, aoTex, hdrTex]) => {
+    if (hdrTex) { hdrEnv = pmrem.fromEquirectangular(hdrTex).texture; hdrTex.dispose(); }
+    setupCar(gltf, aoTex);
+    setNight(state.night);
+    draco.dispose();
+    go.disabled = false;
+    go.textContent = 'Pornește motorul';
+  }).catch(() => {
+    go.textContent = 'Mașina nu s-a putut încărca. Reîncarcă pagina.';
+  });
+}
+
 function boot(data) {
   data = data || {};
   placeCar(N - 25);
@@ -1140,8 +1182,8 @@ function boot(data) {
   setNight(!!data.night);
   if (data.car) { Object.assign(car, data.car); car.idx = nearestGlobal(car.x, car.z); lap.lastIdx = car.idx; }
   if (data.cam) state.cam = data.cam;
-  if (data.playing) start();
   requestAnimationFrame(frame);
+  loadAssets().then(() => { if (data.playing && state.carReady) start(); });
 }
 if (window.claude && window.claude.hot && window.claude.hot.snapshot) {
   window.claude.hot.snapshot(() => ({ paint: state.paint, night: state.night, cam: state.cam, playing: state.playing,
