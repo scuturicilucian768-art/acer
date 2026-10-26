@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Automatizări AI pentru afaceri · agenți vocali, mesaje automate, site-uri și aplicații</title>
+<meta name="description" content="Implementăm agenți AI vocali, mesaje automate și automatizări care ajută afacerile să răspundă mai rapid clienților și să economisească timp. Plus reclame video AI, site-uri și aplicații web.">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Automatizăm procesele. Accelerăm afacerile.">
+<meta property="og:description" content="Agenți AI vocali, mesaje automate și automatizări pentru afaceri. Reclame AI, site-uri și aplicații ca servicii complementare.">
+<meta property="og:image" content="media/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#07080c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%233d5afe'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%2339e1ff' stroke-width='3' stroke-dasharray='6 5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Direcție: agenție AI, întuneric adânc, albastru electric + cyan pentru „inteligență”, galben doar ca accent rar. */
+:root{
+  --bg:#07080c;--bg2:#0b0d13;--panel:#10131b;--panel2:#161a24;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+  --ink:#eef1f7;--mut:#8f97aa;--faint:#5d6578;
+  --acc:#4d6bff;--acc2:#7b93ff;--cy:#39e1ff;--sun:#ffd23f;--ok:#2fd27f;--bad:#ff6b6b;
+  --fd:'Archivo',system-ui,sans-serif;--fb:'Geist',system-ui,sans-serif;--fm:'Geist Mono',ui-monospace,monospace;
+  --r:22px;color-scheme:dark;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{background:var(--bg);color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.55}
+a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+::selection{background:var(--acc);color:#fff}
+:focus-visible{outline:2px solid var(--cy);outline-offset:3px;border-radius:6px}
+img,video{max-width:100%;display:block}
+.d{font-family:var(--fd);font-stretch:116%;font-weight:800;letter-spacing:-.028em;line-height:.98;text-wrap:balance}
+.eb{font-family:var(--fm);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--cy);display:inline-flex;align-items:center;gap:9px}
+.eb::before{content:'';width:18px;height:1px;background:currentColor}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+section{padding-block:110px}
+.muted{color:var(--mut)}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.rv{opacity:1;transform:none}}
+
+/* butoane */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:12px;padding:14px 22px;font-weight:600;font-size:.95rem;background:var(--panel2);color:var(--ink);transition:transform .2s,box-shadow .25s,background .2s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px)}
+.btn.pr{background:linear-gradient(135deg,var(--acc),#3348e6);color:#fff;box-shadow:0 10px 30px -10px rgba(77,107,255,.7),inset 0 1px 0 rgba(255,255,255,.2)}
+.btn.pr:hover{box-shadow:0 16px 40px -10px rgba(77,107,255,.85),inset 0 1px 0 rgba(255,255,255,.2)}
+.btn.gh{background:transparent;border:1px solid var(--line2)}
+.btn.gh:hover{border-color:var(--acc2)}
+.btn.sm{padding:10px 15px;font-size:.86rem;border-radius:10px}
+.btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* antet */
+header{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:60;width:min(1176px,calc(100% - 24px));display:flex;align-items:center;gap:14px;justify-content:space-between;padding:8px 8px 8px 16px;border-radius:16px;background:rgba(10,12,18,.66);backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);border:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.98rem;white-space:nowrap}
+.mark{width:32px;height:32px;border-radius:9px;background:radial-gradient(circle at 30% 25%,var(--acc2),var(--acc) 55%,#2a3bd0);display:grid;place-items:center;position:relative;flex:none}
+.mark::after{content:'';width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 12px var(--cy)}
+.logo small{display:block;font-family:var(--fm);font-size:.62rem;color:var(--mut);font-weight:500;letter-spacing:.04em}
+nav{display:flex;gap:4px;font-size:.88rem}
+nav a{padding:8px 11px;border-radius:9px;color:var(--mut);transition:color .2s,background .2s}
+nav a:hover{color:var(--ink);background:rgba(255,255,255,.05)}
+.hr{display:flex;align-items:center;gap:8px}
+.lang{display:flex;border:1px solid var(--line2);border-radius:10px;padding:2px}
+.lang button{border:0;background:none;padding:6px 9px;border-radius:8px;font-family:var(--fm);font-size:.72rem;color:var(--mut)}
+.lang button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+@media(max-width:1080px){nav{display:none}}
+@media(max-width:540px){.hr .btn{display:none}.logo small{display:none}}
+
+/* hero */
+.hero{position:relative;padding:160px 0 100px;overflow:hidden;isolation:isolate}
+.hero::before{content:'';position:absolute;inset:0;z-index:-2;background:radial-gradient(60% 50% at 75% 35%,rgba(77,107,255,.22),transparent 70%),radial-gradient(40% 40% at 15% 80%,rgba(57,225,255,.08),transparent 70%)}
+.hero::after{content:'';position:absolute;inset:0;z-index:-1;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse 70% 60% at 60% 40%,#000 15%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse 70% 60% at 60% 40%,#000 15%,transparent 75%)}
+.hg{display:grid;grid-template-columns:1.08fr .92fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(2.7rem,6.4vw,5.6rem);margin:20px 0 22px}
+.hero h1 .gr{background:linear-gradient(100deg,#fff 0%,var(--acc2) 45%,var(--cy) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.lead{font-size:clamp(1.02rem,1.6vw,1.18rem);color:#b9c0d0;max-width:600px}
+.ha{display:flex;gap:10px;flex-wrap:wrap;margin-top:32px}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:34px}
+.tag{font-family:var(--fm);font-size:.72rem;padding:7px 12px;border:1px solid var(--line2);border-radius:999px;color:#c3c9d6;background:rgba(255,255,255,.02)}
+@media(max-width:980px){.hg{grid-template-columns:1fr}.hero{padding-top:130px}}
+/* rețeaua AI (SVG animat) */
+.net{position:relative;width:100%;max-width:560px;margin-inline:auto;aspect-ratio:1}
+.net svg{width:100%;height:100%;overflow:visible}
+.net .ln{stroke:rgba(123,147,255,.28);stroke-width:1.2;fill:none}
+.net .ring{fill:none;stroke:rgba(57,225,255,.35);stroke-width:1;stroke-dasharray:3 9;transform-origin:280px 280px;animation:spin 40s linear infinite}
+.net .ring.r2{stroke:rgba(123,147,255,.3);stroke-dasharray:1 14;animation-duration:70s;animation-direction:reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.net .core{transform-origin:280px 280px;animation:breathe 4s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.05)}}
+.nd{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:8px;padding:9px 13px 9px 9px;border-radius:14px;background:rgba(16,19,27,.86);border:1px solid var(--line2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:.82rem;font-weight:600;white-space:nowrap;box-shadow:0 10px 30px -12px rgba(0,0,0,.8);animation:float 6s ease-in-out infinite}
+.nd i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(77,107,255,.16);color:var(--acc2);font-style:normal}
+.nd i svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@keyframes float{50%{transform:translate(-50%,calc(-50% - 7px))}}
+.core-l{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.core-l b{display:block;font-family:var(--fd);font-stretch:125%;font-weight:900;font-size:1.6rem;letter-spacing:.02em}
+.core-l small{font-family:var(--fm);font-size:.64rem;color:var(--cy);letter-spacing:.14em}
+@media(max-width:520px){.nd{font-size:.7rem;padding:6px 9px 6px 6px}.nd i{width:24px;height:24px}}
+
+/* bandă */
+.mq{border-block:1px solid var(--line);overflow:hidden;padding:18px 0;background:var(--bg2)}
+.mq .tr{display:flex;width:max-content;animation:mq 42s linear infinite}
+.mq span{font-family:var(--fd);font-stretch:120%;font-weight:700;font-size:1.05rem;color:#c3c9d6;display:flex;align-items:center;gap:40px;padding-right:40px;white-space:nowrap}
+.mq span::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--cy);box-shadow:0 0 10px var(--cy)}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+.sh{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap;margin-bottom:46px}
+.sh h2{font-size:clamp(2.1rem,4.8vw,3.9rem);margin-top:14px;max-width:780px}
+.sh p{color:var(--mut);max-width:420px}
+
+/* serviciul principal */
+#automatizari{position:relative;background:linear-gradient(180deg,var(--bg) 0%,#0a0d1a 30%,#0a0d1a 70%,var(--bg) 100%)}
+.pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;padding:7px 12px;border-radius:999px;background:rgba(57,225,255,.08);border:1px solid rgba(57,225,255,.3);color:var(--cy);margin-bottom:6px}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--cy);box-shadow:0 0 10px var(--cy)}
+.ag{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
+.tabs{display:grid;gap:8px;position:sticky;top:96px}
+.tb{display:flex;gap:14px;align-items:center;text-align:left;padding:16px;border-radius:16px;border:1px solid var(--line);background:var(--panel);transition:border-color .25s,background .25s,transform .2s}
+.tb:hover{border-color:var(--line2)}
+.tb[aria-selected=true]{border-color:rgba(77,107,255,.6);background:linear-gradient(135deg,rgba(77,107,255,.16),rgba(16,19,27,.9));box-shadow:0 0 0 1px rgba(77,107,255,.2) inset}
+.tb .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.04);color:var(--acc2);flex:none}
+.tb[aria-selected=true] .ic{background:var(--acc);color:#fff}
+.ic svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tb b{display:block;font-size:1rem}.tb small{display:block;color:var(--mut);font-size:.82rem;line-height:1.35;margin-top:2px}
+.tp{border:1px solid var(--line2);border-radius:26px;background:radial-gradient(90% 70% at 100% 0%,rgba(77,107,255,.14),transparent 60%),var(--panel);padding:clamp(24px,4vw,44px);min-height:520px;animation:tpIn .5s cubic-bezier(.2,.7,.2,1)}
+@keyframes tpIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.tp h3{font-family:var(--fd);font-stretch:114%;font-weight:800;font-size:clamp(1.7rem,3.2vw,2.5rem);letter-spacing:-.025em;line-height:1.05;margin:4px 0 14px}
+.tp .intro{color:#c3c9d6;font-size:1.05rem;max-width:640px}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}
+.box{border:1px solid var(--line);border-radius:18px;padding:20px;background:rgba(7,8,12,.5)}
+.box h4{font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:12px;font-weight:500}
+.box.pb{grid-column:1/-1;border-color:rgba(255,107,107,.25);background:linear-gradient(135deg,rgba(255,107,107,.07),rgba(7,8,12,.5))}
+.box.pb h4{color:#ff9b9b}
+.box ul{list-style:none;display:grid;gap:10px}
+.box li{display:flex;gap:10px;font-size:.95rem;color:#d7dbe5}
+.box li::before{content:'';flex:none;width:18px;height:18px;margin-top:2px;border-radius:6px;background:rgba(47,210,127,.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.3l2.6 2.5L13 6.4' fill='none' stroke='%232fd27f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
+.box.ex li::before{background:rgba(57,225,255,.12) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M7 5l4 4-4 4' fill='none' stroke='%2339e1ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
+.tpf{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:26px}
+.tpf small{color:var(--faint);font-size:.82rem;max-width:420px}
+@media(max-width:980px){.ag{grid-template-columns:1fr}.tabs{position:static;display:flex;overflow-x:auto;scrollbar-width:none;margin-inline:-20px;padding-inline:20px}.tabs::-webkit-scrollbar{display:none}.tb{flex:0 0 250px}.tp{min-height:0}}
+@media(max-width:620px){.tg{grid-template-columns:1fr}}
+
+/* simulare apel + calculator */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+.live{border:1px solid var(--line2);border-radius:26px;background:var(--panel);padding:20px}
+.lh{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 14px;border-bottom:1px solid var(--line)}
+.lh b{font-size:.95rem}.rec{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);font-size:.66rem;color:var(--mut);letter-spacing:.08em}
+.rec::before{content:'';width:8px;height:8px;border-radius:50%;background:#ff4d4d;animation:bl 1.2s infinite}
+@keyframes bl{50%{opacity:.2}}
+.wave{display:flex;align-items:center;gap:3px;height:44px;margin:16px 4px 6px}
+.wave i{flex:1;max-width:6px;border-radius:3px;background:linear-gradient(var(--cy),var(--acc));height:20%;animation:wv 1.1s ease-in-out infinite}
+@keyframes wv{50%{height:95%}}
+.feed{display:grid;gap:8px;min-height:300px;align-content:start;margin-top:8px}
+.ev{display:flex;gap:11px;align-items:flex-start;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:11px 12px;opacity:0;transform:translateY(8px);transition:.45s cubic-bezier(.2,.7,.2,1)}
+.ev.on{opacity:1;transform:none}
+.ev .ei{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none}
+.ev .ei svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ev b{display:block;font-size:.86rem;font-weight:600}.ev p{font-size:.8rem;color:var(--mut);line-height:1.4}
+.ev .ts{margin-left:auto;font-family:var(--fm);font-size:.64rem;color:var(--faint);white-space:nowrap;padding-left:6px}
+.lf{font-family:var(--fm);font-size:.66rem;color:var(--faint);text-align:center;margin-top:12px}
+.calc{border:1px solid var(--line2);border-radius:26px;background:linear-gradient(160deg,#121729,var(--panel));padding:26px;display:flex;flex-direction:column}
+.calc h3{font-family:var(--fd);font-stretch:112%;font-weight:800;font-size:1.5rem;letter-spacing:-.02em;line-height:1.1;margin-bottom:6px}
+.fl{margin-top:18px}
+.fl .lb{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:.88rem;color:#c3c9d6}
+.fl .lb b{font-family:var(--fm);color:#fff;font-weight:500}
+input[type=range]{width:100%;accent-color:var(--acc);height:28px}
+.co{margin-top:auto;padding-top:20px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.co .k{font-family:var(--fm);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.co .v{font-family:var(--fd);font-stretch:118%;font-weight:900;font-size:clamp(1.6rem,3vw,2.3rem);letter-spacing:-.03em;line-height:1.05;margin-top:4px;font-variant-numeric:tabular-nums}
+.co .v.lo{color:#ff8a7a}.co .v.gn{color:var(--sun)}
+.co .s{font-size:.78rem;color:var(--mut)}
+.cnote{font-size:.76rem;color:var(--faint);margin-top:14px}
+@media(max-width:900px){.duo{grid-template-columns:1fr}}
+
+/* secțiuni complementare */
+.comp{display:inline-flex;font-family:var(--fm);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);border:1px solid var(--line2);border-radius:999px;padding:5px 11px;margin-bottom:8px}
+.pk{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pc{position:relative;border:1px solid var(--line2);border-radius:24px;padding:28px;background:var(--panel);display:flex;flex-direction:column;transition:transform .3s,border-color .3s}
+.pc:hover{transform:translateY(-4px);border-color:rgba(77,107,255,.5)}
+.pc.mid{background:linear-gradient(170deg,rgba(77,107,255,.18),var(--panel) 55%);border-color:rgba(77,107,255,.45)}
+.pc .n{font-family:var(--fd);font-stretch:125%;font-weight:900;font-size:4.6rem;line-height:.9;letter-spacing:-.04em;background:linear-gradient(180deg,#fff,#9aa6c9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pc .n small{font-size:1rem;letter-spacing:0;-webkit-text-fill-color:var(--mut);font-family:var(--fb);font-weight:600;margin-left:6px}
+.pc h3{font-size:1.15rem;margin:12px 0 6px}
+.pc p{color:var(--mut);font-size:.93rem}
+.pc ul{list-style:none;display:grid;gap:9px;margin:20px 0 24px}
+.pc li{display:flex;gap:10px;font-size:.9rem;color:#d7dbe5}
+.pc li::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;background:var(--cy);margin-top:9px}
+.pc .q{margin-top:auto;font-family:var(--fm);font-size:.72rem;color:var(--mut);margin-bottom:12px}
+.vids{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+.vd{border-radius:20px;overflow:hidden;border:1px solid var(--line2);background:#000;position:relative}
+.vd video{width:100%;aspect-ratio:9/16;object-fit:cover}
+.vd figcaption{position:absolute;left:0;right:0;bottom:0;padding:40px 14px 14px;background:linear-gradient(transparent,rgba(0,0,0,.85));font-size:.85rem}
+.vd figcaption small{display:block;font-family:var(--fm);font-size:.64rem;color:var(--cy);letter-spacing:.1em;text-transform:uppercase}
+@media(max-width:900px){.pk{grid-template-columns:1fr}.vids{grid-template-columns:repeat(3,minmax(220px,1fr));overflow-x:auto;margin-inline:-20px;padding-inline:20px}}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.split h2{font-size:clamp(2rem,4.4vw,3.4rem);margin:12px 0 16px}
+.split p.l{color:#b9c0d0;font-size:1.04rem}
+.chk{list-style:none;display:grid;gap:12px;margin:24px 0 28px}
+.chk li{display:flex;gap:12px;align-items:flex-start}
+.chk li i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(77,107,255,.14);color:var(--acc2);flex:none;font-style:normal}
+.chk li i svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.chk li b{display:block;font-size:.98rem}.chk li span{color:var(--mut);font-size:.88rem}
+.note{border-left:3px solid var(--cy);padding:12px 16px;background:rgba(57,225,255,.05);border-radius:0 12px 12px 0;color:#c9eff7;font-size:.94rem;margin-bottom:24px}
+.mock{border:1px solid var(--line2);border-radius:18px;overflow:hidden;background:var(--panel);box-shadow:0 40px 80px -30px rgba(0,0,0,.8)}
+.mock .bt{display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.mock .bt i{width:9px;height:9px;border-radius:50%;background:#2a2f3c}
+.mock .bt span{flex:1;margin-left:10px;background:var(--bg2);border-radius:7px;font-family:var(--fm);font-size:.66rem;padding:5px 10px;color:var(--mut)}
+.mock .bd{padding:22px;display:grid;gap:12px}
+.sk{height:12px;border-radius:6px;background:rgba(255,255,255,.07)}
+.mrow{display:flex;gap:10px}
+.mcard{flex:1;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg2)}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--fm);font-size:.7rem;color:#c3c9d6}
+.flow span{padding:6px 10px;border-radius:8px;border:1px solid var(--line2);background:var(--bg2)}
+.flow em{color:var(--cy);font-style:normal}
+.apg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ap{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--panel)}
+.ap i{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:rgba(57,225,255,.1);color:var(--cy);margin-bottom:10px;font-style:normal}
+.ap i svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ap b{display:block;font-size:.95rem}.ap span{color:var(--mut);font-size:.84rem}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+@media(max-width:480px){.apg{grid-template-columns:1fr}}
+
+/* proces */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;counter-reset:s}
+.stp{position:relative;border:1px solid var(--line);border-radius:20px;padding:24px;background:var(--panel)}
+.stp::before{counter-increment:s;content:counter(s,decimal-leading-zero);font-family:var(--fm);font-size:.78rem;color:var(--cy)}
+.stp h3{font-family:var(--fd);font-stretch:112%;font-weight:800;font-size:1.25rem;margin:12px 0 6px;letter-spacing:-.02em;line-height:1.15}
+.stp p{color:var(--mut);font-size:.92rem}
+@media(max-width:900px){.steps{grid-template-columns:1fr 1fr}}@media(max-width:520px){.steps{grid-template-columns:1fr}}
+
+/* portofoliu */
+.flt{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.flt button{border:1px solid var(--line2);background:transparent;border-radius:999px;padding:9px 15px;font-size:.86rem;color:#c3c9d6}
+.flt button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.wk{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.wc{border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--panel);display:flex;flex-direction:column;transition:transform .3s,border-color .3s}
+.wc:hover{transform:translateY(-4px);border-color:var(--line2)}
+.wc .th{position:relative;aspect-ratio:16/10;overflow:hidden;display:flex;align-items:flex-end;padding:18px}
+.wc .th video,.wc .th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.wc .th b{position:relative;font-family:var(--fd);font-stretch:118%;font-weight:900;font-size:1.5rem;line-height:1.02;letter-spacing:-.02em;text-shadow:0 2px 20px rgba(0,0,0,.6)}
+.wc .bd{padding:18px 20px 20px;display:flex;flex-direction:column;flex:1}
+.wc h3{font-size:1.06rem;line-height:1.3}
+.wc p{color:var(--mut);font-size:.88rem;margin:6px 0 12px}
+.wc .cats{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.wc .cats span{font-family:var(--fm);font-size:.62rem;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:3px 7px}
+.wc .act{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+.st{position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:rgba(7,8,12,.75);backdrop-filter:blur(6px);border:1px solid var(--line2);z-index:1}
+.st::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.st.live::before{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.st.demo::before{background:var(--cy)}
+.st.concept::before{background:var(--sun)}
+.st.done::before{background:var(--ok)}
+.st.soon::before{background:var(--acc2)}
+.wc.ph .th{background:repeating-linear-gradient(135deg,rgba(255,255,255,.03) 0 12px,transparent 12px 24px),var(--bg2)}
+.wnote{font-size:.84rem;color:var(--faint);margin-top:18px}
+@media(max-width:980px){.wk{grid-template-columns:1fr 1fr}}@media(max-width:620px){.wk{grid-template-columns:1fr}}
+
+/* contact */
+.cg{display:grid;grid-template-columns:.85fr 1.15fr;gap:22px;align-items:start}
+.cl{border-radius:26px;padding:clamp(26px,4vw,40px);background:radial-gradient(90% 80% at 0% 0%,rgba(77,107,255,.35),transparent 60%),linear-gradient(160deg,#141a33,var(--panel));border:1px solid rgba(77,107,255,.35)}
+.cl h2{font-size:clamp(2rem,4vw,3.2rem);margin:14px 0 14px}
+.cl p{color:#c3c9d6}
+.cl .dir{display:grid;gap:10px;margin-top:26px}
+.cl .dir a{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;background:rgba(7,8,12,.45);border:1px solid var(--line2);font-weight:600}
+.cl .dir a small{display:block;font-family:var(--fm);font-size:.66rem;color:var(--mut);font-weight:500}
+.cl .dir svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;color:var(--cy)}
+form.of{border:1px solid var(--line2);border-radius:26px;padding:clamp(22px,4vw,36px);background:var(--panel);display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fd{display:grid;gap:7px}.fd.full{grid-column:1/-1}
+.fd label{font-size:.84rem;font-weight:600;color:#c3c9d6}
+.fd label em{font-style:normal;color:var(--faint);font-weight:400}
+.inp{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;padding:13px 14px;font-size:.98rem;outline:none;transition:border-color .2s,box-shadow .2s}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(77,107,255,.2)}
+.inp.bad{border-color:var(--bad)}
+textarea.inp{min-height:130px;resize:vertical}
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 8l5 5 5-5' fill='none' stroke='%238f97aa' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:18px;padding-right:40px}
+.fe{grid-column:1/-1;color:var(--bad);font-size:.88rem;min-height:1.2em}
+.fs{grid-column:1/-1;display:none;border-radius:14px;padding:14px 16px;background:rgba(47,210,127,.08);border:1px solid rgba(47,210,127,.35);color:#bff0d4;font-size:.92rem}
+.fs.on{display:block}
+.fs a{color:#fff;text-decoration:underline}
+.fsub{grid-column:1/-1;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.fsub small{color:var(--faint);font-size:.8rem;flex:1;min-width:220px}
+@media(max-width:900px){.cg{grid-template-columns:1fr}}@media(max-width:560px){form.of{grid-template-columns:1fr}}
+
+footer{border-top:1px solid var(--line);padding:30px 0 40px;font-family:var(--fm);font-size:.74rem;color:var(--faint)}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* asistent */
+.cbn{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:70;height:54px;padding:0 20px 0 16px;border-radius:27px;border:1px solid var(--line2);background:rgba(16,19,27,.92);backdrop-filter:blur(10px);display:flex;align-items:center;gap:10px;font-weight:600;font-size:.9rem;box-shadow:0 14px 34px rgba(0,0,0,.5)}
+.cbn i{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(47,210,127,.2)}
+.cp{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:84px;z-index:71;width:370px;max-width:calc(100vw - 24px);height:540px;max-height:calc(100vh - 110px);background:var(--panel);border-radius:20px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.6);border:1px solid var(--line2)}
+.cp.open{display:flex}
+.chh{display:flex;align-items:center;gap:10px;padding:14px 14px 12px;border-bottom:1px solid var(--line)}
+.chh div{flex:1}.chh b{display:block;font-size:.92rem}.chh small{font-family:var(--fm);font-size:.62rem;color:var(--mut)}
+.chh button{background:none;border:0;padding:6px 8px;border-radius:8px;font-size:1rem}.chh button[aria-pressed=true]{background:rgba(255,255,255,.1)}
+.cl2{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px}
+.m{max-width:86%;padding:10px 13px;border-radius:14px;background:var(--panel2);font-size:.9rem;line-height:1.45;border-bottom-left-radius:4px}
+.m.u{align-self:flex-end;background:var(--acc);border-bottom-left-radius:14px;border-bottom-right-radius:4px}
+.m a{color:var(--cy);text-decoration:underline}
+.cc{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
+.cc button{background:none;border:1px solid var(--line2);border-radius:999px;padding:6px 11px;font-size:.78rem}.cc button:hover{border-color:var(--cy);color:var(--cy)}
+.cf{display:flex;gap:6px;padding:10px 12px 14px;border-top:1px solid var(--line)}
+.cf input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line2);border-radius:22px;padding:10px 15px;font-size:.9rem}
+.cf input:focus{outline:none;border-color:var(--acc)}
+.cf button{width:42px;height:42px;border-radius:50%;border:0;background:var(--acc);flex:none;display:grid;place-items:center}
+.cf button svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cf button.rec{background:#e5484d;animation:bl 1s infinite}
+.typing{display:flex;gap:4px;padding:12px 14px}.typing i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5);animation:ty 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes ty{50%{transform:translateY(-4px);opacity:.4}}
+</style>
+<script type="application/ld+json" id="ld"></script>
+</head>
+<body>
+
+<header id="hd">
+  <a class="logo" href="#top" aria-label="Acasă"><span class="mark" aria-hidden="true"></span><span><span id="nm"></span><small data-t="brand_sub"></small></span></a>
+  <nav aria-label="Navigare principală"><a href="#automatizari" data-t="nav1"></a><a href="#reclame" data-t="nav2"></a><a href="#site-uri" data-t="nav3"></a><a href="#aplicatii" data-t="nav4"></a><a href="#portofoliu" data-t="nav5"></a><a href="#contact" data-t="nav6"></a></nav>
+  <div class="hr">
+    <div class="lang" role="group" aria-label="Limbă / Language"><button type="button" data-l="ro" aria-pressed="true">RO</button><button type="button" data-l="en" aria-pressed="false">EN</button></div>
+    <a class="btn pr sm" href="#contact" data-t="cta"></a>
+  </div>
+</header>
+
+<main>
+<section class="hero" id="top">
+  <div class="wrap hg">
+    <div>
+      <span class="eb" data-t="h_eb"></span>
+      <h1 class="d" data-th="h_t"></h1>
+      <p class="lead" data-t="h_l"></p>
+      <div class="ha"><a class="btn pr" href="#contact" data-svc="" data-t="h_b1"></a><a class="btn gh" href="#automatizari" data-t="h_b2"></a></div>
+      <div class="tags" id="htags"></div>
+    </div>
+    <div class="net" id="net" aria-hidden="true"></div>
+  </div>
+</section>
+
+<div class="mq" aria-hidden="true"><div class="tr" id="mq"></div></div>
+
+<section id="automatizari">
+  <div class="wrap">
+    <div class="sh rv"><div><span class="pill" data-t="a_pill"></span><h2 class="d" data-t="a_t"></h2></div><p data-t="a_p"></p></div>
+    <div class="ag rv">
+      <div class="tabs" role="tablist" id="tabs" aria-label="Servicii de automatizare"></div>
+      <div id="tpw"></div>
+    </div>
+    <div class="duo">
+      <div class="live rv" aria-label="Simulare apel preluat de agent">
+        <div class="lh"><b data-t="lv_t"></b><span class="rec" data-t="lv_live"></span></div>
+        <div class="wave" aria-hidden="true" id="wave"></div>
+        <div class="feed" id="feed"></div>
+        <div class="lf" data-t="lv_f"></div>
+      </div>
+      <div class="calc rv">
+        <span class="eb" data-t="c_eb"></span>
+        <h3 data-t="c_t" style="margin-top:10px"></h3>
+        <p class="muted" style="font-size:.9rem" data-t="c_p"></p>
+        <div class="fl"><div class="lb"><label for="i1" data-t="c_i1"></label><b id="o1"></b></div><input type="range" id="i1" min="5" max="300" step="5" value="40"></div>
+        <div class="fl"><div class="lb"><label for="i2" data-t="c_i2"></label><b id="o2"></b></div><input type="range" id="i2" min="5" max="80" step="5" value="30"></div>
+        <div class="fl"><div class="lb"><label for="i3" data-t="c_i3"></label><b id="o3"></b></div><input type="range" id="i3" min="20" max="3000" step="10" value="150"></div>
+        <div class="co" aria-live="polite"><div><div class="k" data-t="c_o1"></div><div class="v lo" id="r1"></div><div class="s" id="r1s"></div></div><div><div class="k" data-t="c_o2"></div><div class="v gn" id="r2"></div><div class="s" data-t="c_o2s"></div></div></div>
+        <p class="cnote" data-t="c_n"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="reclame">
+  <div class="wrap">
+    <div class="sh rv"><div><span class="comp" data-t="comp"></span><br><span class="eb" data-t="r_eb"></span><h2 class="d" data-t="r_t"></h2></div><p data-t="r_p"></p></div>
+    <div class="pk" id="pk"></div>
+    <div class="vids rv" id="vids"></div>
+  </div>
+</section>
+
+<section id="site-uri" style="padding-top:40px">
+  <div class="wrap split">
+    <div class="rv">
+      <span class="comp" data-t="comp"></span><br><span class="eb" data-t="w_eb"></span>
+      <h2 class="d" data-t="w_t"></h2>
+      <p class="l" data-t="w_p"></p>
+      <ul class="chk" id="wl"></ul>
+      <p class="note" data-t="w_n"></p>
+      <a class="btn pr" href="#contact" data-svc="web" data-t="offer"></a>
+    </div>
+    <div class="mock rv" aria-hidden="true">
+      <div class="bt"><i></i><i></i><i></i><span>https://afacerea-ta.ro</span></div>
+      <div class="bd">
+        <div class="sk" style="width:40%;height:22px;background:linear-gradient(90deg,var(--acc),var(--cy))"></div>
+        <div class="sk" style="width:85%"></div><div class="sk" style="width:65%"></div>
+        <div class="mrow"><div class="mcard"><div class="sk" style="width:60%"></div><div class="sk" style="width:90%;margin-top:8px;height:8px"></div></div><div class="mcard"><div class="sk" style="width:50%"></div><div class="sk" style="width:80%;margin-top:8px;height:8px"></div></div></div>
+        <div class="mcard"><div class="flow"><span data-t="mk1"></span><em>→</em><span data-t="mk2"></span><em>→</em><span data-t="mk3"></span><em>→</em><span data-t="mk4"></span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="aplicatii" style="padding-top:40px">
+  <div class="wrap split">
+    <div class="apg rv" id="apg"></div>
+    <div class="rv">
+      <span class="comp" data-t="comp"></span><br><span class="eb" data-t="x_eb"></span>
+      <h2 class="d" data-t="x_t"></h2>
+      <p class="l" data-t="x_p"></p>
+      <p class="note" style="margin-top:22px" data-t="x_n"></p>
+      <a class="btn pr" href="#contact" data-svc="app" data-t="x_b"></a>
+    </div>
+  </div>
+</section>
+
+<section id="proces" style="padding-top:40px">
+  <div class="wrap">
+    <div class="sh rv"><div><span class="eb" data-t="p_eb"></span><h2 class="d" data-t="p_t"></h2></div></div>
+    <div class="steps rv" id="steps"></div>
+  </div>
+</section>
+
+<section id="portofoliu" style="padding-top:40px">
+  <div class="wrap">
+    <div class="sh rv"><div><span class="eb" data-t="k_eb"></span><h2 class="d" data-t="k_t"></h2></div><p data-t="k_p"></p></div>
+    <div class="flt" id="flt" role="group" aria-label="Filtrează proiectele"></div>
+    <div class="wk" id="wk"></div>
+    <p class="wnote" data-t="k_n"></p>
+  </div>
+</section>
+
+<section id="contact" style="padding-top:40px">
+  <div class="wrap cg">
+    <div class="cl rv">
+      <span class="eb" data-t="f_eb"></span>
+      <h2 class="d" data-t="f_t"></h2>
+      <p data-t="f_p"></p>
+      <div class="dir">
+        <a id="dwa" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z"/></svg><span><span data-t="f_wa"></span><small id="dwan"></small></span></a>
+        <a id="dtel"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a1 1 0 01-1 1A16 16 0 014 5a1 1 0 011-1z"/></svg><span><span data-t="f_tel"></span><small id="dteln"></small></span></a>
+      </div>
+    </div>
+    <form class="of rv" id="of" novalidate>
+      <div class="fd"><label for="fn"><span data-t="fo_n"></span></label><input class="inp" id="fn" name="name" autocomplete="name" required></div>
+      <div class="fd"><label for="fc"><span data-t="fo_c"></span> <em data-t="opt"></em></label><input class="inp" id="fc" name="company" autocomplete="organization"></div>
+      <div class="fd full"><label for="fx"><span data-t="fo_x"></span></label><input class="inp" id="fx" name="contact" autocomplete="email" required></div>
+      <div class="fd"><label for="fsv"><span data-t="fo_s"></span></label><select class="inp" id="fsv" name="service" required></select></div>
+      <div class="fd"><label for="fb"><span data-t="fo_b"></span> <em data-t="opt"></em></label><select class="inp" id="fb" name="budget"></select></div>
+      <div class="fd full"><label for="fm"><span data-t="fo_m"></span></label><textarea class="inp" id="fm" name="message" required></textarea></div>
+      <p class="fe" id="fe" role="alert"></p>
+      <div class="fs" id="fsok" role="status"></div>
+      <div class="fsub"><button class="btn pr" type="submit"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-7z"/></svg><span data-t="fo_go"></span></button><small data-t="fo_how"></small></div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap"><span id="fcopy"></span><span data-t="f_r"></span></div></footer>
+
+<button class="cbn" id="cbn" aria-label="Asistent"><i></i><span data-t="b_btn"></span></button>
+<div class="cp" id="cp" role="dialog" aria-label="Asistent">
+  <div class="chh"><span class="mark" aria-hidden="true"></span><div><b data-t="b_t"></b><small data-t="b_s"></small></div><button id="spk" aria-pressed="false" title="Voce" aria-label="Răspuns cu voce">🔇</button><button id="cx" aria-label="Închide">✕</button></div>
+  <div class="cl2" id="cl" aria-live="polite"></div><div class="cc" id="ccs"></div>
+  <form class="cf" id="cf"><input id="ci" autocomplete="off" aria-label="Mesaj"><button type="button" id="mic" aria-label="Microfon"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button><button type="submit" aria-label="Trimite"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-7z"/></svg></button></form>
+</div>
+
+<script>
+/* ============ DATELE TALE — editează aici ============ */
+const CONFIG = {
+  brand: 'Lucian',                 // numele afișat în colțul stânga sus (poți pune numele agenției)
+  phone: '0755 323 606',
+  whatsapp: '40755323606',         // format internațional, fără +; aici ajung cererile din formular
+  email: '',                       // gol = nu se afișează
+  region: 'Bistrița-Năsăud',
+  site: ''                         // domeniul final, pentru SEO (ex: https://agentia-ta.ro)
+};
+/* ===================================================== */
+
+const IC = {
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a1 1 0 01-1 1A16 16 0 014 5a1 1 0 011-1z"/>',
+  msg: '<path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/>',
+  flow: '<circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7.3 7.2l3.4 8.6M16.7 7.2l-3.4 8.6M7.5 6h9"/>',
+  bot: '<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9.5 16h5"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  db: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>',
+  web: '<rect x="3" y="4" width="18" height="15" rx="2"/><path d="M3 9h18M8 22h8"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  zap: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  bell: '<path d="M6 16V11a6 6 0 0112 0v5l2 2H4z"/><path d="M10 21h4"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 010 7M18 14.8c2 .8 3.2 2.6 3.7 5.2"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  chart: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+  form: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+  layers: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  play: '<path d="M8 5v14l11-7z"/>'
+};
+const sv = (k, s = '') => `<svg viewBox="0 0 24 24" ${s}>${IC[k]}</svg>`;
+
+const T = {
+ro: {
+ brand_sub:'Automatizări AI pentru afaceri',
+ nav1:'Automatizări AI',nav2:'Reclame AI',nav3:'Site-uri',nav4:'Aplicații',nav5:'Portofoliu',nav6:'Contact',cta:'Solicită o ofertă',offer:'Solicită o ofertă',opt:'(opțional)',
+ h_eb:'Agenți vocali · Mesaje automate · Automatizări',
+ h_t:'Automatizăm procesele. <span class="gr">Accelerăm afacerile.</span>',
+ h_l:'Implementăm agenți AI vocali, mesaje automate și soluții inteligente care ajută afacerile să economisească timp, să răspundă mai rapid clienților și să își optimizeze activitatea.',
+ h_b1:'Solicită o ofertă',h_b2:'Descoperă serviciile',
+ htags:['Agenți vocali AI','WhatsApp · SMS · Email','Integrare cu site-ul tău','Română · English'],
+ net:['Apel','WhatsApp','Email','Calendar','Site','Date clienți'],net_c:'agent AI',
+ marquee:['Agenți vocali AI','Mesaje automate','Automatizarea proceselor','Agenți AI pentru afaceri','Reclame video AI','Site-uri web','Aplicații web'],
+ a_pill:'Serviciul principal',a_t:'Automatizări și agenți AI care lucrează alături de echipa ta.',a_p:'Preluăm munca repetitivă: apeluri, mesaje, confirmări, transferul datelor între aplicații. Fiecare soluție se configurează pe procesele reale ale afacerii tale.',
+ prob:'Problema',ben:'Ce câștigi',exm:'Exemple de utilizare',a_disc:'Funcțiile exacte se stabilesc împreună, în funcție de afacerea ta și de instrumentele pe care le folosești deja.',
+ lv_t:'Simulare: apel preluat de agentul AI',lv_live:'SIMULARE',lv_f:'exemplu ilustrativ · fluxul real se configurează pentru fiecare afacere',
+ c_eb:'Calculator',c_t:'Cât te costă cererile la care nu răspunzi la timp?',c_p:'Pune cifrele afacerii tale. E o estimare simplă, ca să vezi ordinul de mărime.',
+ c_i1:'Cereri și apeluri noi pe lună',c_i2:'Câte rămân fără răspuns sau primesc răspuns târziu',c_i3:'Valoarea medie a unui client',
+ c_o1:'Valoare pusă în risc, pe lună',c_o2:'Pe un an',c_o2s:'la aceleași cifre',c_s1:n=>`≈ ${n} cereri pe lună rămân fără răspuns la timp`,cur:'lei',
+ c_n:'Calculul nu e o promisiune de rezultat. Arată doar cât valorează cererile pierdute la cifrele alese de tine.',
+ comp:'Servicii complementare',
+ r_eb:'Reclame realizate cu AI',r_t:'Reclame video pentru TikTok, Reels și Facebook.',r_p:'Concept, montaj și text, livrate în format vertical, gata de publicat. Alegi volumul potrivit, iar prețul îl stabilim în funcție de complexitate.',
+ pk_q:'Preț în funcție de complexitate',
+ v_cap:'Exemple din lucrările noastre',
+ w_eb:'Site-uri web',w_t:'Site-uri moderne care lucrează și când tu nu ești online.',w_p:'Pentru firme, antreprenori și afaceri locale: rapide, clare pe telefon și construite ca vizitatorul să ajungă ușor la tine.',
+ w_n:'Diferența noastră: site-ul poate fi conectat cu automatizări — cererile din formular primesc răspuns imediat, iar tu ești anunțat pe loc.',
+ mk1:'Formular',mk2:'Automatizare',mk3:'Mesaj către client',mk4:'Notificare pentru tine',
+ x_eb:'Aplicații web',x_t:'Aplicații făcute pe măsura felului în care lucrezi.',x_p:'Dezvoltăm aplicații web și instrumente interne pentru afaceri mici și mijlocii: de la programări și evidența clienților, la panouri cu cifrele care contează.',
+ x_n:'Lucrăm iterativ: începem cu ce ai nevoie acum și extindem aplicația pe măsură ce crește afacerea.',x_b:'Discută proiectul tău',
+ p_eb:'Cum lucrăm',p_t:'Un proces simplu, în patru pași.',
+ k_eb:'Portofoliu și demonstrații',k_t:'Proiecte reale și demonstrații funcționale.',k_p:'Fiecare proiect are statusul marcat clar: live, demo funcțional, concept sau în pregătire.',
+ k_n:'Demonstrațiile și conceptele sunt exemple de lucru, nu proiecte pentru clienți. Nu folosim rezultate sau colaborări inventate.',
+ cat_all:'Toate',cat:{auto:'Automatizări AI',voice:'Agenți vocali',ads:'Reclame video',web:'Site-uri web',app:'Aplicații'},
+ stt:{live:'Live',done:'Proiect realizat',demo:'Demo funcțional',concept:'Concept',soon:'Demo în pregătire',own:'Produs propriu'},
+ visit:'Vezi live',see_demo:'Deschide demo',try_bot:'Încearcă asistentul',ask_demo:'Cere o demonstrație',talk_voice:'Discută un agent vocal',
+ f_eb:'Contact',f_t:'Spune-ne ce vrei să automatizezi.',f_p:'Completează formularul și primești o ofertă gratuită, făcută pe nevoile afacerii tale. Sau scrie-ne direct.',f_wa:'Scrie pe WhatsApp',f_tel:'Sună',
+ fo_n:'Numele tău',fo_c:'Compania',fo_x:'E-mail sau telefon',fo_s:'Serviciul dorit',fo_b:'Buget estimativ',fo_m:'Descrierea proiectului',fo_go:'Solicită o ofertă gratuită',
+ fo_how:'Cererea se trimite prin WhatsApp: se deschide conversația cu mesajul deja completat, iar tu apeși „Trimite”.',
+ fo_ph_m:'Ce face afacerea ta, ce ai vrea să meargă automat, ce instrumente folosești acum…',fo_ph_x:'nume@firma.ro sau 07xx xxx xxx',
+ svc:[['auto','Automatizări AI'],['voice','Agent vocal AI'],['msg','Mesaje automate'],['ads','Pachet de reclame AI'],['web','Creare site web'],['app','Creare aplicație'],['other','Alt serviciu']],
+ bud:[['','Nu știu încă'],['<1000','Sub 1.000 lei'],['1000-3000','1.000 – 3.000 lei'],['3000-7000','3.000 – 7.000 lei'],['7000+','Peste 7.000 lei']],
+ sel:'Alege serviciul',
+ e_n:'Scrie-ți numele.',e_x:'Scrie un e-mail sau un număr de telefon valid, ca să te putem contacta.',e_s:'Alege serviciul dorit.',e_m:'Descrie pe scurt proiectul (minim 10 caractere).',
+ ok_sent:'Am deschis WhatsApp cu cererea ta completată. <b>Apasă „Trimite” în WhatsApp</b> ca să o primim. Dacă nu s-a deschis, <a href="#" id="walink" target="_blank" rel="noopener">deschide conversația aici</a>.',
+ wa_h:'Bună! Aș vrea o ofertă.',wa_n:'Nume',wa_c:'Companie',wa_x:'Contact',wa_s:'Serviciu',wa_b:'Buget',wa_m:'Proiect',
+ f_r:'Site cu asistent integrat — încearcă-l în colțul din dreapta jos.',
+ b_btn:'Întreabă asistentul',b_t:'Asistentul site-ului',b_s:'demo · răspunsuri predefinite',ci:'Scrie sau apasă pe microfon…',
+ b_hi:'Salut! Sunt asistentul acestui site — un exemplu simplu de ce putem pune și pe site-ul tău. Ce vrei să afli?',
+ q1:'Ce automatizări faceți?',q2:'Cât costă?',q3:'Cum funcționează un agent vocal?',q4:'Vreau o ofertă',
+ a_serv:'Serviciul nostru principal sunt automatizările AI: agenți vocali, mesaje automate pe WhatsApp, SMS sau e-mail, automatizarea proceselor și agenți AI pentru afaceri. Complementar facem reclame video AI, site-uri și aplicații web.',
+ a_price:'Nu avem prețuri fixe: oferta depinde de complexitate, de numărul de integrări, de volum și de costurile instrumentelor AI folosite. Completează <a href="#contact" data-go>formularul</a> și primești o ofertă gratuită.',
+ a_voice:'Un agent vocal AI poate răspunde la telefon, poate purta o conversație, poate oferi informații și poate prelua solicitări sau programări, în funcție de cum îl configurăm pentru afacerea ta.',
+ a_msg:'Mesajele automate pleacă pe canalele compatibile — WhatsApp, SMS sau e-mail — pentru confirmări, notificări, reamintiri și urmărirea clienților.',
+ a_time:'Depinde de proiect. Întâi analizăm ce ai nevoie, apoi îți propunem soluția și un termen clar, înainte să începem.',
+ a_demo:'Perfect! Completează <a href="#contact" data-go>formularul</a> sau scrie-ne pe <a href="#" data-wa>WhatsApp</a> ce afacere ai și ce vrei să automatizezi.',
+ a_proj:'Găsești în <a href="#portofoliu" data-go>Portofoliu</a> proiectele live (ex.: casafrizeruluidc.ro, borisbarbershop.win), demonstrațiile funcționale și reclamele video.',
+ a_ads:'Facem reclame video verticale pentru TikTok, Reels și Facebook, în pachete de 5, 10 sau 15 reclame. Prețul se stabilește în ofertă.',
+ a_web:'Facem site-uri de prezentare și pentru servicii locale, cu formulare de contact și programări, care pot fi conectate cu automatizări.',
+ a_app:'Dezvoltăm aplicații web: evidența clienților, rezervări, panouri pentru firme, aplicații interne și aplicații cu funcții AI.',
+ a_contact:'Cel mai rapid: <a href="#" data-wa>WhatsApp</a>. Sau sună la <a href="#" data-tel>telefon</a>.',
+ a_thanks:'Cu drag! Când ești gata, <a href="#contact" data-go>solicită o ofertă</a>.',
+ a_else:'Nu sunt sigur că am înțeles. Mă poți întreba despre automatizări, agenți vocali, mesaje automate, reclame, site-uri, aplicații sau prețuri.',
+ doc_t:'Automatizări AI pentru afaceri · agenți vocali, mesaje automate, site-uri și aplicații'
+},
+en: {
+ brand_sub:'AI automation for businesses',
+ nav1:'AI automation',nav2:'AI ads',nav3:'Websites',nav4:'Apps',nav5:'Work',nav6:'Contact',cta:'Get a quote',offer:'Get a quote',opt:'(optional)',
+ h_eb:'Voice agents · Automated messages · Automation',
+ h_t:'We automate processes. <span class="gr">We accelerate businesses.</span>',
+ h_l:'We implement AI voice agents, automated messaging and smart solutions that help businesses save time, reply to customers faster and run more efficiently.',
+ h_b1:'Get a quote',h_b2:'Explore services',
+ htags:['AI voice agents','WhatsApp · SMS · Email','Connected to your website','Romanian · English'],
+ net:['Call','WhatsApp','Email','Calendar','Website','Customer data'],net_c:'AI agent',
+ marquee:['AI voice agents','Automated messages','Process automation','AI agents for business','AI video ads','Websites','Web apps'],
+ a_pill:'Core service',a_t:'AI automation and agents that work alongside your team.',a_p:'We take over repetitive work: calls, messages, confirmations, moving data between apps. Every solution is configured around your real business processes.',
+ prob:'The problem',ben:'What you gain',exm:'Use cases',a_disc:'Exact features are agreed together, based on your business and the tools you already use.',
+ lv_t:'Simulation: a call handled by the AI agent',lv_live:'SIMULATION',lv_f:'illustrative example · the real flow is configured for each business',
+ c_eb:'Calculator',c_t:'What do late replies cost you?',c_p:'Enter your own numbers. It is a simple estimate to show the order of magnitude.',
+ c_i1:'New requests and calls per month',c_i2:'Share left unanswered or answered late',c_i3:'Average client value',
+ c_o1:'Value at risk, per month',c_o2:'Per year',c_o2s:'at the same numbers',c_s1:n=>`≈ ${n} requests per month not answered in time`,cur:'RON',
+ c_n:'This is not a promise of results. It only shows what missed requests are worth at the numbers you chose.',
+ comp:'Complementary services',
+ r_eb:'AI-made ads',r_t:'Video ads for TikTok, Reels and Facebook.',r_p:'Concept, editing and copy, delivered in vertical format, ready to publish. Pick the volume; pricing depends on complexity.',
+ pk_q:'Priced by complexity',
+ v_cap:'Samples from our work',
+ w_eb:'Websites',w_t:'Modern websites that keep working when you are offline.',w_p:'For companies, entrepreneurs and local businesses: fast, clear on mobile and built so visitors reach you easily.',
+ w_n:'Our difference: the website can be connected to automations — form requests get an instant reply and you are notified on the spot.',
+ mk1:'Form',mk2:'Automation',mk3:'Message to client',mk4:'Notification for you',
+ x_eb:'Web apps',x_t:'Apps built around the way you work.',x_p:'We build web apps and internal tools for small and mid-sized businesses: from bookings and client records to dashboards with the numbers that matter.',
+ x_n:'We work iteratively: we start with what you need now and extend the app as your business grows.',x_b:'Discuss your project',
+ p_eb:'How we work',p_t:'A simple four-step process.',
+ k_eb:'Work and demos',k_t:'Real projects and working demos.',k_p:'Every project is clearly labelled: live, working demo, concept or coming soon.',
+ k_n:'Demos and concepts are work samples, not client projects. We never use invented results or collaborations.',
+ cat_all:'All',cat:{auto:'AI automation',voice:'Voice agents',ads:'Video ads',web:'Websites',app:'Apps'},
+ stt:{live:'Live',done:'Proiect realizat',demo:'Working demo',concept:'Concept',soon:'Demo coming soon',own:'Own product'},
+ visit:'View live',see_demo:'Open demo',try_bot:'Try the assistant',ask_demo:'Request a demo',talk_voice:'Discuss a voice agent',
+ f_eb:'Contact',f_t:'Tell us what you want to automate.',f_p:'Fill in the form and get a free quote tailored to your business. Or message us directly.',f_wa:'Message on WhatsApp',f_tel:'Call',
+ fo_n:'Your name',fo_c:'Company',fo_x:'E-mail or phone',fo_s:'Service',fo_b:'Estimated budget',fo_m:'Project description',fo_go:'Request a free quote',
+ fo_how:'Your request is sent via WhatsApp: the chat opens with the message already filled in, and you tap “Send”.',
+ fo_ph_m:'What your business does, what you would like to run automatically, which tools you use now…',fo_ph_x:'name@company.com or phone number',
+ svc:[['auto','AI automation'],['voice','AI voice agent'],['msg','Automated messages'],['ads','AI ads package'],['web','Website'],['app','App development'],['other','Other service']],
+ bud:[['','Not sure yet'],['<1000','Under 1,000 RON'],['1000-3000','1,000 – 3,000 RON'],['3000-7000','3,000 – 7,000 RON'],['7000+','Over 7,000 RON']],
+ sel:'Choose a service',
+ e_n:'Please enter your name.',e_x:'Enter a valid e-mail or phone number so we can reach you.',e_s:'Choose a service.',e_m:'Briefly describe the project (at least 10 characters).',
+ ok_sent:'We opened WhatsApp with your request filled in. <b>Tap “Send” in WhatsApp</b> so we receive it. If it did not open, <a href="#" id="walink" target="_blank" rel="noopener">open the chat here</a>.',
+ wa_h:'Hi! I would like a quote.',wa_n:'Name',wa_c:'Company',wa_x:'Contact',wa_s:'Service',wa_b:'Budget',wa_m:'Project',
+ f_r:'Website with a built-in assistant — try it in the bottom-right corner.',
+ b_btn:'Ask the assistant',b_t:'Site assistant',b_s:'demo · predefined answers',ci:'Type or tap the mic…',
+ b_hi:'Hi! I am this website\'s assistant — a simple example of what we can add to your site. What would you like to know?',
+ q1:'What do you automate?',q2:'How much does it cost?',q3:'How does a voice agent work?',q4:'I want a quote',
+ a_serv:'Our core service is AI automation: voice agents, automated WhatsApp, SMS or e-mail messages, process automation and AI agents for business. We also offer AI video ads, websites and web apps.',
+ a_price:'We have no fixed prices: quotes depend on complexity, number of integrations, volume and AI tool costs. Fill in the <a href="#contact" data-go>form</a> for a free quote.',
+ a_voice:'An AI voice agent can answer the phone, hold a conversation, give information and take requests or bookings, depending on how we configure it for your business.',
+ a_msg:'Automated messages go out on compatible channels — WhatsApp, SMS or e-mail — for confirmations, notifications, reminders and customer follow-up.',
+ a_time:'It depends on the project. We first analyse your needs, then propose a solution with a clear timeline before we start.',
+ a_demo:'Great! Fill in the <a href="#contact" data-go>form</a> or message us on <a href="#" data-wa>WhatsApp</a> with your business and what you want to automate.',
+ a_proj:'In <a href="#portofoliu" data-go>Work</a> you will find live projects (e.g. casafrizeruluidc.ro, borisbarbershop.win), working demos and video ads.',
+ a_ads:'We make vertical video ads for TikTok, Reels and Facebook, in packages of 5, 10 or 15 ads. Pricing is set in the quote.',
+ a_web:'We build presentation and local-service websites with contact and booking forms that can be connected to automations.',
+ a_app:'We build web apps: client records, bookings, business dashboards, internal tools and apps with AI features.',
+ a_contact:'Fastest: <a href="#" data-wa>WhatsApp</a>. Or <a href="#" data-tel>call us</a>.',
+ a_thanks:'You are welcome! When you are ready, <a href="#contact" data-go>request a quote</a>.',
+ a_else:'I am not sure I understood. Ask me about automation, voice agents, automated messages, ads, websites, apps or pricing.',
+ doc_t:'AI automation for businesses · voice agents, automated messages, websites and apps'
+}};
+
+/* serviciul principal: 4 servicii, fiecare cu problemă, beneficii, exemple */
+const AUTO = [
+ {id:'voice',ic:'phone',t:{ro:'Agenți vocali AI',en:'AI voice agents'},s:{ro:'Răspund la telefon, informează, preiau solicitări',en:'Answer calls, inform, take requests'},
+  i:{ro:'Asistenți telefonici inteligenți care pot răspunde la apeluri, conversa cu clienții, oferi informații, prelua solicitări și programa întâlniri, în funcție de configurare.',en:'Smart phone assistants that can answer calls, talk with customers, give information, take requests and schedule appointments, depending on configuration.'},
+  p:{ro:'Telefonul sună când ești ocupat, după program sau în weekend. Apelurile nepreluate înseamnă clienți care sună la concurență.',en:'The phone rings while you are busy, after hours or at weekends. Missed calls mean customers calling your competitors.'},
+  b:{ro:['Apelurile primesc răspuns și când echipa e ocupată','Informațiile de bază (program, servicii, adresă) se oferă fără intervenția ta','Solicitările ajung la tine organizate, nu ca apeluri pierdute','Echipa are mai mult timp pentru clienții din fața ei'],en:['Calls get answered even when your team is busy','Basic info (hours, services, address) is given without your involvement','Requests reach you organised, not as missed calls','Your team gets more time for the customers in front of them']},
+  e:{ro:['Saloane și clinici: preluarea programărilor la telefon','Service-uri auto: informații despre program și disponibilitate','Firme de transport: rezervări și întrebări frecvente','Orice afacere: preluarea mesajelor în afara programului'],en:['Salons and clinics: taking bookings by phone','Car services: hours and availability info','Transport companies: bookings and FAQs','Any business: taking messages after hours']}},
+ {id:'msg',ic:'msg',t:{ro:'Mesaje automate',en:'Automated messages'},s:{ro:'WhatsApp, SMS, e-mail — trimise la momentul potrivit',en:'WhatsApp, SMS, e-mail — sent at the right moment'},
+  i:{ro:'Sisteme care trimit și gestionează mesaje prin canalele compatibile, precum WhatsApp, SMS sau e-mail, pentru confirmări, notificări, solicitări și urmărirea clienților.',en:'Systems that send and manage messages on compatible channels such as WhatsApp, SMS or e-mail, for confirmations, notifications, requests and customer follow-up.'},
+  p:{ro:'Confirmările, reamintirile și răspunsurile la cereri se fac manual, uneori prea târziu sau deloc. Clienții uită programări și cererile se răcesc.',en:'Confirmations, reminders and replies are done by hand, sometimes too late or not at all. Customers forget appointments and leads go cold.'},
+  b:{ro:['Răspuns rapid la cererile noi, și noaptea','Mai puține programări uitate, datorită reamintirilor','Comunicare consecventă, fără să depindă de cineva','Tu ești anunțat când apare ceva important'],en:['Fast replies to new requests, even at night','Fewer forgotten appointments thanks to reminders','Consistent communication that does not depend on one person','You are notified when something important happens']},
+  e:{ro:['Confirmare automată după o programare','Reamintire cu o zi înainte de vizită','Mesaj de mulțumire și cerere de recenzie după vizită','Mesaj de revenire pentru clienții inactivi'],en:['Automatic confirmation after a booking','Reminder the day before a visit','Thank-you and review request after a visit','Win-back message for inactive customers']}},
+ {id:'auto',ic:'flow',t:{ro:'Automatizarea proceselor',en:'Process automation'},s:{ro:'Aplicațiile tale, conectate între ele',en:'Your apps, connected'},
+  i:{ro:'Conectarea aplicațiilor și serviciilor unei firme pentru a reduce munca repetitivă, transferul manual de informații și timpul pierdut.',en:'Connecting a company\'s apps and services to reduce repetitive work, manual data transfer and wasted time.'},
+  p:{ro:'Aceleași date se copiază de mână dintr-un loc în altul: din formular în tabel, din e-mail în calendar, din comenzi în facturi. Se pierde timp și apar greșeli.',en:'The same data is copied by hand from one place to another: form to spreadsheet, e-mail to calendar, orders to invoices. Time is lost and mistakes happen.'},
+  b:{ro:['Mai puțină muncă repetitivă pentru echipă','Mai puține greșeli de copiere','Informația ajunge singură unde trebuie','Rapoarte și rezumate pregătite automat'],en:['Less repetitive work for your team','Fewer copy-paste mistakes','Information flows where it needs to go','Reports and summaries prepared automatically']},
+  e:{ro:['Cererile din site intră automat într-un tabel sau CRM','Programările se trec automat în calendar','Rezumat zilnic cu cererile și programările noi','Notificare către echipă când apare o comandă'],en:['Website requests go straight into a sheet or CRM','Bookings are added to the calendar automatically','Daily summary of new requests and bookings','Team notification when an order arrives']}},
+ {id:'agent',ic:'bot',t:{ro:'Agenți AI pentru afaceri',en:'AI agents for business'},s:{ro:'Răspund la întrebări și califică cererile',en:'Answer questions and qualify leads'},
+  i:{ro:'Soluții personalizate care pot răspunde la întrebări, califica potențiali clienți și sprijini activitatea echipelor.',en:'Custom solutions that can answer questions, qualify potential customers and support your teams.'},
+  p:{ro:'Aceleași întrebări vin zilnic pe site, pe chat și pe social media. Echipa răspunde repetitiv, iar cererile serioase se pierd printre ele.',en:'The same questions arrive daily on the website, chat and social media. Your team answers repetitively and serious requests get lost.'},
+  b:{ro:['Răspunsuri disponibile oricând, pe baza informațiilor tale','Cererile sunt filtrate și ajung la tine cu detaliile importante','Echipa se ocupă de clienții pregătiți să cumpere','Ton și reguli stabilite de tine'],en:['Answers available anytime, based on your information','Requests are filtered and reach you with key details','Your team focuses on customers ready to buy','Tone and rules set by you']},
+  e:{ro:['Asistent pe site care răspunde la întrebări frecvente','Calificarea cererilor de ofertă înainte de apel','Asistent intern pentru procedurile echipei','Pregătirea unor răspunsuri pe care echipa le verifică'],en:['Website assistant answering FAQs','Qualifying quote requests before a call','Internal assistant for team procedures','Drafting replies that your team reviews']}}
+];
+const PACKS = [
+ {n:5,t:{ro:'Pachet 5 reclame',en:'5-ad package'},p:{ro:'Pentru afacerile care vor să testeze conținut publicitar nou.',en:'For businesses that want to test new ad content.'}},
+ {n:10,mid:1,t:{ro:'Pachet 10 reclame',en:'10-ad package'},p:{ro:'Pentru afacerile care vor să publice mai constant și să testeze mai multe concepte.',en:'For businesses that want to publish more consistently and test more concepts.'}},
+ {n:15,t:{ro:'Pachet 15 reclame',en:'15-ad package'},p:{ro:'Pentru afacerile care au nevoie de un volum mai mare de conținut publicitar.',en:'For businesses that need a larger volume of ad content.'}}
+];
+const PACK_INC = {ro:['Concept și scenariu pentru fiecare reclamă','Montaj video vertical 9:16','Text pe ecran și îndemn la acțiune','Variante pentru TikTok, Reels și Facebook','Livrare în fișiere gata de publicat'],en:['Concept and script for every ad','Vertical 9:16 video editing','On-screen text and call to action','Versions for TikTok, Reels and Facebook','Delivered as ready-to-publish files']};
+const VIDS = [
+ {src:'media/casa-frizerului.mp4',poster:'media/casa-frizerului.jpg',k:{ro:'Frizerie',en:'Barbershop'},t:{ro:'Casa Frizerului D&C',en:'Casa Frizerului D&C'}},
+ {src:'media/transport.mp4',poster:'media/transport.jpg',k:{ro:'Transport persoane',en:'Passenger transport'},t:{ro:'Plecări săptămânale',en:'Weekly departures'}},
+ {src:'media/parfumuri.mp4',poster:'media/parfumuri.jpg',k:{ro:'Concept · magazin online',en:'Concept · online store'},t:{ro:'Parfumuri',en:'Perfumes'}}
+];
+const WEB = [
+ {ic:'web',t:{ro:'Site-uri de prezentare',en:'Presentation websites'},s:{ro:'Cine ești, ce oferi, cum te găsesc',en:'Who you are, what you offer, how to reach you'}},
+ {ic:'users',t:{ro:'Site-uri pentru servicii locale',en:'Local service websites'},s:{ro:'Optimizate pentru clienții din zona ta',en:'Optimised for customers in your area'}},
+ {ic:'layers',t:{ro:'Pagini pentru produse și servicii',en:'Product and service pages'},s:{ro:'Prezentare clară, cu îndemn la acțiune',en:'Clear presentation with a call to action'}},
+ {ic:'form',t:{ro:'Formulare de contact și programări',en:'Contact and booking forms'},s:{ro:'Cererile ajung direct la tine',en:'Requests reach you directly'}},
+ {ic:'zap',t:{ro:'Integrarea automatizărilor AI',en:'AI automation integration'},s:{ro:'Acolo unde chiar ajută afacerea',en:'Where it genuinely helps'}}
+];
+const APPS = [
+ {ic:'users',t:{ro:'Gestionarea clienților',en:'Client management'},s:{ro:'Evidență, istoric, note',en:'Records, history, notes'}},
+ {ic:'cal',t:{ro:'Sisteme de rezervări',en:'Booking systems'},s:{ro:'Programări online și panou',en:'Online booking and dashboard'}},
+ {ic:'chart',t:{ro:'Dashboard-uri pentru firme',en:'Business dashboards'},s:{ro:'Cifrele importante, într-un loc',en:'Key numbers in one place'}},
+ {ic:'flow',t:{ro:'Aplicații interne',en:'Internal tools'},s:{ro:'Automatizează activitățile echipei',en:'Automate team activities'}},
+ {ic:'spark',t:{ro:'Aplicații cu funcții AI',en:'Apps with AI features'},s:{ro:'Asistenți, generare, clasificare',en:'Assistants, generation, classification'}},
+ {ic:'bell',t:{ro:'Notificări și reamintiri',en:'Notifications and reminders'},s:{ro:'Pe telefon, la momentul potrivit',en:'On the phone, at the right time'}}
+];
+const STEPS = {ro:[['Analizăm nevoile afacerii','Discutăm cum lucrezi acum, unde se pierde timp și ce vrei să îmbunătățești.'],['Propunem soluția potrivită','Primești o propunere clară: ce construim, ce instrumente folosim și ofertă.'],['Construim și configurăm sistemul','Implementăm, conectăm aplicațiile și adaptăm totul la procesele tale.'],['Testăm, implementăm și oferim suport','Verificăm împreună, punem în funcțiune și oferim suport conform serviciului contractat.']],
+ en:[['We analyse your needs','We discuss how you work today, where time is lost and what you want to improve.'],['We propose the right solution','You get a clear proposal: what we build, which tools we use, and a quote.'],['We build and configure','We implement, connect your apps and adapt everything to your processes.'],['We test, launch and support','We check it together, go live and provide support as per the contracted service.']]};
+/* portofoliu: doar proiecte reale, demonstrații și concepte marcate ca atare */
+const WORK = [
+ {cats:['web','app','auto'],st:'live',href:'https://casafrizeruluidc.ro',bg:'radial-gradient(ellipse at 70% 20%,#3a2d18,#0f0d0a 70%)',fg:'#e9d9b8',h:'Casa Frizerului D&C',
+  t:{ro:'Site + aplicație de programări pentru o frizerie',en:'Website + booking app for a barbershop'},p:{ro:'Programări online, panou pentru frizer cu calendar și ore blocate, mesaj de confirmare către client, aplicație instalabilă pe telefon.',en:'Online booking, barber dashboard with calendar and blocked hours, confirmation message to the client, installable phone app.'}},
+ {cats:['web'],st:'live',href:'https://borisbarbershop.win',bg:'linear-gradient(140deg,#121418,#2a2d36)',fg:'#fff',h:'Boris Barbershop',
+  t:{ro:'Site bilingv pentru o frizerie din Germania',en:'Bilingual website for a barbershop in Germany'},p:{ro:'Germană și română, contact direct pe WhatsApp și Instagram, găzduire rapidă pe domeniu propriu.',en:'German and Romanian, direct WhatsApp and Instagram contact, fast hosting on its own domain.'}},
+ {cats:['app','auto'],st:'demo',href:'https://raw.githack.com/scuturicilucian768-art/acer/main/sala-fitness/index.html',bg:'radial-gradient(ellipse at 30% 20%,#2d4a12,#070a05 70%)',fg:'#c8f26a',h:'Fitness app',
+  t:{ro:'Aplicație pentru o sală de fitness',en:'Fitness club app'},p:{ro:'Aplicație pentru membri + panou de administrare: abonamente, check-in cu QR, mesaje automate pentru membrii absenți, clasament și rapoarte.',en:'Member app + admin panel: memberships, QR check-in, automated messages for absent members, leaderboard and reports.'}},
+ {cats:['ads'],st:'done',video:'media/casa-frizerului.mp4',poster:'media/casa-frizerului.jpg',h:'',
+  t:{ro:'Reclamă video pentru o frizerie',en:'Video ad for a barbershop'},p:{ro:'Reclamă verticală cu tunsori reale, prețuri și programare din aplicație.',en:'Vertical ad with real haircuts, prices and in-app booking.'}},
+ {cats:['ads'],st:'done',video:'media/transport.mp4',poster:'media/transport.jpg',h:'',
+  t:{ro:'Reclamă video pentru transport persoane',en:'Video ad for passenger transport'},p:{ro:'Plecări și retururi săptămânale, cu imaginile firmei și număr de contact.',en:'Weekly departures and returns, with the company\'s own footage and contact number.'}},
+ {cats:['ads'],st:'concept',video:'media/parfumuri.mp4',poster:'media/parfumuri.jpg',h:'',
+  t:{ro:'Concept reclamă pentru un magazin de parfumuri',en:'Ad concept for a perfume store'},p:{ro:'Reclamă de produs cu animații realizate cadru cu cadru.',en:'Product ad with frame-by-frame animation.'}},
+ {cats:['voice'],st:'soon',ph:1,h:'Agent vocal AI',
+  t:{ro:'Demonstrație agent vocal',en:'Voice agent demo'},p:{ro:'Spațiu rezervat pentru o demonstrație înregistrată a unui agent vocal care preia apeluri. Va fi adăugată când este gata.',en:'Reserved for a recorded demo of a voice agent taking calls. It will be added once ready.'}},
+ {cats:['auto'],st:'demo',bot:1,bg:'radial-gradient(ellipse at 70% 30%,rgba(77,107,255,.45),#07080c 70%)',fg:'#fff',h:'Asistent site',
+  t:{ro:'Asistentul de pe acest site',en:'This website\'s assistant'},p:{ro:'Asistent cu text și voce, cu răspunsuri predefinite. Un exemplu simplu, deschis direct pe pagină.',en:'Text and voice assistant with predefined answers. A simple example you can open right on this page.'}},
+ {cats:['app'],st:'own',bg:'linear-gradient(140deg,#0d1b2a,#1b3b5a)',fg:'#9fd3ff',h:'CursaPlus',
+  t:{ro:'Aplicație pentru firme de transport',en:'App for transport companies'},p:{ro:'Rezervări de locuri și colete, panou pentru firmă și urmărirea curselor. Produs propriu, în dezvoltare.',en:'Seat and parcel bookings, company dashboard and trip tracking. Own product, in development.'}},
+ {cats:['app'],st:'own',bg:'linear-gradient(140deg,#1d1030,#3b1d5a)',fg:'#e2c6ff',h:'Programo',
+  t:{ro:'Programări online pentru saloane',en:'Online booking for salons'},p:{ro:'Aplicație de programări cu panou pentru salon, gândită ca abonament. Produs propriu, în dezvoltare.',en:'Booking app with a salon dashboard, designed as a subscription. Own product, in development.'}},
+ {cats:['web'],st:'concept',bg:'linear-gradient(140deg,#14171a,#2b1e14)',fg:'#ff8a4c',h:'GeoNord',
+  t:{ro:'Concept site: topografie și cadastru',en:'Website concept: land surveying'},p:{ro:'Hartă animată, estimator de preț și unealtă de măsurat suprafața.',en:'Animated map, price estimator and area-measuring tool.'}},
+ {cats:['web'],st:'concept',bg:'linear-gradient(140deg,#11161b,#2a2412)',fg:'#f2b134',h:'Atlas',
+  t:{ro:'Concept site: agenție imobiliară',en:'Website concept: real estate'},p:{ro:'Anunțuri filtrabile, calculator de rată și asistent care caută proprietăți.',en:'Filterable listings, mortgage calculator and property-search assistant.'}}
+];
+
+/* ---------- utilitare ---------- */
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const mk = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const reduceM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let L = 'ro';
+try { const q = new URLSearchParams(location.search).get('lang'); if (q === 'en' || q === 'ro') L = q; else { const s = localStorage.getItem('pf-lang'); if (s === 'en' || s === 'ro') L = s; } } catch (_) {}
+const tr = k => T[L][k];
+let curTab = 0, curCat = 'all';
+
+function apply() {
+  document.documentElement.lang = L;
+  $$('[data-t]').forEach(e => { const v = tr(e.dataset.t); if (typeof v === 'string') e.textContent = v; });
+  $$('[data-th]').forEach(e => e.innerHTML = tr(e.dataset.th));
+  $$('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.l === L));
+  $('#ci').placeholder = tr('ci'); $('#fm').placeholder = tr('fo_ph_m'); $('#fx').placeholder = tr('fo_ph_x');
+  document.title = tr('doc_t');
+  $('#htags').innerHTML = tr('htags').map(x => `<span class="tag">${esc(x)}</span>`).join('');
+  renderNet(); renderMarquee(); renderTabs(); renderPacks(); renderVids(); renderLists(); renderSteps(); renderWork(); renderSelects(); calc(); runFeed();
+  if ($('#cp').classList.contains('open')) setChips(startChips());
+}
+$$('.lang button').forEach(b => b.onclick = () => { L = b.dataset.l; try { localStorage.setItem('pf-lang', L); } catch (_) {} apply(); });
+
+/* ---------- hero: rețea animată ---------- */
+function renderNet() {
+  const N = [[280, 52, 'phone'], [492, 160, 'msg'], [492, 400, 'mail'], [280, 508, 'cal'], [68, 400, 'web'], [68, 160, 'db']];
+  const lbl = tr('net');
+  let paths = '', dots = '';
+  N.forEach(([x, y], i) => {
+    const id = 'np' + i, mx = (280 + x) / 2 + (i % 2 ? 30 : -30), my = (280 + y) / 2 + (i % 2 ? -20 : 20);
+    paths += `<path id="${id}" class="ln" d="M280 280 Q${mx} ${my} ${x} ${y}"/>`;
+    if (!reduceM) { const dur = 2.6 + i * 0.35; dots += `<circle r="3.2" fill="#39e1ff"><animateMotion dur="${dur}s" repeatCount="indefinite" ${i % 2 ? 'keyPoints="1;0" keyTimes="0;1" calcMode="linear"' : ''}><mpath href="#${id}"/></animateMotion></circle><circle r="2.2" fill="#7b93ff" opacity=".8"><animateMotion dur="${dur}s" begin="-${(dur / 2).toFixed(2)}s" repeatCount="indefinite" ${i % 2 ? '' : 'keyPoints="1;0" keyTimes="0;1" calcMode="linear"'}><mpath href="#${id}"/></animateMotion></circle>`; }
+  });
+  $('#net').innerHTML = `<svg viewBox="0 0 560 560" role="presentation"><defs><radialGradient id="cg" cx="40%" cy="35%"><stop offset="0" stop-color="#9fb0ff"/><stop offset=".45" stop-color="#4d6bff"/><stop offset="1" stop-color="#1b2690"/></radialGradient><radialGradient id="gl"><stop offset="0" stop-color="rgba(77,107,255,.55)"/><stop offset="1" stop-color="rgba(77,107,255,0)"/></radialGradient></defs>
+    <circle cx="280" cy="280" r="250" class="ring"/><circle cx="280" cy="280" r="180" class="ring r2"/>${paths}${dots}
+    <circle cx="280" cy="280" r="130" fill="url(#gl)"/><g class="core"><circle cx="280" cy="280" r="62" fill="url(#cg)"/><circle cx="280" cy="280" r="62" fill="none" stroke="rgba(255,255,255,.35)"/><circle cx="280" cy="280" r="78" fill="none" stroke="rgba(57,225,255,.35)" stroke-dasharray="2 6"/></g></svg>
+    <div class="core-l"><b>AI</b><small>${esc(tr('net_c')).toUpperCase()}</small></div>` +
+    N.map(([x, y, ic], i) => `<div class="nd" style="left:${x / 5.6}%;top:${y / 5.6}%;animation-delay:${-i * 0.9}s"><i>${sv(ic)}</i>${esc(lbl[i])}</div>`).join('');
+}
+function renderMarquee() { const w = $('#mq'); w.replaceChildren(); [...tr('marquee'), ...tr('marquee')].forEach(x => w.append(mk('span', '', esc(x)))); }
+
+/* ---------- serviciul principal ---------- */
+function renderTabs() {
+  const t = $('#tabs'); t.replaceChildren();
+  AUTO.forEach((a, i) => { const b = mk('button', 'tb'); b.type = 'button'; b.setAttribute('role', 'tab'); b.id = 'tab-' + a.id; b.setAttribute('aria-controls', 'tp'); b.setAttribute('aria-selected', i === curTab); b.tabIndex = i === curTab ? 0 : -1;
+    b.innerHTML = `<span class="ic">${sv(a.ic)}</span><span><b>${esc(a.t[L])}</b><small>${esc(a.s[L])}</small></span>`;
+    b.onclick = () => { curTab = i; renderTabs(); };
+    b.onkeydown = e => { if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); curTab = (i + 1) % AUTO.length; renderTabs(); $('#tab-' + AUTO[curTab].id).focus(); } if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); curTab = (i + AUTO.length - 1) % AUTO.length; renderTabs(); $('#tab-' + AUTO[curTab].id).focus(); } };
+    t.append(b); });
+  const a = AUTO[curTab];
+  $('#tpw').innerHTML = `<div class="tp" id="tp" role="tabpanel" aria-labelledby="tab-${a.id}"><span class="eb">${esc(a.t[L])}</span><h3>${esc(a.s[L])}.</h3><p class="intro">${esc(a.i[L])}</p>
+    <div class="tg"><div class="box pb"><h4>${esc(tr('prob'))}</h4><p style="color:#e6d2d2">${esc(a.p[L])}</p></div>
+    <div class="box"><h4>${esc(tr('ben'))}</h4><ul>${a.b[L].map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
+    <div class="box ex"><h4>${esc(tr('exm'))}</h4><ul>${a.e[L].map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>
+    <div class="tpf"><a class="btn pr" href="#contact" data-svc="${a.id === 'agent' ? 'auto' : a.id}">${esc(tr('offer'))} ${sv('arrow')}</a><small>${esc(tr('a_disc'))}</small></div></div>`;
+  bindSvcLinks($('#tpw'));
+}
+
+/* ---------- simulare apel ---------- */
+const EV = {
+ ro: [[0, '#4d6bff', 'phone', 'Apel nou', 'Client: „Bună, aveți loc mâine după-amiază?”'], [6, '#39e1ff', 'bot', 'Agentul AI răspunde', 'Salută, întreabă ce serviciu dorește'], [15, '#ffd23f', 'cal', 'Verifică disponibilitatea', 'Găsește un interval liber în calendar'], [24, '#2fd27f', 'check', 'Solicitare preluată', 'Mâine, 16:30 · numele și telefonul clientului'], [31, '#39e1ff', 'msg', 'Mesaj de confirmare', 'Trimis clientului pe WhatsApp / SMS'], [36, '#7b93ff', 'bell', 'Tu ești anunțat', 'Rezumatul apelului ajunge la tine']],
+ en: [[0, '#4d6bff', 'phone', 'Incoming call', 'Caller: “Hi, any slots tomorrow afternoon?”'], [6, '#39e1ff', 'bot', 'AI agent answers', 'Greets and asks which service they need'], [15, '#ffd23f', 'cal', 'Checks availability', 'Finds a free slot in the calendar'], [24, '#2fd27f', 'check', 'Request captured', 'Tomorrow, 16:30 · caller name and phone'], [31, '#39e1ff', 'msg', 'Confirmation message', 'Sent to the caller via WhatsApp / SMS'], [36, '#7b93ff', 'bell', 'You get notified', 'Call summary sent to you']]
+};
+let tick = 0, timer, feedVisible = true;
+function stamp(s) { const d = new Date(); d.setHours(18, 42, s); return d.toTimeString().slice(0, 8); }
+function runFeed() {
+  const f = $('#feed'); f.replaceChildren(); tick = 0; clearInterval(timer);
+  $('#wave').innerHTML = Array.from({ length: 48 }, (_, i) => `<i style="animation-delay:${(-(i * 137) % 1100) / 1000}s"></i>`).join('');
+  const els = EV[L].map(([s, col, ic, b, p]) => { const e = mk('div', 'ev'); e.innerHTML = `<span class="ei" style="background:${col}22;color:${col}">${sv(ic)}</span><div><b></b><p></p></div><span class="ts">${stamp(s)}</span>`; e.querySelector('b').textContent = b; e.querySelector('p').textContent = p; f.append(e); return [s, e]; });
+  if (reduceM) { els.forEach(([, e]) => e.classList.add('on')); return; }
+  timer = setInterval(() => { if (!feedVisible || document.hidden) return; tick++; els.forEach(([t, e]) => { if (tick >= t) e.classList.add('on'); }); if (tick > 48) runFeed(); }, 280);
+}
+new IntersectionObserver(es => es.forEach(e => (feedVisible = e.isIntersecting))).observe($('.live'));
+
+/* ---------- calculator ---------- */
+const fmt = n => Math.round(n).toLocaleString(L === 'ro' ? 'ro-RO' : 'en-US');
+function calc() {
+  const a = +$('#i1').value, b = +$('#i2').value, v = +$('#i3').value, cur = tr('cur');
+  $('#o1').textContent = a; $('#o2').textContent = b + '%'; $('#o3').textContent = fmt(v) + ' ' + cur;
+  const n = a * b / 100, lost = n * v;
+  $('#r1').textContent = fmt(lost) + ' ' + cur; $('#r1s').textContent = tr('c_s1')(fmt(n)); $('#r2').textContent = fmt(lost * 12) + ' ' + cur;
+}
+['#i1', '#i2', '#i3'].forEach(s => $(s).addEventListener('input', calc));
+
+/* ---------- complementare ---------- */
+function renderPacks() {
+  $('#pk').innerHTML = PACKS.map(p => `<article class="pc rv in ${p.mid ? 'mid' : ''}"><div class="n">${p.n}<small>${L === 'ro' ? 'reclame' : 'ads'}</small></div><h3>${esc(p.t[L])}</h3><p>${esc(p.p[L])}</p>
+    <ul>${PACK_INC[L].map(x => `<li>${esc(x)}</li>`).join('')}</ul><div class="q">${esc(tr('pk_q'))}</div>
+    <a class="btn ${p.mid ? 'pr' : 'gh'}" href="#contact" data-svc="ads" data-pack="${p.n}">${esc(tr('offer'))}</a></article>`).join('');
+  bindSvcLinks($('#pk'));
+}
+function renderVids() {
+  $('#vids').innerHTML = VIDS.map(v => `<figure class="vd"><video src="${v.src}" poster="${v.poster}" muted loop playsinline preload="none" aria-label="${esc(v.t[L])}"></video><figcaption><small>${esc(v.k[L])}</small>${esc(v.t[L])}</figcaption></figure>`).join('');
+  watchVideos($('#vids'));
+}
+function watchVideos(root) {
+  const vo = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting && !reduceM) { v.play().catch(() => {}); } else v.pause(); }), { threshold: .35 });
+  root.querySelectorAll('video').forEach(v => vo.observe(v));
+}
+function renderLists() {
+  $('#wl').innerHTML = WEB.map(w => `<li><i>${sv(w.ic)}</i><span><b>${esc(w.t[L])}</b><span>${esc(w.s[L])}</span></span></li>`).join('');
+  $('#apg').innerHTML = APPS.map(a => `<div class="ap"><i>${sv(a.ic)}</i><b>${esc(a.t[L])}</b><span>${esc(a.s[L])}</span></div>`).join('');
+  bindSvcLinks(document);
+}
+function renderSteps() { $('#steps').innerHTML = STEPS[L].map(([h, p]) => `<div class="stp"><h3>${esc(h)}</h3><p>${esc(p)}</p></div>`).join(''); }
+
+/* ---------- portofoliu ---------- */
+function renderWork() {
+  const cats = ['all', 'auto', 'voice', 'ads', 'web', 'app'];
+  $('#flt').innerHTML = cats.map(c => `<button type="button" data-c="${c}" aria-pressed="${c === curCat}">${esc(c === 'all' ? tr('cat_all') : tr('cat')[c])}</button>`).join('');
+  $$('#flt button').forEach(b => b.onclick = () => { curCat = b.dataset.c; renderWork(); });
+  const list = WORK.filter(w => curCat === 'all' || w.cats.includes(curCat));
+  $('#wk').innerHTML = list.map(w => {
+    const th = w.video ? `<video src="${w.video}" poster="${w.poster}" muted loop playsinline preload="none"></video>` : w.ph ? `<b style="color:var(--mut)">${sv('phone', 'width="34" height="34" style="stroke:currentColor;fill:none;stroke-width:1.6;display:block;margin-bottom:10px"')}${esc(w.h)}</b>` : `<b style="color:${w.fg}">${esc(w.h)}</b>`;
+    const act = w.href ? `<a class="btn sm ${w.st === 'live' ? 'pr' : 'gh'}" href="${w.href}" target="_blank" rel="noopener">${esc(w.st === 'live' ? tr('visit') : tr('see_demo'))} ↗</a>` : w.bot ? `<button class="btn sm gh" type="button" data-bot>${esc(tr('try_bot'))}</button>` : (w.st === 'soon' || w.st === 'own') ? `<a class="btn sm gh" href="#contact" data-svc="${w.cats.includes('voice') ? 'voice' : 'app'}">${esc(tr(w.cats.includes('voice') ? 'talk_voice' : 'ask_demo'))}</a>` : '';
+    return `<article class="wc ${w.ph ? 'ph' : ''}"><div class="th" style="${w.bg ? 'background:' + w.bg : ''}"><span class="st ${w.st === 'own' ? 'demo' : w.st}">${esc(tr('stt')[w.st])}</span>${th}</div>
+      <div class="bd"><h3>${esc(w.t[L])}</h3><p>${esc(w.p[L])}</p><div class="cats">${w.cats.map(c => `<span>${esc(tr('cat')[c])}</span>`).join('')}</div><div class="act">${act}</div></div></article>`;
+  }).join('');
+  watchVideos($('#wk')); bindSvcLinks($('#wk'));
+  $$('#wk [data-bot]').forEach(b => b.onclick = openBot);
+}
+
+/* ---------- formular ---------- */
+function renderSelects() {
+  const sv0 = $('#fsv').value, b0 = $('#fb').value;
+  $('#fsv').innerHTML = `<option value="">${esc(tr('sel'))}</option>` + tr('svc').map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join('');
+  $('#fb').innerHTML = tr('bud').map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+  $('#fsv').value = sv0; $('#fb').value = b0;
+}
+let packPick = '';
+function bindSvcLinks(root) {
+  root.querySelectorAll('[data-svc]').forEach(a => a.addEventListener('click', () => {
+    const v = a.dataset.svc; if (v) $('#fsv').value = v; packPick = a.dataset.pack || '';
+    if (packPick && !$('#fm').value) $('#fm').value = (L === 'ro' ? `Mă interesează pachetul de ${packPick} reclame. ` : `I am interested in the ${packPick}-ad package. `);
+  }));
+}
+const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s), isPhone = s => s.replace(/[^\d+]/g, '').replace(/^\+/, '').length >= 9;
+$('#of').addEventListener('submit', e => {
+  e.preventDefault(); const fe = $('#fe'); fe.textContent = ''; $$('#of .inp').forEach(x => x.classList.remove('bad')); $('#fsok').classList.remove('on');
+  const n = $('#fn').value.trim(), c = $('#fc').value.trim(), x = $('#fx').value.trim(), s = $('#fsv').value, b = $('#fb').value, m = $('#fm').value.trim();
+  const err = (el, k) => { el.classList.add('bad'); el.focus(); fe.textContent = tr(k); };
+  if (n.length < 2) return err($('#fn'), 'e_n');
+  if (!(isEmail(x) || isPhone(x))) return err($('#fx'), 'e_x');
+  if (!s) return err($('#fsv'), 'e_s');
+  if (m.length < 10) return err($('#fm'), 'e_m');
+  const sl = (tr('svc').find(v => v[0] === s) || [, s])[1], bl = (tr('bud').find(v => v[0] === b) || [, ''])[1];
+  const lines = [tr('wa_h'), '', `${tr('wa_n')}: ${n}`, c ? `${tr('wa_c')}: ${c}` : null, `${tr('wa_x')}: ${x}`, `${tr('wa_s')}: ${sl}${packPick && s === 'ads' ? ` (${packPick})` : ''}`, b ? `${tr('wa_b')}: ${bl}` : null, '', `${tr('wa_m')}: ${m}`].filter(v => v !== null);
+  const url = 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(lines.join('\n'));
+  const w = window.open(url, '_blank', 'noopener');
+  const ok = $('#fsok'); ok.innerHTML = tr('ok_sent'); ok.classList.add('on'); $('#walink').href = url;
+  if (!w) ok.querySelector('b').textContent = L === 'ro' ? 'Apasă linkul de mai jos ca să deschizi WhatsApp.' : 'Tap the link below to open WhatsApp.';
+});
+
+/* ---------- reveal ---------- */
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .08 });
+$$('.rv').forEach(e => io.observe(e));
+
+/* ---------- asistent text + voce (răspunsuri predefinite) ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition; let rec, listening = false, voiceOut = false, byVoice = false;
+if (!SR) $('#mic').style.display = 'none';
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function linkify(el) {
+  el.querySelectorAll('[data-wa]').forEach(a => { a.href = 'https://wa.me/' + CONFIG.whatsapp; a.target = '_blank'; a.rel = 'noopener'; });
+  el.querySelectorAll('[data-tel]').forEach(a => { a.href = 'tel:' + CONFIG.phone.replace(/\s/g, ''); a.textContent = CONFIG.phone; });
+  el.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => { if (innerWidth < 700) $('#cx').click(); }));
+}
+function say(html, chips) {
+  const ty = mk('div', 'm typing', '<i></i><i></i><i></i>'); $('#cl').append(ty); $('#cl').scrollTop = 1e6;
+  setTimeout(() => { ty.remove(); const m = mk('div', 'm', html); linkify(m); $('#cl').append(m); $('#cl').scrollTop = 1e6; setChips(chips);
+    if ((voiceOut || byVoice) && 'speechSynthesis' in window) { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(m.textContent); u.lang = L === 'ro' ? 'ro-RO' : 'en-US'; const v = speechSynthesis.getVoices().find(x => x.lang && x.lang.toLowerCase().startsWith(L)); if (v) u.voice = v; speechSynthesis.speak(u); }
+  }, reduceM ? 0 : 450);
+}
+const startChips = () => ['q1', 'q2', 'q3', 'q4'].map(k => ({ label: tr(k), fn: () => ask(tr(k)) }));
+function setChips(list) { const c = $('#ccs'); c.replaceChildren(); (list || []).forEach(x => { const b = mk('button'); b.type = 'button'; b.textContent = x.label; b.onclick = x.fn; c.append(b); }); }
+function answer(t) {
+  const R = [[/salut|buna|hei|hello|hi\b|hey/, 'b_hi'], [/pret|cost|tarif|cat (e|face|costa)|price|how much/, 'a_price'], [/vocal|voce|telefon(ic)?|apel|voice|call|phone agent/, 'a_voice'],
+    [/mesaj|whatsapp|sms|e-?mail|notific|remind|message/, 'a_msg'], [/oferta|ofert|quote|demo|exemplu|example/, 'a_demo'], [/dureaz|termen|cat timp|how long|time|when/, 'a_time'],
+    [/proiect|portofol|lucrar|project|work|client|casa|boris/, 'a_proj'], [/reclam|video|tiktok|reels|ad\b|ads/, 'a_ads'], [/site|web|pagin|website/, 'a_web'], [/aplicat|app|dashboard|rezerv|booking/, 'a_app'],
+    [/automat|agent|ai\b|servic|ce faci|ce oferi|offer|services|what do you/, 'a_serv'], [/contact|suna|call me/, 'a_contact'], [/multum|mersi|thanks|thank/, 'a_thanks']];
+  for (const [re, k] of R) if (re.test(t)) return k; return 'a_else';
+}
+function ask(text) {
+  text = (text || '').trim(); if (!text) return; const u = mk('div', 'm u'); u.textContent = text; $('#cl').append(u); setChips([]); $('#ci').value = '';
+  const k = answer(norm(text)); say(tr(k), k === 'a_else' || k === 'b_hi' ? startChips() : [{ label: tr('q4'), fn: () => ask(tr('q4')) }, { label: tr('q1'), fn: () => ask(tr('q1')) }]);
+}
+function openBot() { const p = $('#cp'); p.classList.add('open'); if (!$('#cl').children.length) say(tr('b_hi'), startChips()); $('#ci').focus(); }
+$('#cf').onsubmit = e => { e.preventDefault(); byVoice = false; ask($('#ci').value); };
+$('#cbn').onclick = () => { const p = $('#cp'); if (p.classList.contains('open')) $('#cx').click(); else openBot(); };
+$('#cx').onclick = () => { $('#cp').classList.remove('open'); if ('speechSynthesis' in window) speechSynthesis.cancel(); };
+$('#spk').onclick = e => { voiceOut = !voiceOut; e.currentTarget.setAttribute('aria-pressed', voiceOut); e.currentTarget.textContent = voiceOut ? '🔊' : '🔇'; if (!voiceOut && 'speechSynthesis' in window) speechSynthesis.cancel(); };
+$('#mic').onclick = () => {
+  if (listening && rec) { rec.stop(); return; } if ('speechSynthesis' in window) speechSynthesis.cancel();
+  rec = new SR(); rec.lang = L === 'ro' ? 'ro-RO' : 'en-US'; rec.interimResults = true;
+  rec.onresult = e => { let t = ''; for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript; $('#ci').value = t; if (e.results[e.results.length - 1].isFinal) { byVoice = true; ask(t); } };
+  rec.onend = rec.onerror = () => { listening = false; $('#mic').classList.remove('rec'); };
+  try { rec.start(); listening = true; $('#mic').classList.add('rec'); } catch (_) {}
+};
+addEventListener('keydown', e => { if (e.key === 'Escape' && $('#cp').classList.contains('open')) $('#cx').click(); });
+
+/* ---------- date de contact + SEO ---------- */
+$('#nm').textContent = CONFIG.brand;
+const tel = 'tel:' + CONFIG.phone.replace(/\s/g, '');
+$('#dwa').href = 'https://wa.me/' + CONFIG.whatsapp; $('#dwan').textContent = CONFIG.phone; $('#dtel').href = tel; $('#dteln').textContent = CONFIG.phone;
+$('#fcopy').textContent = `© ${new Date().getFullYear()} ${CONFIG.brand} · ${CONFIG.region}`;
+$('#ld').textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'ProfessionalService', name: CONFIG.brand, description: T.ro.h_l, telephone: CONFIG.phone, areaServed: 'RO', url: CONFIG.site || undefined,
+  knowsAbout: ['Automatizări AI', 'Agenți vocali AI', 'Mesaje automate', 'Reclame video AI', 'Site-uri web', 'Aplicații web'] });
+
+apply();
+</script>
+</body>
+</html>
