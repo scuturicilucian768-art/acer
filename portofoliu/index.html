@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Automatizări AI pentru afaceri · agenți vocali, mesaje automate, site-uri și aplicații</title>
+<title>Lurox · Automatizări AI pentru afaceri · agenți vocali, mesaje automate, site-uri și aplicații</title>
 <meta name="description" content="Implementăm agenți AI vocali, mesaje automate și automatizări care ajută afacerile să răspundă mai rapid clienților și să economisească timp. Plus reclame video AI, site-uri și aplicații web.">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Automatizăm procesele. Accelerăm afacerile.">
+<meta property="og:site_name" content="Lurox">
+<meta property="og:title" content="Lurox — Automatizăm procesele. Accelerăm afacerile.">
 <meta property="og:description" content="Agenți AI vocali, mesaje automate și automatizări pentru afaceri. Reclame AI, site-uri și aplicații ca servicii complementare.">
 <meta property="og:image" content="media/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#07080c">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%233d5afe'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%2339e1ff' stroke-width='3' stroke-dasharray='6 5'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%233d5afe'/%3E%3Cpath d='M20 14v34h22' fill='none' stroke='%23fff' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='46' cy='20' r='7' fill='%2339e1ff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -54,8 +55,9 @@ section{padding-block:110px}
 /* antet */
 header{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:60;width:min(1176px,calc(100% - 24px));display:flex;align-items:center;gap:14px;justify-content:space-between;padding:8px 8px 8px 16px;border-radius:16px;background:rgba(10,12,18,.66);backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);border:1px solid var(--line)}
 .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.98rem;white-space:nowrap}
+#nm{font-family:var(--fd);font-stretch:125%;font-weight:900;letter-spacing:.06em;font-size:1.05rem}
 .mark{width:32px;height:32px;border-radius:9px;background:radial-gradient(circle at 30% 25%,var(--acc2),var(--acc) 55%,#2a3bd0);display:grid;place-items:center;position:relative;flex:none}
-.mark::after{content:'';width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 12px var(--cy)}
+.mark::after{content:'';width:20px;height:20px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 3v12h8' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='15.5' cy='5.5' r='2.6' fill='%2339e1ff'/%3E%3C/svg%3E") center/contain no-repeat;filter:drop-shadow(0 0 4px rgba(57,225,255,.6))}
 .logo small{display:block;font-family:var(--fm);font-size:.62rem;color:var(--mut);font-weight:500;letter-spacing:.04em}
 nav{display:flex;gap:4px;font-size:.88rem}
 nav a{padding:8px 11px;border-radius:9px;color:var(--mut);transition:color .2s,background .2s}
@@ -461,7 +463,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 <script>
 /* ============ DATELE TALE — editează aici ============ */
 const CONFIG = {
-  brand: 'Lucian',                 // numele afișat în colțul stânga sus (poți pune numele agenției)
+  brand: 'Lurox',                  // numele agenției, afișat în antet, subsol și SEO
   phone: '0755 323 606',
   whatsapp: '40755323606',         // format internațional, fără +; aici ajung cererile din formular
   email: '',                       // gol = nu se afișează
@@ -537,8 +539,8 @@ ro: {
  ok_sent:'Am deschis WhatsApp cu cererea ta completată. <b>Apasă „Trimite” în WhatsApp</b> ca să o primim. Dacă nu s-a deschis, <a href="#" id="walink" target="_blank" rel="noopener">deschide conversația aici</a>.',
  wa_h:'Bună! Aș vrea o ofertă.',wa_n:'Nume',wa_c:'Companie',wa_x:'Contact',wa_s:'Serviciu',wa_b:'Buget',wa_m:'Proiect',
  f_r:'Site cu asistent integrat — încearcă-l în colțul din dreapta jos.',
- b_btn:'Întreabă asistentul',b_t:'Asistentul site-ului',b_s:'demo · răspunsuri predefinite',ci:'Scrie sau apasă pe microfon…',
- b_hi:'Salut! Sunt asistentul acestui site — un exemplu simplu de ce putem pune și pe site-ul tău. Ce vrei să afli?',
+ b_btn:'Întreabă asistentul',b_t:'Asistentul Lurox',b_s:'demo · răspunsuri predefinite',ci:'Scrie sau apasă pe microfon…',
+ b_hi:'Salut! Sunt asistentul Lurox — un exemplu simplu de ce putem pune și pe site-ul tău. Ce vrei să afli?',
  q1:'Ce automatizări faceți?',q2:'Cât costă?',q3:'Cum funcționează un agent vocal?',q4:'Vreau o ofertă',
  a_serv:'Serviciul nostru principal sunt automatizările AI: agenți vocali, mesaje automate pe WhatsApp, SMS sau e-mail, automatizarea proceselor și agenți AI pentru afaceri. Complementar facem reclame video AI, site-uri și aplicații web.',
  a_price:'Nu avem prețuri fixe: oferta depinde de complexitate, de numărul de integrări, de volum și de costurile instrumentelor AI folosite. Completează <a href="#contact" data-go>formularul</a> și primești o ofertă gratuită.',
@@ -553,7 +555,7 @@ ro: {
  a_contact:'Cel mai rapid: <a href="#" data-wa>WhatsApp</a>. Sau sună la <a href="#" data-tel>telefon</a>.',
  a_thanks:'Cu drag! Când ești gata, <a href="#contact" data-go>solicită o ofertă</a>.',
  a_else:'Nu sunt sigur că am înțeles. Mă poți întreba despre automatizări, agenți vocali, mesaje automate, reclame, site-uri, aplicații sau prețuri.',
- doc_t:'Automatizări AI pentru afaceri · agenți vocali, mesaje automate, site-uri și aplicații'
+ doc_t:'Lurox · Automatizări AI pentru afaceri · agenți vocali, mesaje automate, site-uri și aplicații'
 },
 en: {
  brand_sub:'AI automation for businesses',
@@ -598,7 +600,7 @@ en: {
  ok_sent:'We opened WhatsApp with your request filled in. <b>Tap “Send” in WhatsApp</b> so we receive it. If it did not open, <a href="#" id="walink" target="_blank" rel="noopener">open the chat here</a>.',
  wa_h:'Hi! I would like a quote.',wa_n:'Name',wa_c:'Company',wa_x:'Contact',wa_s:'Service',wa_b:'Budget',wa_m:'Project',
  f_r:'Website with a built-in assistant — try it in the bottom-right corner.',
- b_btn:'Ask the assistant',b_t:'Site assistant',b_s:'demo · predefined answers',ci:'Type or tap the mic…',
+ b_btn:'Ask the assistant',b_t:'Lurox assistant',b_s:'demo · predefined answers',ci:'Type or tap the mic…',
  b_hi:'Hi! I am this website\'s assistant — a simple example of what we can add to your site. What would you like to know?',
  q1:'What do you automate?',q2:'How much does it cost?',q3:'How does a voice agent work?',q4:'I want a quote',
  a_serv:'Our core service is AI automation: voice agents, automated WhatsApp, SMS or e-mail messages, process automation and AI agents for business. We also offer AI video ads, websites and web apps.',
@@ -614,7 +616,7 @@ en: {
  a_contact:'Fastest: <a href="#" data-wa>WhatsApp</a>. Or <a href="#" data-tel>call us</a>.',
  a_thanks:'You are welcome! When you are ready, <a href="#contact" data-go>request a quote</a>.',
  a_else:'I am not sure I understood. Ask me about automation, voice agents, automated messages, ads, websites, apps or pricing.',
- doc_t:'AI automation for businesses · voice agents, automated messages, websites and apps'
+ doc_t:'Lurox · AI automation for businesses · voice agents, automated messages, websites and apps'
 }};
 
 /* serviciul principal: 4 servicii, fiecare cu problemă, beneficii, exemple */
