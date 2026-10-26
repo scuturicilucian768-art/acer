@@ -1,0 +1,17 @@
+{
+  "id": "break_octavia", "kind": "car", "category": "autoturism",
+  "name": "Break 2.0 TDI (tip Octavia III, 2013–2019)", "short": "Break 2.0 TDI",
+  "inspired_by": "categoria Škoda Octavia III Combi — vehicul original, nu model licențiat",
+  "price": 39000,
+  "dims": { "length": 4.69, "width": 1.81, "height": 1.47, "wheelbase": 2.69, "front_overhang": 0.9, "track": 1.54, "wheel_radius": 0.316, "wheel_width": 0.225, "clearance": 0.14 },
+  "mass": 1465, "weight_front": 0.6, "cg_height": 0.52,
+  "engine": { "fuel": "motorină", "cylinders": 4, "idle": 800, "redline": 4500, "limiter": 4800, "engine_brake": 0.13,
+    "torque": [[800, 140], [1300, 250], [1750, 340], [3000, 340], [3750, 300], [4500, 220], [4800, 180]] },
+  "gearbox": { "modes": ["manual", "auto"], "gears": [3.77, 2.12, 1.27, 0.92, 0.75, 0.63], "reverse": 3.60, "final": 3.45, "shift_time": 0.35, "auto_up": [1700, 4200], "auto_down": [1100, 2400] },
+  "drive": "front", "max_steer": 0.6, "grip": 1.25, "brake_g": 1.0, "drag": 0.36,
+  "fuel": { "tank": 50, "idle_lph": 0.6, "l_per_kwh": 0.24 },
+  "tow": { "towbar": true, "unbraked": 680, "braked": 1600 },
+  "seats": 4, "luggage_bags": 5,
+  "suspension": { "stiffness": 45, "rest": 0.16, "travel": 0.18 },
+  "body": { "style": "wagon", "colors": ["#e8e8e4", "#2a5c8a", "#3d3f42", "#8c1c13"] }
+}

@@ -1,0 +1,59 @@
+{
+  "id": "telciu",
+  "name": "Telciu și valea Sălăuței",
+  "accuracy": "schiță aproximativă",
+  "source": "Desenată manual pentru prototip: valea râului Sălăuța, DN17C prin centrul comunei, ieșire spre Salva/Năsăud la sud și spre Romuli la nord. NU reproduce exact străzile, casele sau clădirile reale. Pentru geometria reală a drumurilor rulează tools/osm_import.py pe un export OpenStreetMap.",
+  "geo_reference": { "lat": 47.43, "lon": 24.40, "approx": true },
+  "bounds": [-1400, -2100, 1500, 2100],
+  "valley_half_width": 560,
+  "settlements": [
+    { "name": "Telciu", "center": [-20, 0], "radius": 1250, "speed": 50 }
+  ],
+  "nodes": {
+    "n_s": [-40, 2100], "a1": [-30, 1700], "a2": [-60, 1300], "n_sud": [-35, 900], "j1": [-50, 560],
+    "j2": [-30, 260], "j_center": [-20, 0], "j3": [-35, -300], "a3": [-20, -700], "n_nord": [-45, -1100],
+    "a4": [-30, -1500], "a5": [-50, -1800], "n_n": [-40, -2100],
+    "e1": [35, 2], "e2": [115, -12], "e3": [260, -60], "e4": [400, -105], "e_end": [470, -130],
+    "w1": [-150, 252], "w2": [-255, 200], "w3": [-300, 20], "w4": [-280, -190], "w5": [-165, -285],
+    "d1": [-190, 566], "d_end": [-300, 575]
+  },
+  "roads": [
+    { "id": "dn17c", "name": "DN17C", "type": "national", "speed": 90,
+      "ends": { "n_s": "spre Salva / Năsăud", "n_n": "spre Romuli" },
+      "nodes": ["n_s", "a1", "a2", "n_sud", "j1", "j2", "j_center", "j3", "a3", "n_nord", "a4", "a5", "n_n"] },
+    { "id": "podului", "name": "Strada Podului", "type": "local", "speed": 50,
+      "nodes": ["j_center", "e1", "e2", "e3", "e4", "e_end"] },
+    { "id": "vest", "name": "Strada de Vest", "type": "local", "speed": 50,
+      "nodes": ["j2", "w1", "w2", "w3", "w4", "w5", "j3"] },
+    { "id": "depou", "name": "Strada Depoului", "type": "local", "speed": 30, "traffic": false,
+      "nodes": ["j1", "d1", "d_end"] }
+  ],
+  "river": { "name": "Sălăuța", "width": 11,
+    "points": [[140, 2100], [120, 1700], [95, 1300], [110, 900], [85, 500], [70, 150], [60, -150], [75, -500], [55, -900], [70, -1300], [50, -1700], [65, -2100]] },
+  "stops": [
+    { "id": "telciu_centru", "name": "Telciu Centru", "pos": [-34, 40] },
+    { "id": "telciu_sud", "name": "Telciu Sud", "pos": [-49, 905] },
+    { "id": "telciu_nord", "name": "Telciu Nord", "pos": [-59, -1095] },
+    { "id": "podului", "name": "Strada Podului", "pos": [402, -119] },
+    { "id": "vest", "name": "Strada de Vest", "pos": [-287, 20] },
+    { "id": "depou", "name": "Depou Transport", "pos": [-300, 589] }
+  ],
+  "places": [
+    { "type": "church", "name": "Biserica ortodoxă", "pos": [30, -70], "face": [-20, -60] },
+    { "type": "townhall", "name": "Primăria", "pos": [-78, 60], "face": [-20, 60] },
+    { "type": "school", "name": "Școala", "pos": [-82, 172], "face": [-25, 172] },
+    { "type": "shop", "name": "Magazin mixt", "pos": [16, 72], "face": [-20, 72] },
+    { "type": "hall", "name": "Căminul cultural", "pos": [-76, -112], "face": [-25, -112] },
+    { "type": "fuel", "name": "Benzinărie", "pos": [-88, 430], "face": [-42, 430] },
+    { "type": "depot", "name": "Depou Transport", "pos": [-352, 580], "face": [-300, 575] },
+    { "type": "police", "name": "Radar Poliție", "pos": [-62, 1240], "face": [-45, 1240] }
+  ],
+  "signs": [
+    { "type": "locality", "text": "TELCIU", "pos": [-58, 1320], "face": [-48, 1500] },
+    { "type": "locality_end", "text": "TELCIU", "pos": [-20, 1330], "face": [-40, 1150] },
+    { "type": "locality", "text": "TELCIU", "pos": [-8, -1360], "face": [-30, -1550] },
+    { "type": "locality_end", "text": "TELCIU", "pos": [-55, -1370], "face": [-40, -1200] },
+    { "type": "direction", "text": "← Salva · Năsăud", "pos": [-58, 1660], "face": [-30, 1500] },
+    { "type": "direction", "text": "Romuli →", "pos": [-8, -1700], "face": [-30, -1600] }
+  ]
+}

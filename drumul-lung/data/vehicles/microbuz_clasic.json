@@ -1,0 +1,17 @@
+{
+  "id": "microbuz_clasic", "kind": "car", "category": "microbuz",
+  "name": "Microbuz 316 CDI (2006–2013)", "short": "Microbuz clasic",
+  "inspired_by": "categoria Mercedes-Benz Sprinter NCV3 — vehicul original, nu model licențiat",
+  "price": 42000,
+  "dims": { "length": 6.95, "width": 1.99, "height": 2.7, "wheelbase": 4.33, "front_overhang": 1.0, "track": 1.72, "wheel_radius": 0.356, "wheel_width": 0.24, "clearance": 0.22 },
+  "mass": 2650, "weight_front": 0.52, "cg_height": 0.85,
+  "engine": { "fuel": "motorină", "cylinders": 4, "idle": 750, "redline": 3800, "limiter": 4200, "engine_brake": 0.14,
+    "torque": [[600, 140], [1000, 250], [1400, 360], [2400, 360], [3200, 330], [3800, 270], [4200, 200]] },
+  "gearbox": { "modes": ["manual", "auto"], "gears": [4.70, 2.62, 1.61, 1.15, 0.86, 0.73], "reverse": 4.6, "final": 3.92, "shift_time": 0.5, "auto_up": [1700, 3400], "auto_down": [1100, 2000] },
+  "drive": "rear", "max_steer": 0.6, "grip": 1.15, "brake_g": 0.85, "drag": 0.9,
+  "fuel": { "tank": 75, "idle_lph": 1.0, "l_per_kwh": 0.27 },
+  "tow": { "towbar": true, "unbraked": 750, "braked": 3000 },
+  "seats": 14, "luggage_bags": 14,
+  "suspension": { "stiffness": 42, "rest": 0.2, "travel": 0.24 },
+  "body": { "style": "van", "colors": ["#eceae4", "#1f3b73", "#b5b8bc", "#8b1d1d", "#2f5d3a"] }
+}

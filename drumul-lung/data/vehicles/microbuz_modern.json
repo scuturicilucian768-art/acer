@@ -1,0 +1,17 @@
+{
+  "id": "microbuz_modern", "kind": "car", "category": "microbuz",
+  "name": "Microbuz 319 CDI automat (2018+)", "short": "Microbuz modern",
+  "inspired_by": "categoria Mercedes-Benz Sprinter VS30 — vehicul original, nu model licențiat",
+  "price": 96000,
+  "dims": { "length": 6.97, "width": 2.02, "height": 2.72, "wheelbase": 4.33, "front_overhang": 1.0, "track": 1.73, "wheel_radius": 0.36, "wheel_width": 0.24, "clearance": 0.22 },
+  "mass": 2800, "weight_front": 0.52, "cg_height": 0.85,
+  "engine": { "fuel": "motorină", "cylinders": 4, "idle": 700, "redline": 4000, "limiter": 4400, "engine_brake": 0.12,
+    "torque": [[600, 160], [1000, 300], [1400, 400], [2400, 400], [3400, 360], [4000, 300], [4400, 220]] },
+  "gearbox": { "modes": ["auto", "manual"], "gears": [5.50, 3.33, 2.31, 1.66, 1.21, 1.00, 0.86, 0.72, 0.60], "reverse": 4.80, "final": 3.27, "shift_time": 0.25, "auto_up": [1500, 3500], "auto_down": [1000, 2100] },
+  "drive": "rear", "max_steer": 0.6, "grip": 1.2, "brake_g": 0.9, "drag": 0.85,
+  "fuel": { "tank": 93, "idle_lph": 0.8, "l_per_kwh": 0.24 },
+  "tow": { "towbar": true, "unbraked": 750, "braked": 3500 },
+  "seats": 14, "luggage_bags": 14,
+  "suspension": { "stiffness": 42, "rest": 0.2, "travel": 0.24 },
+  "body": { "style": "van", "colors": ["#f4f4f2", "#101820", "#4a5a6a", "#c9ced3"] }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "suv_touareg", "kind": "car", "category": "SUV",
+  "name": "SUV 3.0 V6 TDI (tip Touareg II, 2011–2018)", "short": "SUV 3.0 V6",
+  "inspired_by": "categoria Volkswagen Touareg II — vehicul original, nu model licențiat",
+  "price": 78000,
+  "dims": { "length": 4.8, "width": 1.94, "height": 1.71, "wheelbase": 2.89, "front_overhang": 0.92, "track": 1.65, "wheel_radius": 0.37, "wheel_width": 0.255, "clearance": 0.2 },
+  "mass": 2230, "weight_front": 0.53, "cg_height": 0.68,
+  "engine": { "fuel": "motorină", "cylinders": 6, "idle": 700, "redline": 4500, "limiter": 4800, "engine_brake": 0.12,
+    "torque": [[700, 260], [1200, 450], [1750, 550], [2750, 550], [3800, 470], [4500, 360], [4800, 300]] },
+  "gearbox": { "modes": ["auto", "manual"], "gears": [4.71, 3.14, 2.10, 1.67, 1.29, 1.00, 0.84, 0.67], "reverse": 3.30, "final": 3.27, "shift_time": 0.25, "auto_up": [1600, 4100], "auto_down": [1000, 2300] },
+  "drive": "all", "front_share": 0.4, "max_steer": 0.58, "grip": 1.2, "brake_g": 0.95, "drag": 0.6,
+  "fuel": { "tank": 85, "idle_lph": 1.0, "l_per_kwh": 0.25 },
+  "tow": { "towbar": true, "unbraked": 750, "braked": 3500 },
+  "seats": 4, "luggage_bags": 6,
+  "suspension": { "stiffness": 40, "rest": 0.2, "travel": 0.22 },
+  "body": { "style": "suv", "colors": ["#2f3337", "#e6e6e2", "#3b4c5e", "#6b2e2e"] }
+}

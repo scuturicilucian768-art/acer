@@ -1,0 +1,7 @@
+{
+  "id": "platforma_auto", "kind": "trailer", "category": "remorcă",
+  "name": "Platformă transport auto 2700 kg (frânată)", "short": "Platformă auto",
+  "price": 14500, "braked": true, "mass": 720, "max_cargo": 1980,
+  "dims": { "length": 6.0, "width": 2.1, "height": 0.75, "body_length": 4.5, "drawbar": 1.5, "track": 1.75, "wheel_radius": 0.3, "wheel_width": 0.185, "axles": 2 },
+  "body": { "style": "car_platform", "colors": ["#3a3f45"] }
+}

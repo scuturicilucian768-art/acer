@@ -1,0 +1,17 @@
+{
+  "id": "sedan_e46_320d", "kind": "car", "category": "autoturism",
+  "name": "Sedan 2.0 diesel (tip E46, 2001–2005)", "short": "Sedan 2.0 diesel",
+  "inspired_by": "categoria BMW Seria 3 E46 320d — vehicul original, nu model licențiat",
+  "price": 17000,
+  "dims": { "length": 4.47, "width": 1.74, "height": 1.415, "wheelbase": 2.725, "front_overhang": 0.8, "track": 1.48, "wheel_radius": 0.31, "wheel_width": 0.205, "clearance": 0.13 },
+  "mass": 1525, "weight_front": 0.52, "cg_height": 0.5,
+  "engine": { "fuel": "motorină", "cylinders": 4, "idle": 800, "redline": 4500, "limiter": 4800, "engine_brake": 0.14,
+    "torque": [[800, 130], [1400, 230], [2000, 330], [2500, 330], [3500, 290], [4500, 210], [4800, 170]] },
+  "gearbox": { "modes": ["manual", "auto"], "gears": [4.21, 2.49, 1.66, 1.24, 1.00, 0.83], "reverse": 3.85, "final": 2.47, "shift_time": 0.4, "auto_up": [1800, 4200], "auto_down": [1100, 2400] },
+  "drive": "rear", "max_steer": 0.55, "grip": 1.25, "brake_g": 1.0, "drag": 0.37,
+  "fuel": { "tank": 63, "idle_lph": 0.7, "l_per_kwh": 0.25 },
+  "tow": { "towbar": true, "unbraked": 745, "braked": 1600 },
+  "seats": 4, "luggage_bags": 4,
+  "suspension": { "stiffness": 45, "rest": 0.16, "travel": 0.18 },
+  "body": { "style": "sedan", "colors": ["#c0c4c8", "#111111", "#1d3557", "#5a5e63"] }
+}

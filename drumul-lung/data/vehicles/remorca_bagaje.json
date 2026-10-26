@@ -1,0 +1,7 @@
+{
+  "id": "remorca_bagaje", "kind": "trailer", "category": "remorcă",
+  "name": "Remorcă bagaje 750 kg (nefrânată)", "short": "Remorcă bagaje",
+  "price": 4500, "braked": false, "mass": 190, "max_cargo": 410,
+  "dims": { "length": 3.1, "width": 1.55, "height": 1.25, "body_length": 2.05, "drawbar": 1.0, "track": 1.45, "wheel_radius": 0.29, "wheel_width": 0.165, "axles": 1 },
+  "body": { "style": "box_trailer", "colors": ["#9aa0a6"] }
+}
