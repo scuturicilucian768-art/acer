@@ -78,6 +78,8 @@ func build(network: RoadNetwork) -> void:
 	_build_houses()
 	_build_forest()
 	_build_bounds()
+	if depot_slots.is_empty():
+		_fallback_depot()
 
 	var mesh := ArrayMesh.new()
 	MeshKit.commit(_st, mesh, _vc_mat)
@@ -758,6 +760,22 @@ func _build_bounds() -> void:
 		cs.position = spec[0]
 		body.add_child(cs)
 	add_child(body)
+
+
+## Maps without a depot (e.g. fresh OpenStreetMap imports): park the fleet beside the first road.
+func _fallback_depot() -> void:
+	var pts: PackedVector2Array = net.roads[0]["points"]
+	var i := pts.size() / 2
+	var dir := (pts[mini(i + 1, pts.size() - 1)] - pts[i]).normalized()
+	var right := Vector2(-dir.y, dir.x)
+	var yaw := atan2(dir.x, dir.y)
+	for k in 5:
+		var p: Vector2 = pts[i] + right * (net.roads[0]["width"] * 0.5 + 6.0) + dir * (k * 7.0)
+		depot_slots.append(Transform3D(Basis(Vector3.UP, yaw), Vector3(p.x, 0, p.y)))
+	for k in 3:
+		var p: Vector2 = pts[i] + right * (net.roads[0]["width"] * 0.5 + 14.0) + dir * (k * 8.0)
+		trailer_slots.append(Transform3D(Basis(Vector3.UP, yaw), Vector3(p.x, 0, p.y)))
+	service_zone = depot_slots[0].origin
 
 
 ## Night factor 0..1: lights the house windows.

@@ -339,7 +339,12 @@ func test_radar() -> void:
 	var dir: Vector2 = nr["dir"]
 	if dir.y > 0.0:
 		dir = -dir
-	car.place(Vector3(nr["point"].x, 0, nr["point"].y), atan2(dir.x, dir.y))
+	var lane: Vector2 = nr["point"] + Vector2(-dir.y, dir.x) * 1.85
+	# keep this check independent of where the AI cars happen to be
+	main.traffic.set_physics_process(false)
+	for c in main.traffic.cars:
+		c.global_position = Vector3(400, 0, -1800)
+	car.place(Vector3(lane.x, 0, lane.y), atan2(dir.x, dir.y))
 	car.engine_on = true
 	car.parking_brake = false
 	car.linear_velocity = car.global_transform.basis.z * (95.0 / 3.6)
@@ -347,6 +352,7 @@ func test_radar() -> void:
 	var m0: int = gs.money
 	await _steps_until(func(): return gs.money < m0, 6.0)
 	check("Radar: amendă pentru viteză în localitate (limită 50 km/h)", gs.money < m0, "amendă %d lei" % (m0 - gs.money))
+	main.traffic.set_physics_process(true)
 	car.ai_input = {"throttle": 0.0, "brake": 1.0, "steer": 0.0}
 	await _steps_until(func(): return car.kmh() < 1.0, 10.0)
 	main._interact()

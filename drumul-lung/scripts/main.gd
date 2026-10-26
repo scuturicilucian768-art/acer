@@ -30,7 +30,11 @@ var _odo_last := -1.0
 
 func _ready() -> void:
 	network = RoadNetwork.new()
-	network.load_map(MAP)
+	var map_path := MAP
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--map="):
+			map_path = a.substr(6)   # e.g. godot --path . -- --map=res://data/maps/telciu_osm.json
+	network.load_map(map_path)
 	world = WorldBuilder.new()
 	world.name = "World"
 	add_child(world)

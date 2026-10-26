@@ -46,6 +46,9 @@ func refresh_offers() -> void:
 	offers.clear()
 	var ids := network.stops.keys()
 	var passenger_stops := ids.filter(func(i): return i != "depou")
+	if passenger_stops.size() < 2:
+		changed.emit()
+		return  # a map needs at least two stops for passenger routes
 	for k in 5:
 		var a: String = passenger_stops[_rng.randi() % passenger_stops.size()]
 		var b: String = a
@@ -57,7 +60,7 @@ func refresh_offers() -> void:
 		offers.append({"type": "pasageri", "from": a, "to": b, "count": n, "fare": fare, "km": km,
 			"title": "%s → %s" % [stop_name(a), stop_name(b)],
 			"detail": "%d pasageri · %.1f km · bilet %d lei" % [n, km, fare]})
-	for k in 2:
+	for k in (2 if network.stops.has("depou") else 0):
 		var b: String = passenger_stops[_rng.randi() % passenger_stops.size()]
 		var km := RoadNetwork.polyline_length(network.route(network.stops["depou"]["pos"], network.stops[b]["pos"])) / 1000.0
 		var kg := _rng.randi_range(180, 400)
