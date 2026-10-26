@@ -19,6 +19,8 @@ func _ready() -> void:
 	gen.mix_rate = RATE
 	gen.buffer_length = 0.12
 	stream = gen
+	# on the web Godot defaults to sample playback, which cannot play generated audio
+	playback_type = AudioServer.PLAYBACK_TYPE_STREAM
 	volume_db = linear_to_db(maxf(float(GameState.settings.get("volume", 0.8)), 0.001)) - 4.0
 	play()
 	_playback = get_stream_playback()

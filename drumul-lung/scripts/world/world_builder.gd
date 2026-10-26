@@ -556,7 +556,7 @@ func _flag(xf: Transform3D) -> void:
 
 func _fuel_station(xf: Transform3D) -> void:
 	fuel_zone = xf * Vector3(0, 0, 10)
-	MeshKit.box(_st, xf * Transform3D(Basis(), Vector3(0, 0.03, 10)), Vector3(34, 0.06, 26), Color(0.62, 0.62, 0.6))
+	MeshKit.box(_st, xf * Transform3D(Basis(), Vector3(0, 0.03, 10)), Vector3(34, 0.06, 26), Color(0.42, 0.42, 0.41))
 	var canopy := xf * Transform3D(Basis(), Vector3(0, 0, 11))
 	MeshKit.box(_st, canopy * Transform3D(Basis(), Vector3(0, 5.2, 0)), Vector3(16, 0.6, 11), Color(0.95, 0.95, 0.95))
 	MeshKit.box(_st, canopy * Transform3D(Basis(), Vector3(0, 4.85, 0)), Vector3(16.1, 0.12, 11.1), Color(0.1, 0.45, 0.25))
@@ -576,7 +576,7 @@ func _fuel_station(xf: Transform3D) -> void:
 
 
 func _depot(xf: Transform3D) -> void:
-	MeshKit.box(_st, xf * Transform3D(Basis(), Vector3(0, 0.03, 0)), Vector3(56, 0.06, 44), Color(0.55, 0.55, 0.54))
+	MeshKit.box(_st, xf * Transform3D(Basis(), Vector3(0, 0.03, 0)), Vector3(56, 0.06, 44), Color(0.36, 0.36, 0.35))
 	# open-front garage hall at the back of the yard
 	var hall := xf * Transform3D(Basis(), Vector3(0, 0, -16))
 	var grey := Color(0.78, 0.8, 0.82)
