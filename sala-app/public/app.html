@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sala mea</title>
+<title>FET</title>
 <meta name="theme-color" content="#0A0A0C">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="img/icon-192.png">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FET">
+<meta name="application-name" content="FET">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -370,7 +372,7 @@ async function boot() {
   const t0 = performance.now();
   CFG = await api('/api/config'); applyAccent(S().accent);
   try { GAL = await api('/api/gallery'); } catch {}
-  document.title = S().name; $('#gName').textContent = S().name; $('#spn').textContent = S().name;
+  document.title = 'FET · ' + S().name; $('#gName').textContent = S().name; $('#spn').textContent = S().name;
   try { H = await api('/api/me'); } catch (e) { if (e.status === 401) { hideSplash(t0); return showLogin(); } throw e; }
   EX = (await api('/api/exercises')).exercises;
   $('#login').classList.add('hide'); $('#shell').classList.remove('hide');
