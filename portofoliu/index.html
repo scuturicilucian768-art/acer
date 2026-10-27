@@ -187,6 +187,10 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
 .pc li{display:flex;gap:10px;font-size:.9rem;color:#d7dbe5}
 .pc li::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;background:var(--cy);margin-top:9px}
 .pc .q{margin-top:auto;font-family:var(--fm);font-size:.72rem;color:var(--mut);margin-bottom:12px}
+.pc .rcm{position:absolute;top:-13px;right:22px;font-family:var(--fm);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;background:var(--acc);color:#fff;padding:6px 11px;border-radius:999px}
+.pc .pn{font-family:var(--fd);font-stretch:125%;font-weight:900;font-size:2.6rem;line-height:1;letter-spacing:-.03em}
+.pc .pn span{display:block;font-family:var(--fm);font-size:.68rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--cy);margin-bottom:10px}
+.abn{margin-top:18px;color:var(--mut);font-size:.9rem;max-width:760px}
 .vids{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
 .vd{border-radius:20px;overflow:hidden;border:1px solid var(--line2);background:#000;position:relative}
 .vd video{width:100%;aspect-ratio:9/16;object-fit:cover}
@@ -363,6 +367,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
         <p class="cnote" data-t="c_n"></p>
       </div>
     </div>
+    <div class="ab rv">
+      <div class="sh" style="margin:90px 0 30px"><div><span class="eb" data-t="ab_eb"></span><h2 class="d" style="font-size:clamp(1.9rem,4vw,3rem)" data-t="ab_t"></h2></div><p data-t="ab_p"></p></div>
+      <div class="pk" id="abk"></div>
+      <p class="abn" data-t="ab_n"></p>
+    </div>
   </div>
 </section>
 
@@ -516,6 +525,9 @@ ro: {
  comp:'Servicii complementare',
  r_eb:'Reclame realizate cu AI',r_t:'Reclame video pentru TikTok, Reels și Facebook.',r_p:'Concept, montaj și text, livrate în format vertical, gata de publicat. Alegi volumul potrivit, iar prețul îl stabilim în funcție de complexitate.',
  pk_q:'Preț în funcție de complexitate',
+ ab_eb:'Abonamente lunare',ab_t:'Automatizarea, ca serviciu lunar.',ab_p:'Configurăm o dată, apoi sistemul lucrează în fiecare zi. Alegi nivelul potrivit, iar prețul îl primești în ofertă.',
+ ab_q:'Abonament lunar · ofertă personalizată',ab_rec:'Recomandat',
+ ab_n:'Fiecare abonament include o configurare inițială, plătită o singură dată, și un volum lunar de mesaje sau minute de apel stabilit în ofertă, în funcție de mărimea afacerii.',
  v_cap:'Exemple din lucrările noastre',
  w_eb:'Site-uri web',w_t:'Site-uri moderne care lucrează și când tu nu ești online.',w_p:'Pentru firme, antreprenori și afaceri locale: rapide, clare pe telefon și construite ca vizitatorul să ajungă ușor la tine.',
  w_n:'Diferența noastră: site-ul poate fi conectat cu automatizări — cererile din formular primesc răspuns imediat, iar tu ești anunțat pe loc.',
@@ -543,7 +555,7 @@ ro: {
  b_hi:'Salut! Sunt asistentul Lurox — un exemplu simplu de ce putem pune și pe site-ul tău. Ce vrei să afli?',
  q1:'Ce automatizări faceți?',q2:'Cât costă?',q3:'Cum funcționează un agent vocal?',q4:'Vreau o ofertă',
  a_serv:'Serviciul nostru principal sunt automatizările AI: agenți vocali, mesaje automate pe WhatsApp, SMS sau e-mail, automatizarea proceselor și agenți AI pentru afaceri. Complementar facem reclame video AI, site-uri și aplicații web.',
- a_price:'Nu avem prețuri fixe: oferta depinde de complexitate, de numărul de integrări, de volum și de costurile instrumentelor AI folosite. Completează <a href="#contact" data-go>formularul</a> și primești o ofertă gratuită.',
+ a_price:'Nu avem prețuri fixe. Automatizările sunt disponibile ca abonament lunar (Start, Standard, Pro), iar oferta depinde de complexitate, de numărul de integrări, de volum și de costurile instrumentelor AI folosite. Completează <a href="#contact" data-go>formularul</a> și primești o ofertă gratuită.',
  a_voice:'Un agent vocal AI poate răspunde la telefon, poate purta o conversație, poate oferi informații și poate prelua solicitări sau programări, în funcție de cum îl configurăm pentru afacerea ta.',
  a_msg:'Mesajele automate pleacă pe canalele compatibile — WhatsApp, SMS sau e-mail — pentru confirmări, notificări, reamintiri și urmărirea clienților.',
  a_time:'Depinde de proiect. Întâi analizăm ce ai nevoie, apoi îți propunem soluția și un termen clar, înainte să începem.',
@@ -577,6 +589,9 @@ en: {
  comp:'Complementary services',
  r_eb:'AI-made ads',r_t:'Video ads for TikTok, Reels and Facebook.',r_p:'Concept, editing and copy, delivered in vertical format, ready to publish. Pick the volume; pricing depends on complexity.',
  pk_q:'Priced by complexity',
+ ab_eb:'Monthly plans',ab_t:'Automation as a monthly service.',ab_p:'We set it up once, then the system works every day. Pick the right level; you get the price in your quote.',
+ ab_q:'Monthly plan · custom quote',ab_rec:'Recommended',
+ ab_n:'Every plan includes a one-time initial setup and a monthly volume of messages or call minutes agreed in the quote, based on the size of your business.',
  v_cap:'Samples from our work',
  w_eb:'Websites',w_t:'Modern websites that keep working when you are offline.',w_p:'For companies, entrepreneurs and local businesses: fast, clear on mobile and built so visitors reach you easily.',
  w_n:'Our difference: the website can be connected to automations — form requests get an instant reply and you are notified on the spot.',
@@ -604,7 +619,7 @@ en: {
  b_hi:'Hi! I am this website\'s assistant — a simple example of what we can add to your site. What would you like to know?',
  q1:'What do you automate?',q2:'How much does it cost?',q3:'How does a voice agent work?',q4:'I want a quote',
  a_serv:'Our core service is AI automation: voice agents, automated WhatsApp, SMS or e-mail messages, process automation and AI agents for business. We also offer AI video ads, websites and web apps.',
- a_price:'We have no fixed prices: quotes depend on complexity, number of integrations, volume and AI tool costs. Fill in the <a href="#contact" data-go>form</a> for a free quote.',
+ a_price:'We have no fixed prices. Automation comes as a monthly plan (Start, Standard, Pro); quotes depend on complexity, number of integrations, volume and AI tool costs. Fill in the <a href="#contact" data-go>form</a> for a free quote.',
  a_voice:'An AI voice agent can answer the phone, hold a conversation, give information and take requests or bookings, depending on how we configure it for your business.',
  a_msg:'Automated messages go out on compatible channels — WhatsApp, SMS or e-mail — for confirmations, notifications, reminders and customer follow-up.',
  a_time:'It depends on the project. We first analyse your needs, then propose a solution with a clear timeline before we start.',
@@ -646,6 +661,14 @@ const PACKS = [
  {n:5,t:{ro:'Pachet 5 reclame',en:'5-ad package'},p:{ro:'Pentru afacerile care vor să testeze conținut publicitar nou.',en:'For businesses that want to test new ad content.'}},
  {n:10,mid:1,t:{ro:'Pachet 10 reclame',en:'10-ad package'},p:{ro:'Pentru afacerile care vor să publice mai constant și să testeze mai multe concepte.',en:'For businesses that want to publish more consistently and test more concepts.'}},
  {n:15,t:{ro:'Pachet 15 reclame',en:'15-ad package'},p:{ro:'Pentru afacerile care au nevoie de un volum mai mare de conținut publicitar.',en:'For businesses that need a larger volume of ad content.'}}
+];
+const PLANS = [
+ {id:'Start',svc:'msg',t:{ro:'Mesaje automate',en:'Automated messages'},p:{ro:'Pentru afacerile care vor să nu mai uite nimeni de programări.',en:'For businesses that want no more forgotten appointments.'},
+  i:{ro:['Confirmare automată după programare','Reamintire înainte de vizită','Mesaj de mulțumire și cerere de recenzie','Pe WhatsApp, SMS sau e-mail','Volum lunar de mesaje inclus'],en:['Automatic confirmation after booking','Reminder before the visit','Thank-you message and review request','Via WhatsApp, SMS or e-mail','Monthly message volume included']}},
+ {id:'Standard',svc:'voice',mid:1,t:{ro:'Mesaje + agent vocal',en:'Messages + voice agent'},p:{ro:'Pentru afacerile care pierd apeluri după program sau când sunt ocupate.',en:'For businesses that miss calls after hours or when busy.'},
+  i:{ro:['Tot ce include Start','Agent vocal AI care răspunde după program','Preia solicitări și programări','Tu primești rezumatul fiecărui apel','Minute de apel incluse lunar'],en:['Everything in Start','AI voice agent answering after hours','Takes requests and bookings','You get a summary of every call','Monthly call minutes included']}},
+ {id:'Pro',svc:'auto',t:{ro:'Automatizare completă',en:'Full automation'},p:{ro:'Pentru afacerile cu volum mare de clienți și mai mulți angajați.',en:'For businesses with high customer volume and several staff.'},
+  i:{ro:['Tot ce include Standard','Agent vocal pe tot parcursul zilei','Conectare cu calendarul, tabelele sau CRM-ul tău','Raport periodic cu apeluri și programări','Volum mai mare de minute și mesaje'],en:['Everything in Standard','Voice agent all day long','Connected to your calendar, sheets or CRM','Periodic report of calls and bookings','Higher volume of minutes and messages']}}
 ];
 const PACK_INC = {ro:['Concept și scenariu pentru fiecare reclamă','Montaj video vertical 9:16','Text pe ecran și îndemn la acțiune','Variante pentru TikTok, Reels și Facebook','Livrare în fișiere gata de publicat'],en:['Concept and script for every ad','Vertical 9:16 video editing','On-screen text and call to action','Versions for TikTok, Reels and Facebook','Delivered as ready-to-publish files']};
 const VIDS = [
@@ -786,6 +809,10 @@ function renderPacks() {
     <ul>${PACK_INC[L].map(x => `<li>${esc(x)}</li>`).join('')}</ul><div class="q">${esc(tr('pk_q'))}</div>
     <a class="btn ${p.mid ? 'pr' : 'gh'}" href="#contact" data-svc="ads" data-pack="${p.n}">${esc(tr('offer'))}</a></article>`).join('');
   bindSvcLinks($('#pk'));
+  $('#abk').innerHTML = PLANS.map(p => `<article class="pc ${p.mid ? 'mid' : ''}">${p.mid ? `<span class="rcm">${esc(tr('ab_rec'))}</span>` : ''}<div class="pn"><span>${L === 'ro' ? 'Abonament' : 'Plan'}</span>${p.id}</div><h3>${esc(p.t[L])}</h3><p>${esc(p.p[L])}</p>
+    <ul>${p.i[L].map(x => `<li>${esc(x)}</li>`).join('')}</ul><div class="q">${esc(tr('ab_q'))}</div>
+    <a class="btn ${p.mid ? 'pr' : 'gh'}" href="#contact" data-svc="${p.svc}" data-plan="${p.id}">${esc(tr('offer'))}</a></article>`).join('');
+  bindSvcLinks($('#abk'));
 }
 function renderVids() {
   $('#vids').innerHTML = VIDS.map(v => `<figure class="vd"><video src="${v.src}" poster="${v.poster}" muted loop playsinline preload="none" aria-label="${esc(v.t[L])}"></video><figcaption><small>${esc(v.k[L])}</small>${esc(v.t[L])}</figcaption></figure>`).join('');
@@ -829,6 +856,7 @@ let packPick = '';
 function bindSvcLinks(root) {
   root.querySelectorAll('[data-svc]').forEach(a => a.addEventListener('click', () => {
     const v = a.dataset.svc; if (v) $('#fsv').value = v; packPick = a.dataset.pack || '';
+    if (a.dataset.plan && !$('#fm').value) $('#fm').value = (L === 'ro' ? `Mă interesează abonamentul ${a.dataset.plan} de automatizare. ` : `I am interested in the ${a.dataset.plan} automation plan. `);
     if (packPick && !$('#fm').value) $('#fm').value = (L === 'ro' ? `Mă interesează pachetul de ${packPick} reclame. ` : `I am interested in the ${packPick}-ad package. `);
   }));
 }
