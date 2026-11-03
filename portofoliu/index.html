@@ -90,7 +90,7 @@ nav a:hover{color:var(--ink);background:rgba(255,255,255,.05)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .net .core{transform-origin:280px 280px;animation:breathe 4s ease-in-out infinite}
 @keyframes breathe{50%{transform:scale(1.05)}}
-.nd{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;gap:8px;padding:9px 13px 9px 9px;border-radius:14px;background:rgba(16,19,27,.86);border:1px solid var(--line2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:.82rem;font-weight:600;white-space:nowrap;box-shadow:0 10px 30px -12px rgba(0,0,0,.8);animation:float 6s ease-in-out infinite}
+.nd{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:8px;padding:9px 13px 9px 9px;border-radius:14px;background:rgba(16,19,27,.86);border:1px solid var(--line2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:.82rem;font-weight:600;white-space:nowrap;box-shadow:0 10px 30px -12px rgba(0,0,0,.8);animation:float 6s ease-in-out infinite}
 .nd i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(77,107,255,.16);color:var(--acc2);font-style:normal}
 .nd i svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @keyframes float{50%{transform:translate(-50%,calc(-50% - 7px))}}
@@ -312,34 +312,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .cf button.rec{background:#e5484d;animation:bl 1s infinite}
 .typing{display:flex;gap:4px;padding:12px 14px}.typing i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5);animation:ty 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
 @keyframes ty{50%{transform:translateY(-4px);opacity:.4}}
-
-/* ===== strat 3D ===== */
-#stars{position:fixed;inset:0;z-index:-1;pointer-events:none}
-body{background:transparent}html{background:var(--bg)}
-#prog{position:fixed;top:0;left:0;height:3px;width:0;z-index:100;background:linear-gradient(90deg,var(--acc),var(--cy));box-shadow:0 0 12px var(--cy)}
-.cur{position:fixed;left:0;top:0;width:36px;height:36px;margin:-18px 0 0 -18px;border:1.5px solid var(--cy);border-radius:50%;pointer-events:none;z-index:200;transition:width .25s,height .25s,margin .25s,background .25s,border-color .25s;display:none}
-.cur.big{width:70px;height:70px;margin:-35px 0 0 -35px;background:rgba(57,225,255,.08);border-color:var(--acc2)}
-.cdot{position:fixed;left:0;top:0;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--cy);pointer-events:none;z-index:201;display:none}
-@media(pointer:fine){.cur,.cdot{display:block}}
-.net{perspective:900px}
-.net canvas{position:absolute;inset:0;width:100%;height:100%}
-#lnk{z-index:0}#coreGl{z-index:2}#nodes{position:absolute;inset:0}
-#coreGl{cursor:grab}#coreGl:active{cursor:grabbing}
-.nd{animation:none!important;transition:opacity .2s;will-change:transform}
-.t3d{transform-style:preserve-3d;will-change:transform;transition:transform .5s cubic-bezier(.2,.7,.2,1),box-shadow .4s,border-color .3s}
-.t3d.tilting{transition:transform .08s linear,box-shadow .4s,border-color .3s;box-shadow:0 30px 60px -25px rgba(0,0,0,.9),0 0 0 1px rgba(123,147,255,.35)}
-.w3{display:inline-block;opacity:0;transform:perspective(600px) rotateX(-85deg) translateY(30%);transform-origin:50% 100%;transition:transform .9s cubic-bezier(.2,.8,.2,1),opacity .6s;transition-delay:calc(var(--i) * 45ms)}
-.in .w3,.w3.on{opacity:1;transform:none}
-.steps .stp,.wk .wc,.pk .pc,#abk .pc{opacity:0;transform:perspective(900px) rotateY(-28deg) translateZ(-60px);transition:opacity .8s,transform 1s cubic-bezier(.2,.8,.2,1)}
-.steps .stp.in3,.wk .wc.in3,.pk .pc.in3,#abk .pc.in3{opacity:1;transform:none}
-
-.hero h1{transform-style:preserve-3d}
-@media(prefers-reduced-motion:reduce){.w3,.steps .stp,.wk .wc,.pk .pc,#abk .pc{opacity:1;transform:none}}
 </style>
 <script type="application/ld+json" id="ld"></script>
 </head>
 <body>
-<canvas id="stars" aria-hidden="true"></canvas><div id="prog"></div><div class="cur" id="cur"></div><div class="cdot" id="cdot"></div>
 
 <header id="hd">
   <a class="logo" href="#top" aria-label="Acasă"><span class="mark" aria-hidden="true"></span><span><span id="nm"></span><small data-t="brand_sub"></small></span></a>
@@ -766,81 +742,21 @@ function apply() {
 }
 $$('.lang button').forEach(b => b.onclick = () => { L = b.dataset.l; try { localStorage.setItem('pf-lang', L); } catch (_) {} apply(); });
 
-/* ---------- hero: nucleu AI 3D (WebGL) + noduri pe orbită ---------- */
-const NETN = ['phone', 'msg', 'mail', 'cal', 'web', 'db'];
-let netNodes = [];
+/* ---------- hero: rețea animată ---------- */
 function renderNet() {
-  const box = $('#net');
-  if (!box.querySelector('#coreGl')) { box.innerHTML = '<canvas id="lnk"></canvas><canvas id="coreGl" aria-hidden="true"></canvas><div id="nodes"></div>'; initCore(); }
+  const N = [[280, 52, 'phone'], [492, 160, 'msg'], [492, 400, 'mail'], [280, 508, 'cal'], [68, 400, 'web'], [68, 160, 'db']];
   const lbl = tr('net');
-  $('#nodes').innerHTML = NETN.map((ic, i) => `<div class="nd"><i>${sv(ic)}</i>${esc(lbl[i])}</div>`).join('');
-  netNodes = [...$('#nodes').children];
-}
-const ORB = {rx: 0, ry: 0, tx: .2, ty: 0, t: 0};
-function initCore() {
-  const cv = $('#coreGl'), lk = $('#lnk'), box = $('#net'), ctx = lk.getContext('2d');
-  const gl = cv.getContext('webgl', {premultipliedAlpha: true, alpha: true, antialias: false});
-  let prog, uR, uT, uM;
-  if (gl) {
-    const vs = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
-    const fs = `precision highp float;uniform vec2 R;uniform float T;uniform vec2 M;
-mat2 r2(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
-float blob(vec3 p){float d=length(p)-1.;d+=.07*sin(2.3*p.x+T*1.3)*sin(2.1*p.y+T*1.1)*sin(2.5*p.z+T*.9);d+=.025*sin(5.*p.y+T*2.);return d;}
-float torus(vec3 p,float R0,float r){vec2 q=vec2(length(p.xz)-R0,p.y);return length(q)-r;}
-vec3 rot(vec3 p){p.yz=r2(M.y*.6)*p.yz;p.xz=r2(M.x*1.4+T*.15)*p.xz;return p;}
-vec2 map(vec3 p){p=rot(p);float b=blob(p);vec3 q=p;q.xy=r2(.5)*q.xy;float t1=torus(q,1.4,.016);vec3 q2=p;q2.yz=r2(1.2)*q2.yz;q2.xy=r2(-.4)*q2.xy;float t2=torus(q2,1.62,.011);float t=min(t1,t2);return b<t?vec2(b,1.):vec2(t,2.);}
-vec3 nor(vec3 p){vec2 e=vec2(.002,0);return normalize(vec3(map(p+e.xyy).x-map(p-e.xyy).x,map(p+e.yxy).x-map(p-e.yxy).x,map(p+e.yyx).x-map(p-e.yyx).x));}
-void main(){vec2 uv=(gl_FragCoord.xy-.5*R)/R.y;vec3 ro=vec3(0,0,6.),rd=normalize(vec3(uv,-1.45));float t=0.;vec2 h;bool hit=false;
-for(int i=0;i<80;i++){h=map(ro+rd*t);if(h.x<.002){hit=true;break;}t+=h.x*.85;if(t>10.)break;}
-float glow=max(0.,exp(-length(uv)*3.)-.22)*.7;
-if(!hit){vec3 g=vec3(.3,.42,1.)*glow;gl_FragColor=vec4(g,glow*.9);return;}
-vec3 p=ro+rd*t,n=nor(p),v=-rd;float fr=pow(1.-max(dot(n,v),0.),2.5);
-vec3 col;
-if(h.y>1.5){col=vec3(.45,.9,1.)*1.4;}
-else{vec3 L=normalize(vec3(.5,.7,.6));float d=max(dot(n,L),0.);float sp=pow(max(dot(reflect(-L,n),v),0.),40.);
- vec3 irid=.5+.5*cos(6.2831*(fr*.9+n.y*.25+T*.05)+vec3(0.,1.6,3.6));
- col=mix(vec3(.12,.18,.65),vec3(.3,.42,1.),d)*.9+irid*fr*1.1+sp*vec3(1.)+vec3(.22,.88,1.)*pow(fr,3.)*1.2;}
-gl_FragColor=vec4(col,1.);}`;
-    const sh = (t, src) => { const o = gl.createShader(t); gl.shaderSource(o, src); gl.compileShader(o); return gl.getShaderParameter(o, gl.COMPILE_STATUS) ? o : null; };
-    const a = sh(gl.VERTEX_SHADER, vs), b = sh(gl.FRAGMENT_SHADER, fs);
-    if (a && b) { prog = gl.createProgram(); gl.attachShader(prog, a); gl.attachShader(prog, b); gl.linkProgram(prog); gl.useProgram(prog);
-      const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
-      const l = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, 2, gl.FLOAT, false, 0, 0);
-      uR = gl.getUniformLocation(prog, 'R'); uT = gl.getUniformLocation(prog, 'T'); uM = gl.getUniformLocation(prog, 'M'); }
-  }
-  let W = 0, Hh = 0, dpr = 1;
-  function size() { const r = box.getBoundingClientRect(); W = r.width; Hh = r.height; dpr = Math.min(devicePixelRatio || 1, innerWidth < 700 ? 1.25 : 1.6); for (const c of [cv, lk]) { c.width = W * dpr; c.height = Hh * dpr; } if (gl) gl.viewport(0, 0, cv.width, cv.height); }
-  size(); addEventListener('resize', size);
-  let drag = false, lx = 0, ly = 0, vis = true;
-  cv.addEventListener('pointerdown', e => { drag = true; lx = e.clientX; ly = e.clientY; cv.setPointerCapture(e.pointerId); });
-  cv.addEventListener('pointermove', e => { if (!drag) return; ORB.tx += (e.clientX - lx) * .006; ORB.ty = Math.max(-.8, Math.min(.8, ORB.ty + (e.clientY - ly) * .004)); lx = e.clientX; ly = e.clientY; });
-  addEventListener('pointerup', () => drag = false);
-  addEventListener('mousemove', e => { if (drag) return; ORB.ty = -(e.clientY / innerHeight - .5) * .5; ORB.tx += ((e.clientX / innerWidth - .5) * .8 + .2 - ORB.tx) * .03; });
-  new IntersectionObserver(es => vis = es[0].isIntersecting).observe(box);
-  let last = performance.now();
-  (function loop(now) {
-    const dt = Math.min(.05, (now - last) / 1000); last = now;
-    if (vis) {
-      if (!reduceM) ORB.t += dt;
-      ORB.rx += (ORB.tx - ORB.rx) * .07; ORB.ry += (ORB.ty - ORB.ry) * .07;
-      if (prog) { gl.uniform2f(uR, cv.width, cv.height); gl.uniform1f(uT, ORB.t); gl.uniform2f(uM, ORB.rx, ORB.ry); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, Hh);
-      const cx = W / 2, cy = Hh / 2, rx = W * .44, ry = Hh * .2, n = netNodes.length;
-      netNodes.forEach((el, i) => {
-        const a = ORB.t * .22 + i * Math.PI * 2 / n + ORB.rx * 1.2;
-        const z = Math.sin(a), x = cx + Math.cos(a) * rx, y = cy + z * ry * (1 + ORB.ry) + Math.cos(a * 2 + i) * Hh * .06 - (i % 2 ? Hh * .08 : -Hh * .05);
-        const sc = .78 + (z + 1) * .17;
-        el.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%) scale(${sc})`;
-        el.style.zIndex = z > -.15 ? 3 : 1; el.style.opacity = .55 + (z + 1) * .225; el.style.left = '0'; el.style.top = '0';
-        const g = ctx.createLinearGradient(cx, cy, x, y); g.addColorStop(0, 'rgba(57,225,255,.0)'); g.addColorStop(1, `rgba(123,147,255,${.18 + (z + 1) * .15})`);
-        ctx.strokeStyle = g; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.quadraticCurveTo((cx + x) / 2 + (i % 2 ? 30 : -30), (cy + y) / 2 - 20, x, y); ctx.stroke();
-        if (!reduceM) { const k = (ORB.t * .6 + i * .17) % 1, qx = (cx + x) / 2 + (i % 2 ? 30 : -30), qy = (cy + y) / 2 - 20, u = 1 - k;
-          const px = u * u * cx + 2 * u * k * qx + k * k * x, py = u * u * cy + 2 * u * k * qy + k * k * y;
-          ctx.fillStyle = '#39e1ff'; ctx.shadowColor = '#39e1ff'; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(px, py, 2.6, 0, 7); ctx.fill(); ctx.shadowBlur = 0; }
-      });
-    }
-    requestAnimationFrame(loop);
-  })(last);
+  let paths = '', dots = '';
+  N.forEach(([x, y], i) => {
+    const id = 'np' + i, mx = (280 + x) / 2 + (i % 2 ? 30 : -30), my = (280 + y) / 2 + (i % 2 ? -20 : 20);
+    paths += `<path id="${id}" class="ln" d="M280 280 Q${mx} ${my} ${x} ${y}"/>`;
+    if (!reduceM) { const dur = 2.6 + i * 0.35; dots += `<circle r="3.2" fill="#39e1ff"><animateMotion dur="${dur}s" repeatCount="indefinite" ${i % 2 ? 'keyPoints="1;0" keyTimes="0;1" calcMode="linear"' : ''}><mpath href="#${id}"/></animateMotion></circle><circle r="2.2" fill="#7b93ff" opacity=".8"><animateMotion dur="${dur}s" begin="-${(dur / 2).toFixed(2)}s" repeatCount="indefinite" ${i % 2 ? '' : 'keyPoints="1;0" keyTimes="0;1" calcMode="linear"'}><mpath href="#${id}"/></animateMotion></circle>`; }
+  });
+  $('#net').innerHTML = `<svg viewBox="0 0 560 560" role="presentation"><defs><radialGradient id="cg" cx="40%" cy="35%"><stop offset="0" stop-color="#9fb0ff"/><stop offset=".45" stop-color="#4d6bff"/><stop offset="1" stop-color="#1b2690"/></radialGradient><radialGradient id="gl"><stop offset="0" stop-color="rgba(77,107,255,.55)"/><stop offset="1" stop-color="rgba(77,107,255,0)"/></radialGradient></defs>
+    <circle cx="280" cy="280" r="250" class="ring"/><circle cx="280" cy="280" r="180" class="ring r2"/>${paths}${dots}
+    <circle cx="280" cy="280" r="130" fill="url(#gl)"/><g class="core"><circle cx="280" cy="280" r="62" fill="url(#cg)"/><circle cx="280" cy="280" r="62" fill="none" stroke="rgba(255,255,255,.35)"/><circle cx="280" cy="280" r="78" fill="none" stroke="rgba(57,225,255,.35)" stroke-dasharray="2 6"/></g></svg>
+    <div class="core-l"><b>AI</b><small>${esc(tr('net_c')).toUpperCase()}</small></div>` +
+    N.map(([x, y, ic], i) => `<div class="nd" style="left:${x / 5.6}%;top:${y / 5.6}%;animation-delay:${-i * 0.9}s"><i>${sv(ic)}</i>${esc(lbl[i])}</div>`).join('');
 }
 function renderMarquee() { const w = $('#mq'); w.replaceChildren(); [...tr('marquee'), ...tr('marquee')].forEach(x => w.append(mk('span', '', esc(x)))); }
 
@@ -1016,67 +932,6 @@ $('#ld').textContent = JSON.stringify({ '@context': 'https://schema.org', '@type
   knowsAbout: ['Automatizări AI', 'Agenți vocali AI', 'Mesaje automate', 'Reclame video AI', 'Site-uri web', 'Aplicații web'] });
 
 apply();
-
-/* ===== efecte 3D globale ===== */
-(function () {
-  // câmp de stele 3D, cu paralaxă la scroll și mouse
-  const c = $('#stars'), x = c.getContext('2d'); let W, H, P = [], mx = 0, my = 0, sy = 0;
-  function size() { W = c.width = innerWidth; H = c.height = innerHeight; P = Array.from({length: innerWidth < 700 ? 70 : 150}, () => ({x: (Math.random() - .5) * 2, y: (Math.random() - .5) * 2, z: Math.random() * .9 + .1})); }
-  size(); addEventListener('resize', size);
-  addEventListener('mousemove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
-  addEventListener('scroll', () => sy = scrollY, {passive: true});
-  (function loop() {
-    x.clearRect(0, 0, W, H);
-    for (const p of P) {
-      if (!reduceM) { p.z -= .0009; if (p.z < .08) { p.z = 1; p.x = (Math.random() - .5) * 2; p.y = (Math.random() - .5) * 2; } }
-      const k = 1 / p.z, X = W / 2 + (p.x - mx * .15) * W * .5 * k, Y = H / 2 + (p.y - my * .15) * H * .5 * k - (sy * .15 * (1 - p.z)) % H;
-      if (X < 0 || X > W || Y < -10 || Y > H) continue;
-      const r = Math.max(.4, (1 - p.z) * 2.2); x.globalAlpha = Math.min(1, (1 - p.z) * 1.3);
-      x.fillStyle = p.z < .3 ? '#9fdcff' : '#7b93ff'; x.beginPath(); x.arc(X, Y, r, 0, 7); x.fill();
-    }
-    requestAnimationFrame(loop);
-  })();
-})();
-// bară de progres + cursor + butoane magnetice
-addEventListener('scroll', () => { const h = document.documentElement; $('#prog').style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%'; }, {passive: true});
-(function () {
-  const cu = $('#cur'), cd = $('#cdot'); let cx = -100, cy = -100, px = -100, py = -100;
-  addEventListener('mousemove', e => { cx = e.clientX; cy = e.clientY; cd.style.transform = `translate(${cx}px,${cy}px)`; });
-  (function l() { px += (cx - px) * .18; py += (cy - py) * .18; cu.style.transform = `translate(${px}px,${py}px)`; requestAnimationFrame(l); })();
-  document.addEventListener('mouseover', e => cu.classList.toggle('big', !!e.target.closest('a,button,.t3d,input,select,textarea,#coreGl')));
-  document.addEventListener('mousemove', e => { const b = e.target.closest('.btn'); document.querySelectorAll('.btn.mg').forEach(o => { if (o !== b) { o.style.transform = ''; o.classList.remove('mg'); } }); if (!b) return; const r = b.getBoundingClientRect(); b.classList.add('mg'); b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .22}px,${(e.clientY - r.top - r.height / 2) * .3}px)`; });
-})();
-// înclinare 3D a cardurilor (delegare, merge și după schimbarea limbii)
-const T3 = '.tp,.pc,.wc,.ap,.stp,.live,.calc,.cl,form.of,.mock,.vd';
-let tiltEl = null;
-document.addEventListener('pointermove', e => {
-  if (e.pointerType !== 'mouse') return;
-  const el = e.target.closest(T3);
-  if (tiltEl && tiltEl !== el) { tiltEl.style.transform = ''; tiltEl.classList.remove('tilting'); tiltEl = null; }
-  if (!el || reduceM) return;
-  el.classList.add('t3d', 'tilting'); tiltEl = el;
-  const r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5, k = r.width > 600 ? 4 : 9;
-  el.style.transform = `perspective(1100px) rotateY(${px * k}deg) rotateX(${-py * k}deg) translateZ(6px)`;
-});
-document.addEventListener('pointerleave', () => { if (tiltEl) { tiltEl.style.transform = ''; tiltEl.classList.remove('tilting'); tiltEl = null; } });
-// titluri: cuvinte care se ridică în 3D
-function split3d() {
-  document.querySelectorAll('h2.d, .hero h1').forEach(h => {
-    let i = 0;
-    const walk = n => { [...n.childNodes].forEach(ch => {
-      if (ch.nodeType === 3) { const f = document.createDocumentFragment(); ch.textContent.split(/(\s+)/).forEach(w => { if (!w) return; if (/^\s+$/.test(w)) f.append(w); else { const s = document.createElement('span'); s.className = 'w3'; s.style.setProperty('--i', i++); s.textContent = w; f.append(s); } }); n.replaceChild(f, ch); }
-      else if (ch.nodeType === 1 && !ch.classList.contains('w3')) walk(ch);
-    }); };
-    walk(h);
-    if (h.closest('.hero')) requestAnimationFrame(() => h.querySelectorAll('.w3').forEach(w => w.classList.add('on')));
-  });
-}
-// carduri care intră în 3D, pe rând
-const io3 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { const sib = [...e.target.parentElement.children]; setTimeout(() => e.target.classList.add('in3'), sib.indexOf(e.target) % 6 * 90); io3.unobserve(e.target); } }), {threshold: .12});
-function obs3d() { document.querySelectorAll('.steps .stp,.wk .wc,.pk .pc,#abk .pc').forEach(el => { if (!el.classList.contains('in3')) io3.observe(el); }); }
-const _apply = apply;
-apply = function () { _apply(); split3d(); obs3d(); };
-split3d(); obs3d();
 </script>
 </body>
 </html>
