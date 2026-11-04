@@ -13,7 +13,7 @@ const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${Stri
 const avUrl = (f) => (String(f).startsWith('data:') ? f : 'api/avatar/' + f);
 /* avatar: poza de profil sau inițialele */
 const avatarHtml = (name, file, cls = 'av') => file ? `<span class="${cls}" style="padding:0;overflow:hidden"><img src="${esc(avUrl(file))}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></span>` : `<span class="${cls}">${esc(String(name || '?').split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase())}</span>`;
-const galUrl = (f) => (String(f).startsWith('data:') ? f : 'api/gallery/' + f);
+const galUrl = (f) => (/^(data:|img\/)/.test(String(f)) ? f : 'api/gallery/' + f);
 const photoUrl = (f) => (String(f).startsWith('data:') ? f : 'api/photo/' + f);
 const waLink = (num, text) => `https://wa.me/${String(num || '').replace(/\D/g, '')}${text ? '?text=' + encodeURIComponent(text) : ''}`;
 

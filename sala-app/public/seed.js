@@ -75,6 +75,12 @@
       meals: [meal('Mic dejun', '07:30', '4 ouă, 2 felii pâine integrală, avocado, suc de portocale', 720, 34, 70, 32), meal('Gustare', '10:30', 'Ovăz 60 g + whey + banană', 480, 35, 70, 6), meal('Prânz', '13:30', 'Piept de pui 200 g, orez 100 g (crud), legume', 760, 55, 95, 12), meal('Înainte de sală', '17:00', 'Pâine cu miere + iaurt', 360, 16, 62, 6), meal('Cină', '20:30', 'Paste integrale 100 g cu carne tocată de vită și sos de roșii', 580, 30, 63, 29)] },
   ];
 
+  // pozele sălii (sala le poate șterge sau înlocui din panou)
+  const GALLERY = [
+    { id: 'gl_sala1', file: 'img/sala-1.jpg', cat: 'sala', caption: 'Sala de forță', order: 1, date: '2026-11-04' },
+    { id: 'gl_sala2', file: 'img/sala-2.jpg', cat: 'aparate', caption: 'Aparatele noastre, seara', order: 2, date: '2026-11-04' },
+    { id: 'gl_sala3', file: 'img/sala-3.jpg', cat: 'sala', caption: 'Recepția', order: 3, date: '2026-11-04' },
+  ];
   const DAILY = [
     ['Disciplina înseamnă să faci ce trebuie, chiar și când nu ai chef.', 'Anonim', 'Bea 2 litri de apă azi'],
     ['Nu te opri când ești obosit. Oprește-te când ai terminat.', 'David Goggins', 'Fă 50 de genuflexiuni pe parcursul zilei'],
@@ -139,7 +145,7 @@
         { id: 'rw_towel', name: 'Prosop cu logo', points: 800, desc: 'Prosop de sală' },
         { id: 'rw_week', name: '7 zile gratuite', points: 1500, desc: 'Se adaugă la abonament' },
       ],
-      redemptions: [], sent: [], gallery: [], admin: null,
+      redemptions: [], sent: [], gallery: GALLERY.map((x) => ({ ...x })), seedGal: true, admin: null,
     };
   }
 
@@ -205,6 +211,7 @@
   function upgrade(db) {
     db.seedEx = db.seedEx || db.exercises.map((e) => e.id);
     let changed = false;
+    if (!db.seedGal) { db.seedGal = true; db.gallery = db.gallery || []; for (const g of GALLERY) if (!db.gallery.some((x) => x.id === g.id)) db.gallery.push({ ...g, order: g.order - 100 }); changed = true; }
     // numărul nou al sălii (și în bazele de date mai vechi)
     if (db.settings && db.settings.phone === '0785 769 200') { db.settings.phone = '0772 232 960'; db.settings.whatsapp = '40772232960'; changed = true; }
     for (const e of EXERCISES) if (!db.seedEx.includes(e.id)) { db.seedEx.push(e.id); if (!db.exercises.some((x) => x.id === e.id)) db.exercises.push(JSON.parse(JSON.stringify(e))); changed = true; }
