@@ -173,7 +173,8 @@ body{min-height:100vh}
     <main class="main" id="main"></main>
   </div>
 </div>
-<script src="core.js?v=4"></script>
+<script src="diet.js?v=5"></script>
+<script src="core.js?v=5"></script>
 <script src="seed.js?v=4"></script>
 <script src="env.js?v=4"></script>
 <script src="common.js?v=4"></script>
@@ -308,10 +309,11 @@ async function newMember() {
 }
 async function openMember(id, focus) {
   const { member: m, bookings } = await api('/api/admin/members/' + id), s = m.subscription, progs = (await api('/api/admin/programs')).programs, nus = (await api('/api/admin/nutrition')).nutrition;
+  let dt = await api(`/api/admin/members/${id}/diet`);
   const ws = m.weights || [], lastW = ws.slice(-1)[0];
   const el = sheet(`<div class="mtop">${avatarHtml(m.name, m.avatar)}<div class="grow"><h2 style="margin:0">${esc(m.name)}</h2><div class="muted">${esc(m.phone)}${m.email ? ' · ' + esc(m.email) : ''} · membru din ${fdate(m.createdAt, true)}</div><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${stateChip({ state: s.state, daysLeft: s.daysLeft })}${(m.tags || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}${m.pushOn ? '<span class="chip acc">🔔 notificări pornite</span>' : ''}${m.coach && m.coach.pains.length ? `<span class="chip" style="${m.coach.warn ? 'background:rgba(255,194,61,.18);color:#FFC23D' : ''}">${m.coach.warn ? '⚠️' : '🩹'} dureri: ${esc(m.coach.painNames.join(', '))}</span>` : ''}</div></div></div>
     <div class="row" style="gap:8px;flex-wrap:wrap"><a class="btn btn-sm" href="${waTo(m.phone, `Bună, ${m.name.split(' ')[0]}! `)}" target="_blank" rel="noopener">${IC('chat', 16)} WhatsApp</a><a class="btn btn-sm" href="tel:${esc(m.phone)}">${IC('phone', 16)} Sună</a><button class="btn btn-sm" id="ci">${IC('check', 16)} Check-in azi</button><button class="btn btn-sm" id="msg">🔔 Notificare</button><button class="btn btn-sm btn-acc" id="cv">${IC('chat', 16)} Conversație</button></div>
-    <div class="pill-tabs" style="margin-top:16px"><button data-t="sub" class="on">Abonament</button><button data-t="act">Activitate</button><button data-t="plan">Program</button><button data-t="info">Date</button></div>
+    <div class="pill-tabs" style="margin-top:16px"><button data-t="sub" class="on">Abonament</button><button data-t="act">Activitate</button><button data-t="plan">Program</button><button data-t="diet">Dietă</button><button data-t="info">Date</button></div>
     <div id="mtab"></div>`, { wide: true });
   const T = {
     sub: () => `<div class="g3"><div class="kpi"><small>Tip</small><b style="font-size:1.2rem">${esc(s.plan ? s.plan.name : '–')}</b></div><div class="kpi"><small>Expiră</small><b style="font-size:1.2rem">${s.end ? fdate(s.end, true) : '–'}</b></div><div class="kpi"><small>${s.daysLeft != null && s.daysLeft < 0 ? 'Expirat de' : 'Zile rămase'}</small><b style="font-size:1.2rem;${s.daysLeft < 0 ? 'color:var(--red)' : ''}">${s.daysLeft == null ? '–' : s.daysLeft < 0 ? -s.daysLeft + (s.daysLeft === -1 ? ' zi' : ' zile') : s.daysLeft}</b></div></div>
@@ -328,9 +330,20 @@ async function openMember(id, focus) {
         <p style="margin:8px 0 6px"><b>${esc(m.coach.title)}</b>${m.coach.answers.why ? ` <span class="muted">· „${esc(m.coach.answers.why)}”</span>` : ''}</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip acc">${esc(m.coach.goalTxt)}</span>${m.coach.pains.length ? `<span class="chip">🩹 ${esc(m.coach.painNames.join(', '))} · ${({ usoara: 'ușoare', moderata: 'moderate', puternica: 'puternice' })[m.coach.painLevel] || ''}</span>` : '<span class="chip">fără dureri</span>'}<span class="chip">${m.coach.answers.days}×/săpt · ${m.coach.answers.minutes} min</span><span class="chip">${m.coach.answers.place === 'acasa' ? 'acasă' : 'la sală'}</span>${m.coach.answers.daily ? `<span class="chip">${({ birou: 'stă mult pe scaun', picioare: 'mult pe picioare', fizic: 'muncă fizică' })[m.coach.answers.daily]}</span>` : ''}</div>
         ${m.coach.warn ? '<p style="margin:10px 0 0;color:#FFC23D;font-size:.88rem">⚠️ A raportat dureri puternice sau amorțeli. Robo i-a recomandat control medical și doar exerciții blânde. Verifică înainte să-i crești efortul.</p>' : ''}</div>` : '<p class="muted" style="font-size:.86rem;margin:0 0 14px">🤖 Membrul n-a vorbit încă cu Robo. Când o face, aici apar scopul, durerile și programul ales.</p>'}<div class="field"><label>Program de antrenament</label><select class="input" id="pr"><option value="">–</option>${progs.map((p) => `<option value="${p.id}" ${p.id === m.programId ? 'selected' : ''}>${esc(p.name)} (${esc(p.goal)})</option>`).join('')}</select></div>
-      <div class="field"><label>Plan alimentar</label><select class="input" id="nu"><option value="">–</option>${nus.map((p) => `<option value="${p.id}" ${p.id === m.nutritionId ? 'selected' : ''}>${esc(p.name)} (${p.kcal} kcal)</option>`).join('')}</select></div>
+      <div class="field"><label>Plan alimentar</label><select class="input" id="nu"><option value="">–</option>${dt.personal ? `<option value="${dt.plan.id}" ${dt.plan.id === m.nutritionId ? 'selected' : ''}>⭐ ${esc(dt.plan.name)} (personală, ${dt.plan.kcal} kcal)</option>` : ''}${nus.map((p) => `<option value="${p.id}" ${p.id === m.nutritionId ? 'selected' : ''}>${esc(p.name)} (${p.kcal} kcal)</option>`).join('')}</select></div>
       <button class="btn btn-acc" id="prs">Salvează</button><p class="muted" style="font-size:.84rem;margin-top:12px">Vrei un program făcut doar pentru el? Creează-l în „Antrenamente” și alege-l aici.</p>
       ${bookings.length ? `<h3 style="margin:16px 0 8px">Programări PT</h3>${bookings.map((b) => `<div class="alert"><div class="grow"><b>${fday(b.date)} · ${b.time}</b><br><small>${esc(b.note || '')}</small></div><span class="chip">${esc(b.status)}</span></div>`).join('')}` : ''}`,
+    diet: () => {
+      const pl = dt.plan, fd = dt.food, LK = (k) => (GymDiet.LIKES.find((x) => x[0] === k) || [k, k])[1], DT = (k) => (GymDiet.DIETS.find((x) => x[0] === k) || [k, k])[1], AL = (k) => (GymDiet.ALLERGIES.find((x) => x[0] === k) || [k, k])[1];
+      return `<div class="card" style="background:var(--bg)"><h3>🍽️ Ce îi place să mănânce</h3>${fd ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><span class="chip acc">${({ slabire: 'Slăbire', mentinere: 'Menținere', masa: 'Masă musculară' })[fd.goal]}</span><span class="chip">${esc(DT(fd.diet))}</span><span class="chip">${fd.meals} mese/zi</span><span class="chip">gătit: ${({ zilnic: 'zilnic', rapid: 'simplu și rapid', drum: 'mănâncă pe drum' })[fd.cook]}</span><span class="chip">buget ${({ mic: 'economic', normal: 'normal', mare: 'mare' })[fd.budget]}</span></div>
+        <p style="margin:10px 0 4px;font-size:.9rem"><b>Îi place:</b> ${fd.likes.map((k) => esc(LK(k))).join(', ') || '–'}</p><p style="margin:4px 0;font-size:.9rem"><b>Nu mănâncă:</b> ${fd.dislikes.map((k) => esc(LK(k))).join(', ') || '–'}</p><p style="margin:4px 0;font-size:.9rem"><b>Alergii:</b> ${fd.allergies.map((k) => esc(AL(k))).join(', ') || 'niciuna'}</p>` : '<p class="muted" style="margin:8px 0 0;font-size:.88rem">Membrul n-a completat încă chestionarul „Fă-mi dieta” din aplicație. Poți completa tu preferințele pentru el.</p>'}
+        <button class="btn btn-sm" id="dPref" style="margin-top:10px">${fd ? '✏️ Modifică preferințele' : '➕ Completează preferințele'}</button></div>
+      <div class="card" style="background:var(--bg);margin-top:12px"><div class="row" style="flex-wrap:wrap;gap:8px"><h3 class="grow">🥗 Dieta lui</h3>${pl ? `<span class="chip ${dt.personal ? 'acc' : ''}">${dt.personal ? (pl.by === 'admin' ? 'personalizată de tine' : 'făcută automat') : 'plan general al sălii'}</span>` : ''}</div>
+        ${pl ? `<p style="margin:8px 0 2px"><b>${esc(pl.name)}</b> · ${pl.kcal} kcal · P ${pl.p} g · C ${pl.c} g · G ${pl.f} g</p>${pl.at ? `<small class="muted">actualizată pe ${fdate(pl.at.slice(0, 10), true)}</small>` : ''}
+          <div style="margin-top:10px">${pl.meals.map((x) => `<div class="alert"><span class="av" style="font-size:.7rem">${esc(x.time || '')}</span><div class="grow"><b>${esc(x.name)}</b> <small class="muted">${x.kcal} kcal · P ${x.p} · C ${x.c} · G ${x.f}</small><br><small>${esc(x.items)}</small></div></div>`).join('')}</div>` : '<p class="muted" style="margin:8px 0 0">Nu are încă o dietă.</p>'}
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn btn-acc" id="dEd">✏️ ${dt.personal ? 'Editează dieta' : 'Fă-i o dietă personalizată'}</button><button class="btn" id="dAu">⚡ Generează automat</button>${dt.personal ? '<span class="grow"></span><button class="btn btn-red btn-sm" id="dDel">Șterge dieta personală</button>' : ''}</div>
+        <p class="muted" style="font-size:.82rem;margin:10px 0 0">„Generează automat” face dieta din preferințele lui și din calorii (greutate, înălțime, vârstă). După aceea o poți modifica oricum: mese, alimente, grame, calorii.</p></div>`;
+    },
     info: () => `<div class="g2"><div class="field"><label>Nume</label><input class="input" id="in" value="${esc(m.name)}"></div><div class="field"><label>Telefon</label><input class="input" id="ip" value="${esc(m.phone)}"></div><div class="field"><label>Email</label><input class="input" id="ie" value="${esc(m.email || '')}"></div><div class="field"><label>Grupe (separate prin virgulă)</label><input class="input" id="it" value="${esc((m.tags || []).join(', '))}"></div><div class="field"><label>Obiectiv</label><input class="input" id="ig" value="${esc(m.goal || '')}"></div><div class="field"><label>Data nașterii</label><input class="input" type="date" id="ib" value="${esc(m.birth || '')}"></div></div>
       <div class="field"><label>Notițe interne (nu le vede membrul)</label><textarea class="input" id="ino">${esc(m.notes || '')}</textarea></div>
       <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-acc" id="is">Salvează</button><button class="btn" id="rp">🔑 Resetează parola</button><span class="grow"></span><button class="btn btn-red" id="del">Șterge membrul</button></div><p class="err" id="ier"></p>`,
@@ -343,6 +356,13 @@ async function openMember(id, focus) {
       $$('[data-dp]', el).forEach((b) => (b.onclick = async () => { if (!(await ask('Ștergi plata din evidență?', 'Data expirării nu se schimbă.', 'Șterge', { danger: true }))) return; await api(`/api/admin/members/${id}/payment/${b.dataset.dp}`, { method: 'DELETE', body: {} }); reopen('sub'); }));
       $('#ses', el).onclick = async () => { await api('/api/admin/members/' + id, { method: 'PUT', body: { subEnd: $('#se', el).value } }); toast('Salvat'); reopen('sub'); refreshPage(); };
     }
+    if (k === 'diet') {
+      const again = async () => { dt = await api(`/api/admin/members/${id}/diet`); show('diet'); };
+      $('#dEd', el).onclick = () => editMemberDiet(id, m, dt, again);
+      $('#dAu', el).onclick = async () => { if (dt.personal && dt.plan.by === 'admin' && !(await ask('Înlocuiești dieta făcută de tine?', 'Se generează una nouă din preferințele lui.', 'Generează', { icon: 'food' }))) return; await api(`/api/admin/members/${id}/diet/auto`, { method: 'POST', body: {} }); toast('Dieta a fost generată și trimisă ✅'); again(); };
+      $('#dPref', el).onclick = () => editFoodPrefs(id, dt.food, again);
+      if ($('#dDel', el)) $('#dDel', el).onclick = async () => { if (!(await ask('Ștergi dieta personală?', 'Membrul rămâne fără plan alimentar până alegeți altul.', 'Șterge', { danger: true }))) return; await api(`/api/admin/members/${id}/diet`, { method: 'DELETE', body: {} }); toast('Ștearsă'); again(); };
+    }
     if (k === 'plan') $('#prs', el).onclick = async () => { await api('/api/admin/members/' + id, { method: 'PUT', body: { programId: $('#pr', el).value, nutritionId: $('#nu', el).value } }); toast('Salvat ✅'); };
     if (k === 'info') {
       $('#is', el).onclick = async () => { try { await api('/api/admin/members/' + id, { method: 'PUT', body: { name: $('#in', el).value, phone: $('#ip', el).value, email: $('#ie', el).value, tags: $('#it', el).value, goal: $('#ig', el).value, birth: $('#ib', el).value, notes: $('#ino', el).value } }); toast('Salvat ✅'); refreshPage(); } catch (e) { $('#ier', el).textContent = e.message; } };
@@ -351,7 +371,7 @@ async function openMember(id, focus) {
     }
   }
   $$('.pill-tabs button', el).forEach((b) => (b.onclick = () => show(b.dataset.t)));
-  show('sub'); if (focus === 'pay') setTimeout(() => $('#pa', el) && $('#pa', el).focus(), 300);
+  show(['act', 'plan', 'diet', 'info'].includes(focus) ? focus : 'sub'); if (focus === 'pay') setTimeout(() => $('#pa', el) && $('#pa', el).focus(), 300);
   $('#ci', el).onclick = async () => { await api(`/api/admin/members/${id}/checkin`, { method: 'POST', body: {} }); toast('Check-in înregistrat ✅'); refreshPage(); };
   $('#cv', el).onclick = () => { closeSheet(); chatSel = id; go('chat'); };
   $('#msg', el).onclick = () => { const e2 = sheet(`<h2>Mesaj pentru ${esc(m.name.split(' ')[0])}</h2><div class="field" style="margin-top:12px"><label>Titlu</label><input class="input" id="t"></div><div class="field"><label>Mesaj</label><textarea class="input" id="b"></textarea></div><p class="muted" style="font-size:.84rem">${m.pushOn ? '🔔 Îl primește și ca notificare pe telefon.' : 'Îl vede în aplicație (nu are notificările pornite).'}</p><button class="btn btn-acc btn-block" id="s">Trimite</button>`); $('#s', e2).onclick = async () => { try { await api(`/api/admin/members/${id}/notify`, { method: 'POST', body: { title: $('#t', e2).value, body: $('#b', e2).value } }); closeSheet(); toast('Mesaj trimis ✅'); } catch (er) { toast(er.message, 'bad'); } }; };
@@ -522,6 +542,55 @@ function editNutrition(n) {
     $('#am', el).onclick = () => { N.meals.push({ name: 'Gustare', time: '', items: '', kcal: 0, p: 0, c: 0, f: 0 }); draw(); };
     $('#s', el).onclick = async () => { try { await api('/api/admin/nutrition' + (n ? '/' + n.id : ''), { method: n ? 'PUT' : 'POST', body: N }); closeSheet(); toast('Salvat ✅'); pNutrition(); } catch (e) { $('#e', el).textContent = e.message; } };
     if ($('#del', el)) $('#del', el).onclick = async () => { if (!(await ask('Ștergi planul?', '', 'Șterge', { danger: true }))) return; await api('/api/admin/nutrition/' + n.id, { method: 'DELETE', body: {} }); closeSheet(); pNutrition(); };
+  };
+  draw();
+}
+
+/* dieta unui membru: editor (mese, alimente, macro) */
+function editMemberDiet(id, m, dt, after) {
+  const src = dt.plan, N = src ? { name: dt.personal ? src.name : `Dieta lui ${m.name.split(' ')[0]}`, goal: src.goal || '', desc: src.desc || '', meals: JSON.parse(JSON.stringify(src.meals)) } : { name: `Dieta lui ${m.name.split(' ')[0]}`, goal: '', desc: '', meals: [{ name: 'Mic dejun', time: '08:00', items: '', kcal: 0, p: 0, c: 0, f: 0 }, { name: 'Prânz', time: '13:30', items: '', kcal: 0, p: 0, c: 0, f: 0 }, { name: 'Cină', time: '19:30', items: '', kcal: 0, p: 0, c: 0, f: 0 }] };
+  let notifyM = true;
+  const el = sheet('', { wide: true });
+  const totals = () => ['kcal', 'p', 'c', 'f'].map((k) => N.meals.reduce((a, x) => a + (Number(x[k]) || 0), 0));
+  const tline = () => { const [k, p, c, f] = totals(); return `Total: <b>${Math.round(k)} kcal</b> · Proteine ${Math.round(p)} g · Carbohidrați ${Math.round(c)} g · Grăsimi ${Math.round(f)} g`; };
+  const draw = () => {
+    el.innerHTML = `<h2>Dieta lui ${esc(m.name)}</h2><p class="muted" style="margin:0 0 12px">Scrie mesele cum vrei. Caloriile unei mese se calculează singure din proteine, carbohidrați și grăsimi (le poți și scrie direct).</p>
+      <div class="g2"><div class="field"><label>Nume</label><input class="input" data-k="name" value="${esc(N.name)}"></div><div class="field"><label>Obiectiv</label><input class="input" data-k="goal" value="${esc(N.goal)}" placeholder="ex: Slăbire"></div></div>
+      <div class="field"><label>Mesaj / sfaturi pentru el</label><textarea class="input" data-k="desc" placeholder="ex: Bea 2,5 l de apă. Poți înlocui puiul cu pește.">${esc(N.desc || '')}</textarea></div>
+      <div class="ed-meal muted" style="font-size:.72rem;font-weight:800"><span>MASA</span><span>ORA</span><span>CE MĂNÂNCĂ</span><span>KCAL</span><span>P</span><span>C</span><span>G</span><span></span></div>
+      ${N.meals.map((x, i) => `<div class="ed-meal">${['name', 'time', 'items', 'kcal', 'p', 'c', 'f'].map((k) => k === 'items' ? `<textarea class="input" rows="2" data-m="${i}.${k}">${esc(x[k])}</textarea>` : `<input class="input" data-m="${i}.${k}" value="${esc(x[k])}" ${['kcal', 'p', 'c', 'f'].includes(k) ? 'inputmode="decimal"' : ''}>`).join('')}<button class="btn btn-sm" data-rm="${i}" aria-label="Șterge masa">✕</button></div>`).join('')}
+      <button class="btn btn-sm" id="am">+ Masă</button>
+      <div class="card" style="background:var(--bg);margin-top:12px;font-size:.9rem" id="tot">${tline()}</div>
+      <label class="row" style="gap:8px;margin-top:12px;cursor:pointer"><input type="checkbox" id="nt" ${notifyM ? 'checked' : ''}> Anunță-l pe telefon că i-ai actualizat dieta</label>
+      <p class="err" id="e"></p><div class="row" style="gap:8px;margin-top:10px"><button class="btn btn-acc" id="s">Salvează și trimite</button></div>`;
+    $$('[data-k]', el).forEach((x) => (x.oninput = () => (N[x.dataset.k] = x.value)));
+    $$('[data-m]', el).forEach((x) => (x.oninput = () => {
+      const [i, k] = x.dataset.m.split('.'), meal = N.meals[i]; meal[k] = x.value;
+      if (['p', 'c', 'f'].includes(k)) { meal.kcal = Math.round((Number(String(meal.p).replace(',', '.')) || 0) * 4 + (Number(String(meal.c).replace(',', '.')) || 0) * 4 + (Number(String(meal.f).replace(',', '.')) || 0) * 9); const ki = $(`[data-m="${i}.kcal"]`, el); if (ki) ki.value = meal.kcal; }
+      $('#tot', el).innerHTML = tline();
+    }));
+    $('#nt', el).onchange = (e) => (notifyM = e.target.checked);
+    $$('[data-rm]', el).forEach((b) => (b.onclick = () => { N.meals.splice(+b.dataset.rm, 1); draw(); }));
+    $('#am', el).onclick = () => { N.meals.push({ name: 'Gustare', time: '', items: '', kcal: 0, p: 0, c: 0, f: 0 }); draw(); };
+    $('#s', el).onclick = async () => { try { await api(`/api/admin/members/${id}/diet`, { method: 'PUT', body: { ...N, notify: notifyM } }); closeSheet(); toast('Dieta a fost salvată ✅'); setTimeout(() => openMember(id, 'diet'), 300); } catch (e) { $('#e', el).textContent = e.message; } };
+  };
+  draw();
+}
+/* preferințele alimentare completate de admin (ex: clientul i-a spus la recepție) */
+function editFoodPrefs(id, fd, after) {
+  const D = GymDiet, F = { goal: 'mentinere', diet: 'omnivor', likes: [], dislikes: [], allergies: [], meals: 4, cook: 'rapid', budget: 'normal', ...(fd || {}) };
+  const el = sheet('', { wide: true });
+  const chips = (k, list) => `<div style="display:flex;gap:6px;flex-wrap:wrap">${list.map(([v, l]) => `<button class="btn btn-sm ${F[k].includes(v) ? 'btn-acc' : ''}" data-mk="${k}" data-v="${v}">${esc(l)}</button>`).join('')}</div>`;
+  const sel = (k, list) => `<select class="input" data-sk="${k}">${list.map(([v, l]) => `<option value="${v}" ${String(F[k]) === String(v) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+  const draw = () => {
+    el.innerHTML = `<h2>Preferințe alimentare</h2><p class="muted" style="margin:0 0 12px">Completează ce ți-a spus clientul. Dieta se generează din ele, iar apoi o poți modifica.</p>
+      <div class="g3"><div class="field"><label>Obiectiv</label>${sel('goal', [['slabire', 'Slăbire'], ['mentinere', 'Menținere'], ['masa', 'Masă musculară']])}</div><div class="field"><label>Alimentație</label>${sel('diet', D.DIETS)}</div><div class="field"><label>Mese pe zi</label>${sel('meals', [[3, '3'], [4, '4'], [5, '5']])}</div>
+      <div class="field"><label>Gătit</label>${sel('cook', [['zilnic', 'Gătește zilnic'], ['rapid', 'Simplu și rapid'], ['drum', 'Mănâncă pe drum']])}</div><div class="field"><label>Buget</label>${sel('budget', [['mic', 'Economic'], ['normal', 'Normal'], ['mare', 'Nu contează']])}</div></div>
+      <div class="field"><label>Îi place</label>${chips('likes', D.LIKES)}</div><div class="field"><label>Nu mănâncă</label>${chips('dislikes', D.LIKES)}</div><div class="field"><label>Alergii</label>${chips('allergies', D.ALLERGIES)}</div>
+      <p class="err" id="e"></p><button class="btn btn-acc" id="s">⚡ Salvează și generează dieta</button>`;
+    $$('[data-mk]', el).forEach((b) => (b.onclick = () => { const a = F[b.dataset.mk], v = b.dataset.v; a.includes(v) ? a.splice(a.indexOf(v), 1) : a.push(v); draw(); }));
+    $$('[data-sk]', el).forEach((x) => (x.onchange = () => (F[x.dataset.sk] = x.dataset.sk === 'meals' ? +x.value : x.value)));
+    $('#s', el).onclick = async () => { if (!F.likes.length) return ($('#e', el).textContent = 'Alege cel puțin un aliment care îi place.'); try { await api(`/api/admin/members/${id}/diet/auto`, { method: 'POST', body: { food: F } }); closeSheet(); toast('Dieta a fost generată și trimisă ✅'); setTimeout(() => openMember(id, 'diet'), 300); } catch (e) { $('#e', el).textContent = e.message; } };
   };
   draw();
 }

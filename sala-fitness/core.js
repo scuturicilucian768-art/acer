@@ -238,6 +238,29 @@
     ].filter(Boolean).join('\n');
   }
 
+  /* ---------- dieta personală (automată din preferințe, editabilă de admin) ---------- */
+  const dietLib = () => (typeof GymDiet !== 'undefined' ? GymDiet : require('./diet.js'));
+  function foodInput(b) {
+    const D = dietLib(), likeKeys = D.LIKES.map((x) => x[0]), list = (v, keys) => (Array.isArray(v) ? v : []).filter((x) => keys.includes(x)).slice(0, 25);
+    return {
+      goal: ['slabire', 'mentinere', 'masa'].includes(b.goal) ? b.goal : 'mentinere', diet: D.DIETS.some((x) => x[0] === b.diet) ? b.diet : 'omnivor',
+      likes: list(b.likes, likeKeys), dislikes: list(b.dislikes, likeKeys), allergies: list(b.allergies, D.ALLERGIES.map((x) => x[0])),
+      meals: [3, 4, 5].includes(+b.meals) ? +b.meals : 4, cook: ['zilnic', 'rapid', 'drum'].includes(b.cook) ? b.cook : 'rapid', budget: ['mic', 'normal', 'mare'].includes(b.budget) ? b.budget : 'normal', note: clean(b.note, 200),
+    };
+  }
+  function dietInfo(m, t) {
+    const w = (m.weights || []).slice(-1)[0], g = (m.goal || '').toLowerCase();
+    return { sex: m.sex, kg: w ? w.kg : null, kcal: kcalTarget(m, t), kcalGoal: /slăb|slab|defin/.test(g) ? 'slabire' : /mas|crest|creșt/.test(g) ? 'masa' : 'mentinere' };
+  }
+  function savePersonalDiet(db, m, plan, by, at) {
+    const id = 'nu_my_' + m.id, old = db.nutrition.find((x) => x.id === id);
+    const x = { id, owner: m.id, name: plan.name || 'Dieta mea personală', goal: plan.goal || '', desc: plan.desc || '', meals: plan.meals, by, at };
+    ['kcal', 'p', 'c', 'f'].forEach((k) => (x[k] = Math.round(x.meals.reduce((a, y) => a + (Number(y[k]) || 0), 0))));
+    if (old) Object.assign(old, x); else db.nutrition.push(x);
+    m.nutritionId = id; return x;
+  }
+  function mealsInput(arr) { return (Array.isArray(arr) ? arr : []).slice(0, 8).map((y) => { const p = num(y.p, 0, 500) || 0, c = num(y.c, 0, 800) || 0, f = num(y.f, 0, 400) || 0, k = num(y.kcal, 0, 5000); return { name: clean(y.name, 40), time: clean(y.time, 10), items: text(y.items, 400), p, c, f, kcal: k || Math.round(p * 4 + c * 4 + f * 9) }; }).filter((y) => y.name); }
+
   /* ---------- vederi ---------- */
   const pubSettings = (s) => { const { checkinCode, checkinDate, dailySent, ...r } = s; return r; };
   function memberRow(db, m, t) {
@@ -279,7 +302,7 @@
       programs: db.programs.filter((p) => !p.owner || p.owner === m.id).map(({ days, ...p }) => ({ ...p, nDays: days.length })), plans: db.plans.filter((p) => p.active),
       board: boardFor(db, m, t), crowd: crowdFor(db, t, ctx.time ? ctx.time() : '12:00'), water: (m.water || {})[t] || 0, chatUnread: (m.chat || []).filter((x) => x.from === 'g' && !x.read).length,
       memberCode: 'GYM:' + m.id, checkinTime: (m.ciAt || {})[t] || null,
-      nutritionPlans: db.nutrition.map(({ meals, ...n }) => n), unread: (m.notifs || []).filter((n) => !n.read).length, checkedInToday: (m.checkins || []).includes(t),
+      nutritionPlans: db.nutrition.filter((n) => !n.owner || n.owner === m.id).map(({ meals, ...n }) => n), unread: (m.notifs || []).filter((n) => !n.read).length, checkedInToday: (m.checkins || []).includes(t),
     };
   }
   function stats(db, t) {
@@ -422,6 +445,11 @@
         if (me.robo.length > 80) me.robo.splice(0, me.robo.length - 80);
         return ok({ messages: me.robo });
       }
+      if (p === '/api/me/food' && m === 'POST') {
+        const P = foodInput(body); me.food = { ...P, at: ctx.nowISO() };
+        const plan = dietLib().generate(P, dietInfo(me, t)); savePersonalDiet(db, me, plan, 'auto', ctx.nowISO());
+        return ok({ ...homeFor(db, me, t, ctx), diet: true });
+      }
       if (p === '/api/me/look' && m === 'PUT') { const [L, e] = lookInput(body, rankOf(pointsOf(db, me, t).earned).idx, me.look); if (e) return no(400, e); me.look = L; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/generate' && m === 'POST') { const prog = generateProgram(db, me, body); return ok({ ...homeFor(db, me, t, ctx), generated: prog.id }); }
       if (p === '/api/me/chat' && m === 'GET') { (me.chat || []).forEach((x) => { if (x.from === 'g') x.read = true; }); return ok({ messages: me.chat || [] }); }
@@ -476,7 +504,7 @@
         return ok(homeFor(db, me, t, ctx));
       }
       if (p === '/api/me/program' && m === 'POST') { if (!db.programs.some((x) => x.id === body.programId && (!x.owner || x.owner === me.id))) return no(400, 'Program inexistent.'); me.programId = body.programId; return ok(homeFor(db, me, t, ctx)); }
-      if (p === '/api/me/nutrition' && m === 'POST') { if (!db.nutrition.some((x) => x.id === body.nutritionId)) return no(400, 'Plan inexistent.'); me.nutritionId = body.nutritionId; return ok(homeFor(db, me, t, ctx)); }
+      if (p === '/api/me/nutrition' && m === 'POST') { if (!db.nutrition.some((x) => x.id === body.nutritionId && (!x.owner || x.owner === me.id))) return no(400, 'Plan inexistent.'); me.nutritionId = body.nutritionId; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/notifs' && m === 'GET') return ok({ notifs: (me.notifs || []).slice().reverse() });
       if (p === '/api/me/notifs/read' && m === 'POST') { (me.notifs || []).forEach((n) => (n.read = true)); return ok({ ok: true }); }
       if (p === '/api/me/push' && m === 'POST') {
@@ -560,6 +588,21 @@
       if (sub === '/payment' && m === 'POST') { const e = addPayment(db, mem, t, ctx, body); if (e) return no(400, e); notify(db, ctx, [mem], 'Abonament activ ✅', `Abonamentul tău e valabil până pe ${mem.sub.end.split('-').reverse().join('.')}. Spor la antrenamente!`, 'abonament'); return ok({ member: memberFull(db, mem, t) }, 201); }
       if ((r = /^\/payment\/(\w+)$/.exec(sub)) && m === 'DELETE') { mem.payments = (mem.payments || []).filter((x) => x.id !== r[1]); return ok({ member: memberFull(db, mem, t) }); }
       if (sub === '/checkin' && m === 'POST') { mem.checkins = mem.checkins || []; const already = mem.checkins.includes(t); if (!already) { mem.checkins.push(t); mem.ciAt = mem.ciAt || {}; mem.ciAt[t] = ctx.time ? ctx.time() : ''; } return ok({ member: memberFull(db, mem, t), already }); }
+      if (sub === '/diet' && m === 'GET') { const pl = db.nutrition.find((x) => x.id === mem.nutritionId) || null; return ok({ plan: pl, food: mem.food || null, personal: !!(pl && pl.owner === mem.id) }); }
+      if (sub === '/diet/auto' && m === 'POST') {
+        const P = foodInput(body.food ? body.food : mem.food || { goal: dietInfo(mem, t).kcalGoal });
+        if (body.food) mem.food = { ...P, at: ctx.nowISO(), byAdmin: true };
+        const pl = savePersonalDiet(db, mem, dietLib().generate(P, dietInfo(mem, t)), 'auto', ctx.nowISO());
+        if (body.notify !== false) notify(db, ctx, [mem], 'Dieta ta e gata 🥗', `Ți-am pregătit un plan alimentar personal, ~${pl.kcal} kcal pe zi. Îl găsești la Nutriție.`, 'dieta', '/app.html#food');
+        return ok({ plan: pl });
+      }
+      if (sub === '/diet' && m === 'PUT') {
+        const meals = mealsInput(body.meals); if (!meals.length) return no(400, 'Adaugă cel puțin o masă.');
+        const pl = savePersonalDiet(db, mem, { name: clean(body.name, 80) || 'Dieta mea personală', goal: clean(body.goal, 60), desc: text(body.desc, 400), meals }, 'admin', ctx.nowISO());
+        if (body.notify) notify(db, ctx, [mem], 'Antrenorul ți-a actualizat dieta 🥗', `Planul tău alimentar are acum ${pl.meals.length} mese, ~${pl.kcal} kcal pe zi. Vezi-l la Nutriție.`, 'dieta', '/app.html#food');
+        return ok({ plan: pl });
+      }
+      if (sub === '/diet' && m === 'DELETE') { db.nutrition = db.nutrition.filter((x) => x.id !== 'nu_my_' + mem.id); if (mem.nutritionId === 'nu_my_' + mem.id) mem.nutritionId = ''; return ok({ ok: true }); }
       if (sub === '/notify' && m === 'POST') { const title = clean(body.title, 80), b = text(body.body, 500); if (!title || !b) return no(400, 'Scrie titlul și mesajul.'); return ok(notify(db, ctx, [mem], title, b)); }
       return no(404, 'Nu există.');
     }
@@ -668,7 +711,7 @@
     };
     if ((r = /^\/api\/admin\/(plans|announcements|services|rewards|exercises|programs|nutrition)(?:\/(\w+))?$/.exec(p))) {
       const [, key, id] = r, [pref, fill] = LISTS[key], list = db[key];
-      if (!id && m === 'GET') return ok({ [key]: list });
+      if (!id && m === 'GET') return ok({ [key]: key === 'nutrition' ? list.filter((y) => !y.owner) : list });
       if (!id && m === 'POST') { const x = { id: ctx.uid(pref) }; const e = fill(body, x); if (e) return no(400, e); list.push(x); if (key === 'announcements' && body.notify) notify(db, ctx, targetMembers(db, t, 'active'), x.title, x.body.slice(0, 180), 'anunt'); return ok({ item: x }, 201); }
       const x = list.find((y) => y.id === id); if (!x) return no(404, 'Nu există.');
       if (m === 'PUT') { const e = fill({ ...x, ...body }, x); return e ? no(400, e) : ok({ item: x }); }

@@ -446,7 +446,8 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 </div>
 <script src="robo-kb.js?v=5"></script>
 <script src="robo.js?v=5"></script>
-<script src="core.js?v=4"></script>
+<script src="diet.js?v=5"></script>
+<script src="core.js?v=5"></script>
 <script src="seed.js?v=4"></script>
 <script src="env.js?v=4"></script>
 <script src="common.js?v=4"></script>
@@ -789,6 +790,7 @@ async function openChat(prefill, mode, autoSend) {
     if (k === 'ex') return setTimeout(() => openEx(v), 200);
     if (k === 'tab') return go(v);
     if (k === 'plan') return openRobo();
+    if (k === 'diet') return openFoodQuiz();
     if (k === 'start') { if (H.program) return startWorkout(H.program, H.nextDay); return go('train'); }
     if (k === 'checkin') return H.checkedInToday ? toast('Ai făcut deja check-in azi. Spor!') : openCheckin();
     if (k === 'board') return openBoard();
@@ -993,6 +995,93 @@ function openStudio(startTab) {
     if (b.id === 'sv') { b.disabled = true; try { await act('/api/me/look', L, 'PUT'); closeSheet(); toast('Salvat! Arăți super 😎'); render(); } catch { b.disabled = false; } }
   };
   draw();
+}
+
+/* ───────── DIETA PE GUSTUL TĂU (chestionar cu Robo) ───────── */
+function openFoodQuiz() {
+  if ($('#robo')) return;
+  closeSheet();
+  const D = GymDiet, me = H.me, first = me.name.split(' ')[0], prev = me.food || {};
+  const el = document.createElement('div'); el.className = 'chat robo-chat'; el.id = 'robo'; document.body.appendChild(el); document.body.classList.add('noscroll');
+  el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="rx" aria-label="Închide">${IC('back', 20)}</button><span style="width:46px;display:grid;place-items:center">${GymFig.robot(42)}</span><div class="grow"><b>Robo · dieta ta</b><div class="muted small">Îți fac un plan alimentar pe gustul tău</div></div><button class="btn btn-sm btn-ghost" id="rbk" style="visibility:hidden">${IC('back', 14)} Înapoi</button></div>
+    <div class="msgs" id="rm" aria-live="polite"></div><div class="rbar"><div class="qr" id="rq"></div></div>`;
+  const box = $('#rm', el), bar = $('#rq', el), A = {}, hist = [];
+  let idx = 0, busy = false;
+  const O = (v, l) => ({ v, l });
+  const meatFree = () => A.diet === 'vegetarian' || A.diet === 'post';
+  const likeOpts = () => D.LIKES.filter(([k]) => !(meatFree() && ['pui', 'vita', 'porc', 'peste', 'ton'].includes(k)) && !(A.diet === 'post' && ['oua', 'lactate', 'whey'].includes(k)) && !(A.diet === 'fara_porc' && k === 'porc')).map(([k, l]) => O(k, l));
+  const coachGoal = me.coach ? ({ slabire: 'slabire', masa: 'masa', forta: 'masa' })[me.coach.goal] || 'mentinere' : '';
+  const steps = [
+    { k: 'start', say: () => [`Salut, ${first}! 🥗 Hai să-ți fac o dietă pe gustul tău, cu mâncare care chiar îți place.`, 'Îți pun câteva întrebări scurte. La final primești mesele zilei, cu grame și calorii.'], opts: () => [O(1, 'Hai! 😋')] },
+    { k: 'goal', say: () => ['Ce vrei să obții cu alimentația?' + (coachGoal ? ' (Știu că scopul tău de la sală e ' + ({ slabire: 'slăbitul', masa: 'masa musculară', mentinere: 'sănătatea' })[coachGoal] + '.)' : '')], opts: () => [O('slabire', '🔥 Să slăbesc'), O('mentinere', '⚖️ Să mă mențin, cu energie'), O('masa', '💪 Să pun masă musculară')] },
+    { k: 'diet', say: () => ['Cum mănânci de obicei?'], opts: () => D.DIETS.map(([k, l]) => O(k, l)) },
+    { k: 'likes', multi: true, need: true, say: () => ['Ce îți place să mănânci? Alege tot ce-ți place, cât mai multe. 😄'], opts: likeOpts },
+    { k: 'dislikes', multi: true, say: () => ['Și ce NU mănânci deloc? Nu pun asta în dietă.'], opts: () => likeOpts().filter((o) => !(A.likes || []).includes(o.v)), none: () => O([], '👍 Mănânc orice') },
+    { k: 'allergies', multi: true, say: () => ['Ai vreo alergie sau intoleranță?'], opts: () => D.ALLERGIES.map(([k, l]) => O(k, l)), none: () => O([], 'Nu, niciuna') },
+    { k: 'meals', say: () => ['Câte mese pe zi îți convine să mănânci?'], opts: () => [O(3, '3 mese'), O(4, '4 mese (cu o gustare)'), O(5, '5 mese (cu 2 gustări)')] },
+    { k: 'cook', say: () => ['Cât timp ai pentru gătit?'], opts: () => [O('zilnic', '👨‍🍳 Gătesc în fiecare zi'), O('rapid', '⏱️ Ceva simplu și rapid'), O('drum', '🏃 Mănânc mult pe drum')] },
+    { k: 'budget', say: () => ['Și bugetul pentru mâncare?'], opts: () => [O('mic', '💰 Economic'), O('normal', '💳 Normal'), O('mare', '💎 Nu contează')], reply: () => 'Perfect, am tot ce-mi trebuie! 🙌' },
+  ];
+  const scroll = () => { box.scrollTop = box.scrollHeight; };
+  const rB = (t) => `<div class="rmsg"><span class="rav">${GymFig.robot(28)}</span><div class="bub g">${esc(t)}</div></div>`;
+  async function say(lines, instant) {
+    for (const l of lines) {
+      if (!l) continue;
+      if (!instant) { box.insertAdjacentHTML('beforeend', `<div class="rmsg" id="rty"><span class="rav">${GymFig.robot(28, { talk: true })}</span><div class="bub g"><span class="typing"><i></i><i></i><i></i></span></div></div>`); scroll(); await wait(Math.min(1100, 380 + l.length * 9)); const ty = $('#rty', box); if (ty) ty.remove(); if (!el.isConnected) return; }
+      box.insertAdjacentHTML('beforeend', rB(l)); scroll();
+    }
+  }
+  const labelOf = (st, v) => { if (st.multi) { const ls = st.opts().filter((o) => v.includes(o.v)).map((o) => o.l); return ls.length ? ls.join(', ') : st.none ? st.none().l : '–'; } const o = st.opts().find((x) => x.v === v); return o ? o.l : String(v); };
+  function opts() {
+    const st = steps[idx], list = st.opts(), pre = prev[st.k];
+    $('#rbk', el).style.visibility = hist.length > 1 ? 'visible' : 'hidden';
+    if (st.multi) {
+      const sel = new Set(Array.isArray(pre) ? pre.filter((x) => list.some((o) => o.v === x)) : []);
+      bar.innerHTML = list.map((o, i) => `<button data-i="${i}" class="${sel.has(o.v) ? 'on' : ''}" aria-pressed="${sel.has(o.v)}">${esc(o.l)}</button>`).join('') + `<button class="go" id="rgo" ${st.need && !sel.size ? 'disabled' : ''}>Gata ${IC('check', 14)}</button>${st.none ? `<button data-none="1">${esc(st.none().l)}</button>` : ''}`;
+      const upd = () => { $('#rgo', bar).disabled = st.need && !sel.size; };
+      $$('[data-i]', bar).forEach((b) => (b.onclick = () => { const v = list[+b.dataset.i].v; sel.has(v) ? sel.delete(v) : sel.add(v); b.classList.toggle('on', sel.has(v)); b.setAttribute('aria-pressed', sel.has(v)); upd(); }));
+      $('#rgo', bar).onclick = () => answer([...sel]);
+      if ($('[data-none]', bar)) $('[data-none]', bar).onclick = () => answer([]);
+    } else {
+      bar.innerHTML = list.map((o, i) => `<button data-i="${i}" class="${pre === o.v || (st.k === 'goal' && !prev.goal && coachGoal === o.v) ? 'on' : ''}">${esc(o.l)}</button>`).join('');
+      $$('[data-i]', bar).forEach((b) => (b.onclick = () => answer(list[+b.dataset.i].v)));
+    }
+  }
+  async function ask(instant) { bar.innerHTML = ''; busy = true; await say(steps[idx].say(), instant); busy = false; if (el.isConnected) opts(); }
+  async function answer(v) {
+    if (busy) return; busy = true;
+    const st = steps[idx]; A[st.k] = v; hist.push(idx); bar.innerHTML = '';
+    box.insertAdjacentHTML('beforeend', `<div class="bub m">${esc(labelOf(st, v))}</div>`); scroll();
+    await wait(220); if (st.reply) await say([st.reply(v)]); busy = false;
+    idx++; if (idx >= steps.length) return build(); ask();
+  }
+  async function back() {
+    if (busy || hist.length < 2) return;
+    idx = hist.pop(); for (const s2 of steps.slice(idx)) delete A[s2.k];
+    box.innerHTML = '';
+    for (const j of hist) { await say(steps[j].say(), true); box.insertAdjacentHTML('beforeend', `<div class="bub m">${esc(labelOf(steps[j], A[steps[j].k]))}</div>`); }
+    ask(true);
+  }
+  async function build() {
+    $('#rbk', el).style.visibility = 'hidden';
+    box.insertAdjacentHTML('beforeend', `<div class="rmsg" id="rty"><span class="rav">${GymFig.robot(28, { talk: true })}</span><div class="bub g"><span class="typing"><i></i><i></i><i></i></span></div></div>`); scroll();
+    let r;
+    try { [r] = await Promise.all([api('/api/me/food', { method: 'POST', body: A }), wait(1400)]); }
+    catch (e) { const ty = $('#rty', box); if (ty) ty.remove(); box.insertAdjacentHTML('beforeend', rB('Ups, n-am reușit: ' + e.message)); bar.innerHTML = '<button class="go" id="rre">Încearcă din nou</button>'; $('#rre', bar).onclick = () => { bar.innerHTML = ''; build(); }; return; }
+    const ty = $('#rty', box); if (ty) ty.remove();
+    H = r; const n = H.nutrition;
+    box.insertAdjacentHTML('beforeend', `<div class="rres"><span class="chip acc">🥗 Dieta ta</span><h3>${n.kcal} kcal pe zi</h3>
+      <div class="goalchips"><span class="chip" style="color:#3DDC97">Proteine ${n.p} g</span><span class="chip" style="color:#FFC23D">Carbohidrați ${n.c} g</span><span class="chip" style="color:#FF5A7A">Grăsimi ${n.f} g</span></div>
+      <div class="list" style="margin-top:12px">${n.meals.map((m) => `<div class="card" style="padding:10px 12px;background:var(--bg2)"><div class="row"><b class="grow">${esc(m.name)}</b><small class="muted">${esc(m.time)} · ${m.kcal} kcal</small></div><div class="muted small" style="margin-top:4px">${esc(m.items)}</div></div>`).join('')}</div>
+      <p class="muted small" style="margin:10px 0 0">${esc(n.desc)}</p></div>`);
+    scroll(); confetti();
+    await say(['Gata! 🎉 Dieta ta e acum în tab-ul Nutriție, unde poți bifa mesele pe care le mănânci.', 'Antrenorii o văd și ei și o pot ajusta pentru tine, dacă e nevoie. Poftă bună! 😋']);
+    bar.innerHTML = `<button class="go" id="rg1">${IC('food', 14)} Vezi dieta</button>`;
+    $('#rg1', bar).onclick = () => { close(); go('food'); };
+  }
+  const close = () => { el.remove(); document.body.classList.remove('noscroll'); render(); };
+  $('#rx', el).onclick = close; $('#rbk', el).onclick = back;
+  ask();
 }
 
 /* ───────── ANTRENAMENT ───────── */
@@ -1234,16 +1323,19 @@ function vFood(v) {
   const n = H.nutrition, eaten = new Set((H.me.meals || {})[H.today] || []), wt = H.water || 0;
   const water = `<div class="card" style="margin-top:12px"><div class="row"><span style="color:#5FB8FF">${IC('water', 24)}</span><div class="grow"><b>Apă azi</b><div class="muted small">${wt} din 8 pahare · ${(wt * 0.25).toLocaleString('ro-RO')} litri</div></div>${wt >= 8 ? '<span class="chip ok">Bravo!</span>' : ''}</div><div class="water">${Array.from({ length: 8 }, (_, i) => `<button class="${i < wt ? 'on' : ''}" data-w="${i + 1}" aria-label="${i + 1} pahare"></button>`).join('')}</div></div>`;
   const bindW = () => $$('[data-w]', v).forEach((b) => (b.onclick = async () => { const k = +b.dataset.w; await act('/api/me/water', { n: k === wt ? k - 1 : k }); if (k === 8 && wt < 8) confetti(); render(); }));
-  if (!n) { v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>Alege un plan</h1></div><p class="muted">Alege un plan alimentar potrivit obiectivului tău.</p>${water}<div class="list" id="np" style="margin-top:12px"></div>`; drawPlans(); bindW(); return; }
+  const mine = n && n.owner, foodQ = `<div class="robocard" style="margin-top:0;margin-bottom:12px"><div>${GymFig.robot(70)}</div><div><div class="say"><span class="k">Dieta pe gustul tău</span>Spune-mi ce-ți place să mănânci și îți fac o dietă doar pentru tine, cu grame și calorii.</div><button class="btn btn-acc btn-sm" id="fq" style="margin-top:10px">${IC('food', 15)} Fă-mi dieta</button></div></div>`;
+  if (!n) { v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>Alege un plan</h1></div>${foodQ}<p class="muted">Sau alege unul dintre planurile sălii:</p>${water}<div class="list" id="np" style="margin-top:12px"></div>`; drawPlans(); bindW(); $('#fq', v).onclick = openFoodQuiz; return; }
   const kc = n.meals.reduce((a, x, i) => a + (eaten.has(i) ? x.kcal : 0), 0), mac = (k) => n.meals.reduce((a, x, i) => a + (eaten.has(i) ? x[k] : 0), 0);
-  v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>${esc(n.name)}</h1></div><p class="muted" style="margin:4px 0 16px">${esc(n.desc || '')}</p>
-    <div class="card row" style="gap:18px">${ring(kc / n.kcal, `<span data-count="${kc}">0</span>`, `din ${n.kcal} kcal`, 130)}<div class="grow"><b>Azi</b><div class="muted" style="font-size:.88rem;margin:4px 0 10px">Bifează mesele pe care le-ai mâncat.</div>${H.kcal ? `<span class="chip acc">Recomandat pentru tine: ~${H.kcal} kcal</span>` : '<span class="chip">Completează greutatea, înălțimea și data nașterii pentru caloriile tale</span>'}</div></div>
+  v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>${esc(n.name)}</h1></div>${mine ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">${n.by === 'admin' ? `<span class="chip" style="background:rgba(61,220,151,.15);color:var(--green)">${IC('users', 13)} Ajustată de antrenor</span>` : `<span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">${IC('spark', 13)} Făcută pentru tine</span>`}${H.me.food ? `<span class="chip">${H.me.food.meals} mese pe zi</span>` : ''}</div>` : ''}<p class="muted" style="margin:8px 0 16px">${esc(n.desc || '')}</p>${mine ? '' : foodQ}
+    <div class="card row" style="gap:18px">${ring(kc / n.kcal, `<span data-count="${kc}">0</span>`, `din ${n.kcal} kcal`, 130)}<div class="grow"><b>Azi</b><div class="muted" style="font-size:.88rem;margin:4px 0 10px">Bifează mesele pe care le-ai mâncat.</div>${mine ? `<span class="chip acc">Ținta ta: ~${n.kcal} kcal pe zi</span>` : H.kcal ? `<span class="chip acc">Recomandat pentru tine: ~${H.kcal} kcal</span>` : '<span class="chip">Completează greutatea, înălțimea și data nașterii pentru caloriile tale</span>'}</div></div>
     <div class="macro" style="margin-top:12px">${[['p', 'Proteine', '#3DDC97'], ['c', 'Carbohidrați', '#FFC23D'], ['f', 'Grăsimi', '#FF5A7A']].map(([k, l, c]) => `<div><small class="muted" style="font-weight:700">${l}</small><div><b>${mac(k)}</b><span class="muted"> / ${n[k]} g</span></div><div class="bar-p" style="margin-top:8px"><i style="width:${Math.min(1, mac(k) / n[k]) * 100}%;background:${c}"></i></div></div>`).join('')}</div>
     ${water}
     <div class="sec"><h2>Mesele de azi</h2></div>
     <div class="list">${n.meals.map((x, i) => `<button class="meal ${eaten.has(i) ? 'done' : ''}" data-m="${i}"><span class="box">${IC('check', 18)}</span><span class="grow"><span class="row"><b class="grow">${esc(x.name)}</b><small class="muted">${esc(x.time)}</small></span><span class="muted" style="display:block;font-size:.9rem;margin:4px 0 6px">${esc(x.items)}</span><small><b>${x.kcal}</b> kcal · P ${x.p} g · C ${x.c} g · G ${x.f} g</small></span></button>`).join('')}</div>
     <div class="sec"><h2>Alte planuri</h2></div><div class="list" id="np"></div>
-    <div class="tip" style="margin-top:16px">${IC('info', 18)} Planurile sunt orientative. Pentru un plan făcut exact pentru tine, cere o consultanță la sală.</div>`;
+    ${mine ? `<button class="btn btn-ghost btn-block" id="fq" style="margin-top:14px">${IC('edit', 16)} Schimbă ce-mi place și refă dieta</button>` : ''}
+    <div class="tip" style="margin-top:16px">${IC('info', 18)} ${mine ? 'Poți înlocui o carne cu alta și un carbohidrat cu altul, în cantități asemănătoare. Vrei altceva? Spune-le antrenorilor: îți pot ajusta ei dieta.' : 'Planurile sunt orientative. Pentru un plan făcut exact pentru tine, apasă „Fă-mi dieta”.'}</div>`;
+  if ($('#fq', v)) $('#fq', v).onclick = openFoodQuiz;
   $$('[data-m]', v).forEach((b) => (b.onclick = async () => { await act('/api/me/meal', { date: H.today, idx: +b.dataset.m, done: !eaten.has(+b.dataset.m) }); render(); }));
   drawPlans(); bindW();
 }
