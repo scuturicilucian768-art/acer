@@ -27,9 +27,9 @@
     let best = null, bl = 0;
     for (const e of C.exercises) {
       const keys = [norm(e.name), ...(ALIAS[e.id] || [])];
-      for (const k of keys) { if (k.length < 3) continue; const re = new RegExp('(^| )' + k + (k.length >= 4 ? '[a-z]{0,4}' : '') + '( |$)'); if (re.test(t) && k.length > bl) { best = e; bl = k.length; } }
+      for (const k of keys) { if (k.length < 3) continue; const re = new RegExp('(^| )' + k.split(' ').map((w) => w + (w.length >= 4 ? '[a-z]{0,4}' : '')).join(' ') + '( |$)'); if (re.test(t) && k.length > bl) { best = e; bl = k.length; } }
     }
-    return best;
+    findExercise.len = bl; return best;
   }
   const GROUPS = [
     ['Piept', /\bpiept|pectoral/], ['Spate', /\bspate(le)?\b|dorsal/], ['Picioare', /\bpicioare|coaps|cvadriceps|gambe/], ['Fesieri', /fesier|funda|fese|glute/],
@@ -143,8 +143,46 @@
     return R(`Exerciții pentru ${g.toLowerCase()}:\n${list.slice(0, 7).map((e) => `• ${e.name} (${e.level})`).join('\n')}\n\nAlege 2–3 dintre ele pe antrenament, 3 serii a câte 8–12 repetări. Atinge unul ca să vezi cum se face.`, list.slice(0, 3).map((e) => ({ l: e.name, a: 'ex:' + e.id })));
   }
 
+
+  /* ── baza de cunoștințe extinsă + corectarea greșelilor de scriere ── */
+  const KB = () => (typeof GymRoboKB !== 'undefined' ? GymRoboKB : typeof require === 'function' ? require('./robo-kb.js') : { TOPICS: [], EXTRA: [] });
+  function lev(a, b) { if (Math.abs(a.length - b.length) > 2) return 9; const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j; for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; }
+  const STOP = new Set('pentru care este sunt foarte despre acum dupa inainte cand unde poate trebuie vreau aveti faceti multe putin mult tare bine rau aceasta acesta astazi maine ieri saptamana zile sala salii doare'.split(' '));
+  const BASEW = 'genuflexiuni fandari indreptari flotari tractiuni abdomene plansa biceps triceps umeri spate piept picioare fesieri genunchi genunchiul spatele umarul gatul durere dureri proteine proteina calorii creatina suplimente slabesc slabit slabire masa musculara incalzire intinderi stretching cardio alergare abonament abonamentul program programul aglomerat deschis pret preturi antrenament antrenamentul exercitii exercitiu motivatie obosit renunt rezultate somn odihna febra musculara mananc mancare dieta alimentatie greutate repetari serii pauza'.split(' ');
+  let VOCAB = null;
+  function vocab(C) {
+    if (VOCAB) return VOCAB; const v = new Set(BASEW);
+    const addW = (str) => norm(str).split(' ').forEach((w) => { if (w.length >= 5) v.add(w); });
+    Object.values(ALIAS).flat().forEach(addW); C.exercises.forEach((e) => addW(e.name));
+    const kb = KB(); kb.TOPICS.forEach((tp) => tp.k.forEach(addW)); kb.EXTRA.forEach((e) => { addW(e.name); e.k.forEach(addW); });
+    return (VOCAB = [...v]);
+  }
+  function fix(t, C) {
+    const V = vocab(C), set = new Set(V);
+    return t.split(' ').map((w) => { if (w.length < 5 || set.has(w) || STOP.has(w)) return w; let best = null, bd = 9; for (const x of V) { const d = lev(w, x); if (d < bd) { bd = d; best = x; } } return bd <= (w.length >= 9 ? 2 : 1) ? best : w; }).join(' ');
+  }
+  function topicScore(t) {
+    const words = t.split(' '); let best = null, bs = 0;
+    for (const tp of KB().TOPICS) {
+      let sc = 0;
+      for (const k of tp.k) {
+        if (k.includes(' ')) { if (t.includes(k)) sc += 2; }
+        else if (words.some((w) => w === k || (k.length >= 4 && w.startsWith(k) && w.length - k.length <= (k.length >= 7 ? 3 : 2)) || (k.length >= 6 && lev(w.slice(0, k.length + 1), k) <= 1))) sc += 1;
+      }
+      if (tp.p && sc) sc += 1;
+      if (sc > bs) { bs = sc; best = tp; }
+    }
+    return best ? { tp: best, score: bs } : null;
+  }
+  const topicR = (tp) => R(tp.a, tp.act || [], tp.c || []);
+  function extraExercise(t) {
+    let best = null, bl = 0;
+    for (const e of KB().EXTRA) for (const k of [norm(e.name), ...e.k]) if (k.length >= 4 && new RegExp('(^| )' + k.split(' ').map((w) => w + (w.length >= 4 ? '[a-z]{0,4}' : '')).join(' ') + '( |$)').test(t) && k.length > bl) { best = e; bl = k.length; }
+    if (best) best.bl = bl; return best;
+  }
+  const GYMWORDS = /sal|antren|exerci|muschi|forta|kg|greutat|aparat|gantere|bara|slab|grasim|kilogram|mananc|manca|protein|calori|dieta|durer|doare|spate|picio|brat|burt|abdomen|fesier|piept|umer|cardio|alerg|somn|odihn|motiv|abonament|program|corp|sport|fitness|gym|sanatat|apa|energi/;
   function answer(raw, C) {
-    const t = norm(raw), seed = raw.length + (C.seed || 0);
+    const t0 = norm(raw), t = t0 ? fix(t0, C) : t0, seed = raw.length + (C.seed || 0);
     if (!t) {
       const m = C.me, L = [`Salut, ${C.first}! 👋 Sunt Robo și îți răspund pe loc la orice întrebare despre sală: exerciții, tehnică, dureri, mâncare, odihnă, abonament sau program.`];
       if (m.streak >= 2) L.push(`Apropo, ești la ${m.streak} zile la rând. Super! 🔥`); else L.push('Și când nu ai chef de sală, scrie-mi. Te scot eu din canapea. 😄');
@@ -155,7 +193,9 @@
 
     if (has(t, /febra|ma dor (muschii|toti)|carcei|antrenez cu febra/)) return training(t, C);
     if (has(t, /\bdoare|durere|dureri|junghi|lombar|hernie|sciatic|tendinit|accident|entors|luxat|ma jeneaza|disconfort/)) return pain(t, C);
-    if (has(t, /chef|lene|lenes|obosit|motivat|motivatie|renunt|nu vad rezultat|nu mai pot|demotivat|plictis|trist|nu am timp|n am timp|descuraj|incurajare|incurajeaza|greu sa vin|nu vreau sa vin|sunt gras|ma simt rau cu mine/)) {
+    const top = topicScore(t);
+    if (top && top.score >= 2) return topicR(top.tp);
+    if (has(t, /chef|lene|lenes|obosit|motivat|motivatie|renunt|nu vad rezultat|nu mai pot|demotivat|plictis|nu am timp|n am timp|descuraj|incurajare|incurajeaza|greu sa vin|nu vreau sa vin|sunt gras|ma simt rau cu mine/)) {
       if (has(t, /nu vad rezultat|nu slabesc|stau pe loc|nu progresez|nu cresc/)) return R(`Hai să ne uităm împreună, ${C.first}. Rezultatele vin de obicei după 4–8 săptămâni de constanță, nu după 2.\n\nVerifică trei lucruri:\n1. Vii de cel puțin 3 ori pe săptămână? Săptămâna asta ai ${C.me.weekCount} antrenamente.\n2. Crești greutățile treptat? Notează-le la fiecare antrenament.\n3. Mâncarea și somnul se potrivesc cu scopul?\n\nUită-te și la centimetri și poze, nu doar la cântar. Uneori talia scade înainte de kilograme. 💪`, [{ l: 'Progresul meu', a: 'tab:progress' }]);
       if (has(t, /nu am timp|n am timp/)) return R('Nici nu ai nevoie de mult! 30 de minute de 3 ori pe săptămână schimbă corpul.\n\nVariante scurte:\n• 3–4 exerciții mari, câte 3 serii, pauze scurte\n• Combină 2 exerciții fără pauză între ele (superset)\n• În zilele aglomerate, chiar și 15 minute contează\n\nVrei să-ți refac programul pe 30 de minute?', [{ l: 'Program de 30 de minute', a: 'plan' }]);
       return encourage(C, seed);
@@ -163,15 +203,20 @@
     const g = gymInfo(t, C); if (g) return g;
     const tr = training(t, C); if (tr) return tr;
     const n = nutrition(t, C); if (n) return n;
-    const ex = findExercise(t, C);
+    if (top && top.score >= 1 && !findExercise(t, C)) return topicR(top.tp);
+    const xe = extraExercise(t);
+    let ex = findExercise(t, C); if (ex && xe && xe.bl > findExercise.len) ex = null;
     if (has(t, /exercit|ce (sa )?fac pentru|cum (lucrez|antrenez|cresc)|pentru (piept|spate|picioare|fesier|funda|abdomen|umeri|brate|biceps|triceps)/) && !(ex && !has(t, /exercit/))) {
       for (const [gname, re] of GROUPS) if (re.test(t)) { const a = groupAnswer(gname, C); if (a) return a; }
     }
     if (ex) return exerciseAnswer(ex, C);
+    if (xe) return R(`${xe.name} (${xe.muscle}):\n${xe.steps.map((x, i) => `${i + 1}. ${x}`).join('\n')}${xe.tip ? `\n\n💡 ${xe.tip}` : ''}`, [], ['Câte serii să fac?', 'Ce greutate să folosesc?']);
+    if (top && top.score >= 1) return topicR(top.tp);
     for (const [gname, re] of GROUPS) if (re.test(t) && t.split(' ').length <= 4) { const a = groupAnswer(gname, C); if (a) return a; }
     if (has(t, /^(salut|buna|hey|hei|hello|neata|servus|ce faci|ce mai faci|noroc|sal)\b/)) return R(pick([`Salut, ${C.first}! 😄 Cu ce te pot ajuta azi?`, `Hei, ${C.first}! Gata de antrenament? Întreabă-mă orice.`], seed), [], ['Ce fac azi?', 'N-am chef azi', 'E aglomerat acum?']);
     if (has(t, /cine esti|ce esti|esti om|esti robot|esti ai/)) return R('Sunt Robo 🤖, asistentul virtual al sălii. Știu exercițiile, programul tău, programul sălii, abonamentele și multe despre antrenament și mâncare. Pentru lucruri personale îți dau legătura directă cu sala, pe WhatsApp sau telefon.');
-    return R('Hmm, nu sunt sigur că am înțeles. 🤔 Încearcă să mă întrebi altfel, de exemplu:\n• „Cum fac fandări?”\n• „Ce mănânc după sală?”\n• „Mă doare genunchiul”\n\nSau scrie-le direct celor de la sală pe WhatsApp.', [{ l: 'Scrie-le pe WhatsApp', a: 'human' }], ['Ce fac azi?', 'Exerciții pentru fesieri', 'N-am chef azi']);
+    if (!GYMWORDS.test(t)) return R(`Eu mă pricep doar la sală, mișcare și mâncare sănătoasă, ${C.first}. 😄 Acolo te ajut cu orice: exerciții, planuri, dureri, nutriție sau motivație.`, [], ['Ce fac azi?', 'N-am chef azi', 'Câte proteine îmi trebuie?']);
+    return R(`N-am prins exact întrebarea, ${C.first}. 🤔 Încearcă să mi-o scrii altfel, de exemplu:\n• „Cum fac fandări?”\n• „Ce mănânc după sală?”\n• „Mă doare genunchiul”\n• „Cum fac să-mi crească fesierii?”\n\nSau scrie-le celor de la sală pe WhatsApp și te ajută ei.`, [{ l: 'Scrie-le pe WhatsApp', a: 'human' }], ['Ce fac azi?', 'Exerciții pentru spate', 'N-am chef azi']);
   }
   return { answer, norm };
 });
