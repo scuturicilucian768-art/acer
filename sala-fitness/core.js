@@ -109,11 +109,23 @@
     push: ['Împins: piept, umeri, triceps', ['pushH', 'pushV', 'chestIso', 'delt', 'tri']], pull: ['Tras: spate și biceps', ['pullV', 'pullH', 'pullH', 'bi', 'core']], legs: ['Picioare și fesieri', ['quad', 'hinge', 'quad2', 'glute', 'core']],
   };
   const FOCUS = { legs: ['glute', 'quad2'], chest: ['pushH', 'tri'], back: ['pullH', 'delt'], core: ['core', 'core'] };
+  // ce evităm și ce adăugăm pentru fiecare zonă dureroasă
+  const PAIN = {
+    spate: { avoid: ['ex_squat', 'ex_rdl', 'ex_legraise', 'ex_crunch', 'ex_rowerg'], heavyAvoid: ['ex_lunge', 'ex_ohp', 'ex_row'], rehab: ['ex_catcow', 'ex_birddog', 'ex_deadbug', 'ex_bridge'], end: 'ex_childpose', name: 'spate' },
+    gat: { avoid: [], heavyAvoid: ['ex_ohp', 'ex_pullup', 'ex_legraise'], rehab: ['ex_chintuck', 'ex_wallangel'], end: '', name: 'gât și umeri' },
+    umar: { avoid: ['ex_ohp', 'ex_dips', 'ex_pullup', 'ex_bench'], heavyAvoid: ['ex_lateral', 'ex_fly', 'ex_dbpress'], rehab: ['ex_facepull', 'ex_wallangel'], end: '', name: 'umăr' },
+    genunchi: { avoid: ['ex_squat', 'ex_lunge'], heavyAvoid: ['ex_legpress', 'ex_goblet', 'ex_treadmill'], rehab: ['ex_wallsit', 'ex_bridge'], end: '', name: 'genunchi' },
+  };
+  const REHAB_REPS = { ex_catcow: ['2', '10', 30], ex_birddog: ['2', '8/parte', 30], ex_deadbug: ['2', '8/parte', 30], ex_bridge: ['3', '12', 40], ex_childpose: ['1', '45 s', 0], ex_hipflexor: ['2', '30 s/parte', 20], ex_chintuck: ['2', '10', 20], ex_wallangel: ['2', '10', 30], ex_facepull: ['3', '15', 45], ex_wallsit: ['3', '30 s', 45] };
+  const rehabItem = (db, id) => { if (!db.exercises.some((e) => e.id === id)) return null; const [sets, reps, rest] = REHAB_REPS[id] || ['2', '10', 30]; return { ex: id, sets: +sets, reps, kg: 0, rest, rehab: true }; };
   function generateProgram(db, me, b) {
-    const goal = ['slabire', 'masa', 'forta', 'tonifiere', 'sanatate'].includes(b.goal) ? b.goal : 'tonifiere';
+    const goal = ['slabire', 'masa', 'forta', 'tonifiere', 'sanatate', 'recuperare'].includes(b.goal) ? b.goal : 'tonifiere';
+    const pains = (Array.isArray(b.pains) ? b.pains : []).filter((p) => PAIN[p]), strong = b.painLevel === 'puternica', moderate = b.painLevel === 'moderata';
+    const banned = new Set(pains.flatMap((p) => [...PAIN[p].avoid, ...(moderate || strong || goal === 'recuperare' ? PAIN[p].heavyAvoid : [])]));
+    if (strong) for (const e of db.exercises) if (!REHAB_REPS[e.id] && e.muscle !== 'Cardio') banned.add(e.id);
     const days = Math.round(num(b.days, 2, 6) || 3), level = ['incepator', 'mediu', 'avansat'].includes(b.level) ? b.level : 'incepator';
     const home = b.place === 'acasa', minutes = num(b.minutes, 20, 120) || 45, focus = FOCUS[b.focus] ? b.focus : '';
-    const fits = (e) => EXMETA[e.id] && (!home || ['Fără echipament', 'Gantere'].includes(e.equipment)) && (level !== 'incepator' || e.level !== 'greu');
+    const fits = (e) => EXMETA[e.id] && !banned.has(e.id) && (!home || ['Fără echipament', 'Gantere'].includes(e.equipment)) && (level !== 'incepator' || e.level !== 'greu');
     const pool = db.exercises.filter(fits), bySlot = {};
     for (const e of pool) { const k = EXMETA[e.id][0]; (bySlot[k] = bySlot[k] || []).push(e); }
     const alt = { quad2: 'quad', glute: 'hinge', chestIso: 'pushH', pullV: 'pullH', delt: 'pushV', tri: 'pushH', bi: 'pullH', hinge: 'glute', pushV: 'pushH' };
@@ -124,25 +136,81 @@
     else if (days === 4) plan = [SPLITS.upper, SPLITS.lower, SPLITS.upper, SPLITS.lower];
     else if (days === 5) plan = [SPLITS.push, SPLITS.pull, SPLITS.legs, SPLITS.upper, SPLITS.lower];
     else plan = [SPLITS.push, SPLITS.pull, SPLITS.legs, SPLITS.push, SPLITS.pull, SPLITS.legs];
-    const R = { forta: [5, '5', 150], masa: [4, '8–10', 90], tonifiere: [3, '12–15', 60], slabire: [3, '12–15', 45], sanatate: [3, '10–12', 75] }[goal];
+    const R = { forta: [5, '5', 150], masa: [4, '8–10', 90], tonifiere: [3, '12–15', 60], slabire: [3, '12–15', 45], sanatate: [3, '10–12', 75], recuperare: [2, '12–15', 60] }[goal];
     const sets = Math.min(5, Math.max(2, R[0] - (level === 'incepator' ? 1 : 0) + (level === 'avansat' ? 1 : 0)));
-    const nEx = Math.max(3, Math.min(8, Math.round((minutes - (goal === 'slabire' ? 15 : 5)) / (sets * 2.6))));
+    // blocul de recuperare de la începutul fiecărei zile (dureri, birou, scopul „recuperare”)
+    const rehabPool = [...new Set([...pains.flatMap((p) => PAIN[p].rehab), ...(b.daily === 'birou' ? ['ex_hipflexor', 'ex_wallangel'] : []), ...(goal === 'recuperare' && !pains.length ? ['ex_catcow', 'ex_birddog', 'ex_bridge', 'ex_wallangel'] : [])])].filter((id) => !(home && id === 'ex_facepull'));
+    const endIds = [...new Set(pains.map((p) => PAIN[p].end).filter(Boolean))];
+    const perDay = strong ? rehabPool.length : goal === 'recuperare' ? Math.min(4, rehabPool.length) : Math.min(2 + (pains.length > 1 ? 1 : 0), rehabPool.length);
+    const rehabMin = perDay * 3 + endIds.length;
+    const nEx = strong ? 0 : Math.max(goal === 'recuperare' ? 2 : 3, Math.min(goal === 'recuperare' ? 4 : 8, Math.round((minutes - rehabMin - (goal === 'slabire' ? 15 : 5)) / (sets * 2.6))));
     const lastKg = (id) => { const ws = (me.workouts || []).slice().reverse(); for (const w of ws) { const s2 = (w.sets || []).filter((x) => x.ex === id && x.kg); if (s2.length) return Math.max(...s2.map((x) => x.kg)); } return 0; };
-    const cardio = (bySlot.cardio || [])[0];
     const outDays = plan.map(([name, slots], di) => {
       const used = new Set(), list = slots.slice();
       if (focus) list.splice(2, 0, FOCUS[focus][di % 2]);
       const items = [];
-      if (cardio) items.push({ ex: cardio.id, sets: 1, reps: '5 min', kg: 0, rest: 0 });
-      for (const slot of list) { if (items.length - 1 >= nEx) break; const e = pick(slot, di + items.length, used); if (!e || used.has(e.id)) continue; used.add(e.id); const core = EXMETA[e.id][0] === 'core'; items.push({ ex: e.id, sets, reps: e.id === 'ex_plank' ? '30–45 s' : core ? '12–15' : R[1], kg: lastKg(e.id), rest: core ? 45 : R[2] }); }
-      if (goal === 'slabire' && cardio) items.push({ ex: (bySlot.cardio[di % bySlot.cardio.length] || cardio).id, sets: 1, reps: '15 min', kg: 0, rest: 0 });
-      return { name: `${name}`, items };
+      const cardioOk = (bySlot.cardio || []).find((e) => !banned.has(e.id));
+      if (cardioOk) items.push({ ex: cardioOk.id, sets: 1, reps: strong ? '8 min ușor' : '5 min', kg: 0, rest: 0 });
+      for (let k = 0; k < perDay; k++) { const it = rehabItem(db, rehabPool[(di * perDay + k) % rehabPool.length]); if (it && !items.some((x) => x.ex === it.ex)) items.push(it); }
+      const base = items.length;
+      for (const slot of list) { if (items.length - base >= nEx) break; const e = pick(slot, di + items.length, used); if (!e || used.has(e.id)) continue; used.add(e.id); const core = EXMETA[e.id][0] === 'core'; items.push({ ex: e.id, sets, reps: e.id === 'ex_plank' ? '30–45 s' : core ? '12–15' : R[1], kg: lastKg(e.id), rest: core ? 45 : R[2] }); }
+      if (goal === 'slabire' && cardioOk) items.push({ ex: (bySlot.cardio.filter((e) => !banned.has(e.id))[di % bySlot.cardio.filter((e) => !banned.has(e.id)).length] || cardioOk).id, sets: 1, reps: '15 min', kg: 0, rest: 0 });
+      for (const id of endIds) { const it = rehabItem(db, id); if (it) items.push(it); }
+      return { name: strong ? `Mobilitate și recuperare ${String.fromCharCode(65 + di)}` : goal === 'recuperare' ? `Spate sănătos ${String.fromCharCode(65 + di)}` : `${name}`, items };
     });
-    const GL = { slabire: 'Slăbire', masa: 'Masă musculară', forta: 'Forță', tonifiere: 'Tonifiere', sanatate: 'Sănătate și energie' }, LV = { incepator: 'începător', mediu: 'mediu', avansat: 'avansat' };
+    const GL = { slabire: 'Slăbire', masa: 'Masă musculară', forta: 'Forță', tonifiere: 'Tonifiere', sanatate: 'Sănătate și energie', recuperare: 'Fără dureri' }, LV = { incepator: 'începător', mediu: 'mediu', avansat: 'avansat' };
     const id = 'pr_my_' + me.id;
-    const prog = { id, owner: me.id, name: 'Programul meu personal', goal: GL[goal], level: LV[level], daysPerWeek: days, desc: `${days} antrenamente pe săptămână, ~${minutes} min, ${home ? 'acasă' : 'la sală'}. ${sets} serii × ${R[1]} repetări, pauză ${R[2]} s.${focus ? ' Accent pe zona aleasă.' : ''}`, days: outDays, generated: b };
+    const prog = { id, owner: me.id, name: 'Programul meu personal', goal: GL[goal], level: LV[level], daysPerWeek: days, desc: `${days} antrenamente pe săptămână, ~${minutes} min, ${home ? 'acasă' : 'la sală'}. ${sets} serii × ${R[1]} repetări, pauză ${R[2]} s.${focus ? ' Accent pe zona aleasă.' : ''}${rehabPool.length ? ' Fiecare zi începe cu exerciții blânde pentru ' + (pains.map((p) => PAIN[p].name).join(', ') || 'spate și postură') + '.' : ''}`, days: outDays, generated: b };
     db.programs = db.programs.filter((x) => x.id !== id); db.programs.push(prog); me.programId = id;
     return prog;
+  }
+
+  /* ---------- Robo: definește scopul fiecărui membru ---------- */
+  const GOAL_TXT = { slabire: 'Slăbire', tonifiere: 'Tonifiere', masa: 'Masă musculară', forta: 'Forță', sanatate: 'Sănătate și energie', recuperare: 'Fără dureri' };
+  const GOAL_TITLE = { slabire: 'Mai ușor și mai plin de energie', tonifiere: 'Un corp ferm și definit', masa: 'Mai mult mușchi, pas cu pas', forta: 'Mai puternic la fiecare antrenament', sanatate: 'Sănătos și plin de energie', recuperare: 'Spate și articulații fără dureri' };
+  function coachProfile(a) {
+    const pains = (Array.isArray(a.pains) ? a.pains : []).filter((p) => PAIN[p]), tips = [];
+    if (pains.includes('spate')) tips.push('Ridică orice greutate cu spatele drept, din picioare, nu din talie.', 'Mișcarea zilnică ajută spatele mai mult decât repausul: chiar și 20 de minute de mers.');
+    if (pains.includes('gat')) tips.push('Ține telefonul la nivelul ochilor, nu cu capul în jos.', 'Fă retracția bărbiei de câteva ori pe zi, nu doar la sală.');
+    if (pains.includes('umar')) tips.push('La exercițiile pentru umăr, mergi doar cât nu te doare. Greutatea vine după.');
+    if (pains.includes('genunchi')) tips.push('Genunchii merg mereu pe direcția vârfurilor. Coboară doar cât e confortabil.', 'Bicicleta e cel mai prietenos cardio pentru genunchi.');
+    if (a.daily === 'birou') tips.push('Stai mult jos? Ridică-te 2–3 minute la fiecare oră și întinde-ți șoldurile.');
+    if (a.daily === 'fizic') tips.push('Ai deja o muncă grea: odihna și somnul contează la fel de mult ca antrenamentul.');
+    if (a.goal === 'slabire') tips.push('Slăbitul se face mai ales în bucătărie: ține planul alimentar și bea apă.');
+    if (a.goal === 'masa') tips.push('Mănâncă suficiente proteine (carne, ouă, lactate) la fiecare masă și dormi 7–8 ore.');
+    if (a.goal === 'forta') tips.push('Notează greutățile la fiecare antrenament și crește puțin câte puțin.');
+    if (a.goal === 'tonifiere') tips.push('Constanța bate intensitatea: 3 antrenamente bune pe săptămână fac diferența.');
+    if (pains.length) tips.push('Durerea nu trebuie să crească în timpul exercițiilor. Dacă crește, oprește-te și spune-i antrenorului.');
+    const warn = a.painLevel === 'puternica';
+    return { at: null, answers: a, goal: a.goal, goalTxt: GOAL_TXT[a.goal] || 'Tonifiere', title: GOAL_TITLE[a.goal] || GOAL_TITLE.tonifiere, pains, painNames: pains.map((p) => PAIN[p].name), painLevel: pains.length ? a.painLevel || 'usoara' : '', warn, tips: tips.slice(0, 5) };
+  }
+  function coachInput(b) {
+    const pick1 = (v, list, d) => (list.includes(v) ? v : d);
+    return {
+      goal: pick1(b.goal, ['slabire', 'tonifiere', 'masa', 'forta', 'sanatate', 'recuperare'], 'tonifiere'),
+      pains: (Array.isArray(b.pains) ? b.pains : []).filter((p) => PAIN[p]).slice(0, 4),
+      painLevel: pick1(b.painLevel, ['usoara', 'moderata', 'puternica'], ''),
+      level: pick1(b.level, ['incepator', 'mediu', 'avansat'], 'incepator'),
+      days: Math.round(num(b.days, 2, 6) || 3), place: pick1(b.place, ['sala', 'acasa'], 'sala'), minutes: Math.round(num(b.minutes, 20, 120) || 45),
+      focus: pick1(b.focus, ['', 'legs', 'chest', 'back', 'core'], ''), daily: pick1(b.daily, ['birou', 'picioare', 'fizic'], ''), why: clean(b.why, 160),
+    };
+  }
+
+  /* ---------- cardul și figurina (se personalizează de membru) ---------- */
+  const CARD_THEMES = [
+    { id: 'empire', name: 'Empire', min: 0 }, { id: 'carbon', name: 'Carbon', min: 0 }, { id: 'ocean', name: 'Ocean', min: 0 }, { id: 'lava', name: 'Lavă', min: 0 },
+    { id: 'neon', name: 'Neon', min: 0 }, { id: 'roz', name: 'Roz', min: 0 }, { id: 'jungla', name: 'Junglă', min: 1 }, { id: 'bronz', name: 'Bronz', min: 2 }, { id: 'aur', name: 'Aur imperial', min: 3 }, { id: 'diamant', name: 'Diamant', min: 4 },
+  ];
+  const CARD_PATTERNS = ['nimic', 'linii', 'puncte', 'grilă', 'valuri'];
+  function lookInput(b, rankIdx, old) {
+    const L = { ...(old || {}) }, int = (v, n) => { const x = Math.round(Number(v)); return Number.isFinite(x) && x >= 0 && x < n ? x : 0; };
+    if (b.card !== undefined) { const t = CARD_THEMES.find((x) => x.id === b.card); if (!t) return [null, 'Tema nu există.']; if (t.min > rankIdx) return [null, `Tema ${t.name} se deblochează la rangul ${RANKS[t.min].name}.`]; L.card = t.id; }
+    if (b.pattern !== undefined) L.pattern = int(b.pattern, CARD_PATTERNS.length);
+    if (b.motto !== undefined) L.motto = clean(b.motto, 34);
+    if (b.body !== undefined) L.body = b.body === 'F' ? 'F' : 'M';
+    for (const [k, n] of [['skin', 5], ['hair', 6], ['hairCol', 6], ['top', 3], ['topCol', 8], ['acc', 5]]) if (b[k] !== undefined) L[k] = int(b[k], n);
+    if (b.useFig !== undefined) L.useFig = !!b.useFig;
+    return [L, null];
   }
 
   /* ---------- vederi ---------- */
@@ -307,6 +375,18 @@
       if (p === '/api/me' && m === 'GET') return ok(homeFor(db, me, t, ctx));
       if (p === '/api/me' && m === 'PUT') { if (body.hideBoard !== undefined) me.hideBoard = !!body.hideBoard; const e = memberInput({ ...body, phone: undefined }, me); return e ? no(400, e) : ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/water' && m === 'POST') { me.water = me.water || {}; me.water[t] = num(body.n, 0, 20) || 0; return ok(homeFor(db, me, t, ctx)); }
+      if (p === '/api/me/coach' && m === 'POST') {
+        const a = coachInput(body), cp = coachProfile(a); cp.at = ctx.nowISO();
+        const prog = generateProgram(db, me, a);
+        me.coach = cp; me.goal = cp.goalTxt; me.weekGoal = a.days; me.level = { incepator: 'începător', mediu: 'mediu', avansat: 'avansat' }[a.level];
+        if (body.share) {
+          const L = [`🤖 Robo: am vorbit cu ${me.name.split(' ')[0]} despre scopul lui.`, `Scop: ${cp.goalTxt}${a.why ? ` („${a.why}”)` : ''}`, cp.pains.length ? `Dureri: ${cp.painNames.join(', ')} (${{ usoara: 'ușoare', moderata: 'moderate', puternica: 'puternice' }[cp.painLevel] || 'ușoare'})` : 'Fără dureri', `${a.days} antrenamente/săptămână · ${a.minutes} min · ${a.place === 'acasa' ? 'acasă' : 'la sală'} · nivel ${me.level}`];
+          if (cp.warn) L.push('⚠️ Durerile par puternice. I-am recomandat un control medical înainte de efort și doar exerciții blânde.');
+          me.chat = me.chat || []; me.chat.push({ id: ctx.uid('ms'), from: 'm', text: L.join('\n'), at: ctx.nowISO(), read: false, robo: true });
+        }
+        return ok({ ...homeFor(db, me, t, ctx), generated: prog.id });
+      }
+      if (p === '/api/me/look' && m === 'PUT') { const [L, e] = lookInput(body, rankOf(pointsOf(db, me, t).earned).idx, me.look); if (e) return no(400, e); me.look = L; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/generate' && m === 'POST') { const prog = generateProgram(db, me, body); return ok({ ...homeFor(db, me, t, ctx), generated: prog.id }); }
       if (p === '/api/me/chat' && m === 'GET') { (me.chat || []).forEach((x) => { if (x.from === 'g') x.read = true; }); return ok({ messages: me.chat || [] }); }
       if (p === '/api/me/chat' && m === 'POST') {
@@ -601,5 +681,5 @@
     }
     return dirty;
   }
-  return { route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf };
+  return { route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile };
 });

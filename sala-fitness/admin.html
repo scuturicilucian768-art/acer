@@ -9,7 +9,7 @@
 <link rel="icon" href="img/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="app.css?v=3">
+<link rel="stylesheet" href="app.css?v=4">
 <style>
 body{min-height:100vh}
 .lay{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
@@ -173,12 +173,12 @@ body{min-height:100vh}
     <main class="main" id="main"></main>
   </div>
 </div>
-<script src="core.js?v=3"></script>
-<script src="seed.js?v=3"></script>
-<script src="env.js?v=3"></script>
-<script src="common.js?v=3"></script>
-<script src="fig.js?v=3"></script>
-<script src="qr.js?v=3"></script>
+<script src="core.js?v=4"></script>
+<script src="seed.js?v=4"></script>
+<script src="env.js?v=4"></script>
+<script src="common.js?v=4"></script>
+<script src="fig.js?v=4"></script>
+<script src="qr.js?v=4"></script>
 <script>
 let page = 'dash', O = null, CFG = null;
 $$('.side [data-i]').forEach((b) => b.insertAdjacentHTML('afterbegin', IC(b.dataset.i, 20)));
@@ -309,7 +309,7 @@ async function newMember() {
 async function openMember(id, focus) {
   const { member: m, bookings } = await api('/api/admin/members/' + id), s = m.subscription, progs = (await api('/api/admin/programs')).programs, nus = (await api('/api/admin/nutrition')).nutrition;
   const ws = m.weights || [], lastW = ws.slice(-1)[0];
-  const el = sheet(`<div class="mtop">${avatarHtml(m.name, m.avatar)}<div class="grow"><h2 style="margin:0">${esc(m.name)}</h2><div class="muted">${esc(m.phone)}${m.email ? ' · ' + esc(m.email) : ''} · membru din ${fdate(m.createdAt, true)}</div><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${stateChip({ state: s.state, daysLeft: s.daysLeft })}${(m.tags || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}${m.pushOn ? '<span class="chip acc">🔔 notificări pornite</span>' : ''}</div></div></div>
+  const el = sheet(`<div class="mtop">${avatarHtml(m.name, m.avatar)}<div class="grow"><h2 style="margin:0">${esc(m.name)}</h2><div class="muted">${esc(m.phone)}${m.email ? ' · ' + esc(m.email) : ''} · membru din ${fdate(m.createdAt, true)}</div><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${stateChip({ state: s.state, daysLeft: s.daysLeft })}${(m.tags || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}${m.pushOn ? '<span class="chip acc">🔔 notificări pornite</span>' : ''}${m.coach && m.coach.pains.length ? `<span class="chip" style="${m.coach.warn ? 'background:rgba(255,194,61,.18);color:#FFC23D' : ''}">${m.coach.warn ? '⚠️' : '🩹'} dureri: ${esc(m.coach.painNames.join(', '))}</span>` : ''}</div></div></div>
     <div class="row" style="gap:8px;flex-wrap:wrap"><a class="btn btn-sm" href="${waTo(m.phone, `Bună, ${m.name.split(' ')[0]}! `)}" target="_blank" rel="noopener">${IC('chat', 16)} WhatsApp</a><a class="btn btn-sm" href="tel:${esc(m.phone)}">${IC('phone', 16)} Sună</a><button class="btn btn-sm" id="ci">${IC('check', 16)} Check-in azi</button><button class="btn btn-sm" id="msg">🔔 Notificare</button><button class="btn btn-sm btn-acc" id="cv">${IC('chat', 16)} Conversație</button></div>
     <div class="pill-tabs" style="margin-top:16px"><button data-t="sub" class="on">Abonament</button><button data-t="act">Activitate</button><button data-t="plan">Program</button><button data-t="info">Date</button></div>
     <div id="mtab"></div>`, { wide: true });
@@ -324,7 +324,10 @@ async function openMember(id, focus) {
       <h3 style="margin:14px 0 8px">Ultimele antrenamente</h3>${(m.workouts || []).slice(-6).reverse().map((w) => `<div class="alert"><span class="av">🏋️</span><div class="grow"><b>${esc(w.title || 'Antrenament')}</b><br><small>${fday(w.date)}${w.duration ? ` · ${w.duration} min` : ''}${w.sets && w.sets.length ? ` · ${w.sets.length} serii` : ''}</small></div></div>`).join('') || '<p class="muted">Niciun antrenament înregistrat.</p>'}
       <h3 style="margin:14px 0 8px">Insigne</h3><div style="display:flex;gap:6px;flex-wrap:wrap">${m.badges.filter((b) => b.earned).map((b) => `<span class="chip acc">${b.icon} ${esc(b.name)}</span>`).join('') || '<span class="muted">Încă niciuna.</span>'}</div>
       <p class="muted" style="font-size:.82rem;margin-top:14px">🔒 Pozele de progres sunt private și le vede doar membrul.</p>`,
-    plan: () => `<div class="field"><label>Program de antrenament</label><select class="input" id="pr"><option value="">–</option>${progs.map((p) => `<option value="${p.id}" ${p.id === m.programId ? 'selected' : ''}>${esc(p.name)} (${esc(p.goal)})</option>`).join('')}</select></div>
+    plan: () => `${m.coach ? `<div class="card" style="background:var(--bg);margin-bottom:14px"><h3>🤖 Scopul definit cu Robo <small class="muted" style="font-weight:600">· ${fdate(m.coach.at.slice(0, 10), true)}</small></h3>
+        <p style="margin:8px 0 6px"><b>${esc(m.coach.title)}</b>${m.coach.answers.why ? ` <span class="muted">· „${esc(m.coach.answers.why)}”</span>` : ''}</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip acc">${esc(m.coach.goalTxt)}</span>${m.coach.pains.length ? `<span class="chip">🩹 ${esc(m.coach.painNames.join(', '))} · ${({ usoara: 'ușoare', moderata: 'moderate', puternica: 'puternice' })[m.coach.painLevel] || ''}</span>` : '<span class="chip">fără dureri</span>'}<span class="chip">${m.coach.answers.days}×/săpt · ${m.coach.answers.minutes} min</span><span class="chip">${m.coach.answers.place === 'acasa' ? 'acasă' : 'la sală'}</span>${m.coach.answers.daily ? `<span class="chip">${({ birou: 'stă mult pe scaun', picioare: 'mult pe picioare', fizic: 'muncă fizică' })[m.coach.answers.daily]}</span>` : ''}</div>
+        ${m.coach.warn ? '<p style="margin:10px 0 0;color:#FFC23D;font-size:.88rem">⚠️ A raportat dureri puternice sau amorțeli. Robo i-a recomandat control medical și doar exerciții blânde. Verifică înainte să-i crești efortul.</p>' : ''}</div>` : '<p class="muted" style="font-size:.86rem;margin:0 0 14px">🤖 Membrul n-a vorbit încă cu Robo. Când o face, aici apar scopul, durerile și programul ales.</p>'}<div class="field"><label>Program de antrenament</label><select class="input" id="pr"><option value="">–</option>${progs.map((p) => `<option value="${p.id}" ${p.id === m.programId ? 'selected' : ''}>${esc(p.name)} (${esc(p.goal)})</option>`).join('')}</select></div>
       <div class="field"><label>Plan alimentar</label><select class="input" id="nu"><option value="">–</option>${nus.map((p) => `<option value="${p.id}" ${p.id === m.nutritionId ? 'selected' : ''}>${esc(p.name)} (${p.kcal} kcal)</option>`).join('')}</select></div>
       <button class="btn btn-acc" id="prs">Salvează</button><p class="muted" style="font-size:.84rem;margin-top:12px">Vrei un program făcut doar pentru el? Creează-l în „Antrenamente” și alege-l aici.</p>
       ${bookings.length ? `<h3 style="margin:16px 0 8px">Programări PT</h3>${bookings.map((b) => `<div class="alert"><div class="grow"><b>${fday(b.date)} · ${b.time}</b><br><small>${esc(b.note || '')}</small></div><span class="chip">${esc(b.status)}</span></div>`).join('')}` : ''}`,

@@ -87,9 +87,20 @@
     bike: { eq: 'bike', hi: ['legs'], cyc: true, A: Q({ h: [124, 46], s: [112, 64], e: [130, 82], w: [148, 84], p: [86, 112], k: [126, 108], a: [124, 150], fk: [118, 130], fa: [110, 172] }), B: Q({ h: [124, 46], s: [112, 64], e: [130, 82], w: [148, 84], p: [86, 112], k: [118, 130], a: [110, 172], fk: [126, 108], fa: [124, 150] }) },
     walk: { eq: 'tread', hi: ['legs'], cyc: true, A: Q({ h: [104, 34], s: [100, 56], e: [112, 80], w: [122, 96], p: [98, 108], k: [114, 144], a: [120, 178], fk: [90, 146], fa: [76, 172], fe: [90, 80], fw: [82, 100] }), B: Q({ h: [104, 34], s: [100, 56], e: [90, 80], w: [82, 100], p: [98, 108], k: [90, 146], a: [76, 172], fk: [114, 144], fa: [120, 178], fe: [112, 80], fw: [122, 96] }) },
     rower: { eq: 'rower', hi: ['back', 'legs'], A: Q({ h: [116, 104], s: [106, 118], e: [128, 136], w: [148, 140], p: [92, 162], k: [124, 128], a: [150, 162] }), B: Q({ h: [48, 100], s: [58, 116], e: [72, 140], w: [94, 136], p: [70, 162], k: [112, 150], a: [150, 162] }) },
+    // recuperare (podeaua la y=163 pentru exercițiile pe sol)
+    catcow: { eq: 'floor', hi: ['back', 'core'], A: Q({ h: [50, 112], s: [70, 114], e: [70, 138], w: [70, 160], p: [130, 116], k: [130, 160], a: [170, 162] }), B: Q({ h: [56, 122], s: [72, 104], e: [70, 132], w: [70, 160], p: [130, 106], k: [130, 160], a: [170, 162] }) },
+    birddog: { eq: 'floor', hi: ['back', 'core'], A: Q({ h: [52, 104], s: [70, 112], e: [70, 136], w: [70, 160], p: [130, 112], k: [130, 160], a: [170, 162], fe: [70, 136], fw: [70, 160] }), B: Q({ h: [52, 98], s: [70, 112], e: [44, 114], w: [16, 114], p: [130, 112], k: [162, 110], a: [194, 108], fk: [130, 160], fa: [170, 162], fe: [70, 136], fw: [70, 160] }) },
+    deadbug: { eq: 'floor', hi: ['core'], A: Q({ h: [46, 150], s: [66, 152], e: [68, 126], w: [70, 100], p: [128, 152], k: [130, 120], a: [162, 120], fk: [126, 120], fa: [158, 120], fe: [68, 126], fw: [70, 100] }), B: Q({ h: [46, 150], s: [66, 152], e: [54, 128], w: [38, 108], p: [128, 152], k: [158, 140], a: [190, 148], fk: [126, 120], fa: [158, 120], fe: [68, 126], fw: [70, 100] }) },
+    bridge: { eq: 'floor', hi: ['glute'], A: Q({ h: [40, 152], s: [60, 154], e: [82, 158], w: [104, 160], p: [112, 154], k: [140, 124], a: [152, 160] }), B: Q({ h: [40, 152], s: [60, 152], e: [82, 158], w: [104, 160], p: [112, 122], k: [144, 118], a: [152, 160] }) },
+    childpose: { eq: 'floor', hi: ['back'], A: Q({ h: [106, 60], s: [106, 80], e: [102, 102], w: [100, 122], p: [108, 120], k: [112, 160], a: [152, 162] }), B: Q({ h: [70, 152], s: [88, 144], e: [56, 156], w: [26, 160], p: [140, 146], k: [112, 160], a: [152, 162] }) },
+    hipflexor: { eq: 'none', hi: ['legs'], A: Q({ h: [98, 80], s: [98, 102], e: [112, 124], w: [104, 146], p: [98, 148], k: [132, 150], a: [132, 190], fk: [76, 188], fa: [44, 190] }), B: Q({ h: [106, 82], s: [106, 104], e: [120, 126], w: [112, 148], p: [110, 154], k: [136, 150], a: [132, 190], fk: [76, 188], fa: [44, 190] }) },
+    chintuck: { eq: 'none', hi: ['shoulder'], A: Q({ h: [112, 37], s: [100, 58], e: [100, 86], w: [102, 110], p: [100, 110], k: [101, 148], a: [100, 186] }), B: Q({ h: [100, 35], s: [100, 58], e: [100, 86], w: [102, 110], p: [100, 110], k: [101, 148], a: [100, 186] }) },
+    wallangel: { eq: 'none', front: true, hi: ['shoulder'], A: Q({ h: [100, 34], n: [100, 52], sl: [84, 58], el: [64, 60], wl: [62, 36], sr: [116, 58], er: [136, 60], wr: [138, 36], p: [100, 110], kl: [92, 148], al: [90, 186], kr: [108, 148], ar: [110, 186] }), B: Q({ h: [100, 34], n: [100, 52], sl: [84, 58], el: [72, 30], wl: [84, 8], sr: [116, 58], er: [128, 30], wr: [116, 8], p: [100, 110], kl: [92, 148], al: [90, 186], kr: [108, 148], ar: [110, 186] }) },
+    facepull: { eq: 'cable', hi: ['shoulder', 'back'], A: Q({ h: [96, 36], s: [96, 58], e: [124, 56], w: [150, 52], p: [96, 110], k: [98, 148], a: [96, 186] }), B: Q({ h: [96, 36], s: [96, 58], e: [86, 46], w: [112, 36], p: [96, 110], k: [98, 148], a: [96, 186] }), cable: [190, 44] },
+    wallsit: { eq: 'none', wall: true, hi: ['legs'], A: Q({ h: [62, 80], s: [62, 102], e: [80, 122], w: [100, 132], p: [64, 144], k: [104, 142], a: [104, 188] }), B: Q({ h: [62, 84], s: [62, 106], e: [80, 126], w: [100, 135], p: [64, 148], k: [104, 146], a: [104, 188] }) },
   };
-  const EXPAT = { ex_squat: 'squat', ex_goblet: 'goblet', ex_legpress: 'legpress', ex_lunge: 'lunge', ex_rdl: 'hinge', ex_hipthrust: 'thrust', ex_bench: 'bench', ex_dbpress: 'incline', ex_pushup: 'pushup', ex_fly: 'fly', ex_pullup: 'pullup', ex_latpull: 'latpull', ex_row: 'row', ex_cablerow: 'cablerow', ex_ohp: 'ohp', ex_lateral: 'lateral', ex_curl: 'curl', ex_triceps: 'triceps', ex_dips: 'dips', ex_plank: 'plank', ex_crunch: 'crunch', ex_legraise: 'legraise', ex_bike: 'bike', ex_treadmill: 'walk', ex_rowerg: 'rower' };
-  const MUSCLE_PAT = { 'Picioare': 'squat', 'Femurali și fesieri': 'hinge', 'Fesieri': 'thrust', 'Piept': 'bench', 'Spate': 'row', 'Umeri': 'ohp', 'Brațe': 'curl', 'Abdomen': 'plank', 'Cardio': 'walk' };
+  const EXPAT = { ex_squat: 'squat', ex_goblet: 'goblet', ex_legpress: 'legpress', ex_lunge: 'lunge', ex_rdl: 'hinge', ex_hipthrust: 'thrust', ex_bench: 'bench', ex_dbpress: 'incline', ex_pushup: 'pushup', ex_fly: 'fly', ex_pullup: 'pullup', ex_latpull: 'latpull', ex_row: 'row', ex_cablerow: 'cablerow', ex_ohp: 'ohp', ex_lateral: 'lateral', ex_curl: 'curl', ex_triceps: 'triceps', ex_dips: 'dips', ex_plank: 'plank', ex_crunch: 'crunch', ex_legraise: 'legraise', ex_bike: 'bike', ex_treadmill: 'walk', ex_rowerg: 'rower', ex_catcow: 'catcow', ex_birddog: 'birddog', ex_deadbug: 'deadbug', ex_bridge: 'bridge', ex_childpose: 'childpose', ex_hipflexor: 'hipflexor', ex_chintuck: 'chintuck', ex_wallangel: 'wallangel', ex_facepull: 'facepull', ex_wallsit: 'wallsit' };
+  const MUSCLE_PAT = { 'Picioare': 'squat', 'Femurali și fesieri': 'hinge', 'Fesieri': 'thrust', 'Piept': 'bench', 'Spate': 'row', 'Umeri': 'ohp', 'Brațe': 'curl', 'Abdomen': 'plank', 'Cardio': 'walk', 'Recuperare': 'catcow' };
   const patFor = (ex) => PAT[EXPAT[ex.id]] || PAT[MUSCLE_PAT[ex.muscle]] || PAT.squat;
 
   const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
@@ -106,6 +117,7 @@
     if (pat.eq === 'bike') out.push('<path d="M86 118L118 176M70 112h32M124 150l24-62M140 82h18M96 176h48" stroke="#3A3A44" stroke-width="7" stroke-linecap="round"/><circle cx="117" cy="150" r="22" fill="none" stroke="#2B2B33" stroke-width="5"/>');
     if (pat.eq === 'tread') out.push('<path d="M40 182L176 170" stroke="#3A3A44" stroke-width="10" stroke-linecap="round"/><path d="M168 172L156 70h18" stroke="#2B2B33" stroke-width="6" stroke-linecap="round"/>');
     if (pat.eq === 'rower') out.push('<path d="M30 172H190" stroke="#3A3A44" stroke-width="8" stroke-linecap="round"/><rect x="' + (f.p[0] - 16) + '" y="162" width="32" height="8" rx="3" fill="#55555F"/><circle cx="182" cy="140" r="16" fill="none" stroke="#2B2B33" stroke-width="6"/>');
+    if (pat.wall) out.push('<path d="M44 14V192" stroke="#3A3A44" stroke-width="8" stroke-linecap="round"/>');
     if (pat.eq === 'floor' || pat.eq === 'tread' || pat.eq === 'rower' || pat.eq === 'press') {} else out.push('<path d="M20 192H180" stroke="#2B2B33" stroke-width="3" stroke-linecap="round"/>');
     if (pat.eq === 'floor') out.push('<path d="M20 163H185" stroke="#2B2B33" stroke-width="3" stroke-linecap="round"/>');
     if (pat.cable) { const w = f.w || f.wr; out.push(L(pat.cable, w, 2, '#6A6A75', 'stroke-dasharray="1 0"')); out.push(`<circle cx="${pat.cable[0]}" cy="${pat.cable[1]}" r="5" fill="#55555F"/>`); }
@@ -115,7 +127,7 @@
       out.push(L(f.n, f.p, 20, ink), L(f.sl, f.sr, 14, cl('shoulder')));
       out.push(L(f.sl, f.el, 10, cl('shoulder')), L(f.el, f.wl, 9, ink), L(f.sr, f.er, 10, cl('shoulder')), L(f.er, f.wr, 9, ink));
       out.push(`<circle cx="${f.h[0]}" cy="${f.h[1]}" r="12" fill="${ink}"/>`);
-      [f.wl, f.wr].forEach((w) => out.push(db(w)));
+      if (pat.eq !== 'none') [f.wl, f.wr].forEach((w) => out.push(db(w)));
       return out.join('');
     }
     // membrele din spate (mai închise)
@@ -177,9 +189,11 @@
     ex_pullup: [['lats'], ['biceps', 'traps', 'forearms']], ex_latpull: [['lats'], ['biceps', 'traps']], ex_row: [['lats', 'traps'], ['biceps', 'reardelts']], ex_cablerow: [['lats', 'traps'], ['biceps', 'reardelts', 'lowerback']],
     ex_ohp: [['delts'], ['triceps', 'traps']], ex_lateral: [['delts'], ['traps']], ex_curl: [['biceps'], ['forearms']], ex_triceps: [['triceps'], []], ex_dips: [['triceps', 'chest'], ['delts']],
     ex_plank: [['core'], ['delts', 'glutes', 'obliques']], ex_crunch: [['core'], ['obliques']], ex_legraise: [['core'], ['obliques', 'forearms']],
-    ex_bike: [['quads'], ['calves', 'hams', 'glutes']], ex_treadmill: [['glutes', 'calves'], ['quads', 'hams']], ex_rowerg: [['lats', 'quads'], ['hams', 'biceps', 'core', 'traps']],
+    ex_bike: [['quads'], ['calves', 'hams', 'glutes']],
+    ex_catcow: [['lowerback'], ['core', 'traps']], ex_birddog: [['core', 'lowerback'], ['glutes', 'delts']], ex_deadbug: [['core'], ['obliques']], ex_bridge: [['glutes'], ['hams', 'lowerback']], ex_childpose: [['lowerback', 'lats'], []],
+    ex_hipflexor: [['quads'], ['core', 'glutes']], ex_chintuck: [['traps'], []], ex_wallangel: [['traps', 'reardelts'], ['delts']], ex_facepull: [['reardelts', 'traps'], ['delts']], ex_wallsit: [['quads'], ['glutes', 'calves']], ex_treadmill: [['glutes', 'calves'], ['quads', 'hams']], ex_rowerg: [['lats', 'quads'], ['hams', 'biceps', 'core', 'traps']],
   };
-  const BY_GROUP = { 'Picioare': [['quads'], ['glutes']], 'Femurali și fesieri': [['hams', 'glutes'], []], 'Fesieri': [['glutes'], ['hams']], 'Piept': [['chest'], ['triceps']], 'Spate': [['lats'], ['biceps']], 'Umeri': [['delts'], []], 'Brațe': [['biceps', 'triceps'], []], 'Abdomen': [['core'], ['obliques']], 'Cardio': [['quads'], ['calves']] };
+  const BY_GROUP = { 'Picioare': [['quads'], ['glutes']], 'Femurali și fesieri': [['hams', 'glutes'], []], 'Fesieri': [['glutes'], ['hams']], 'Piept': [['chest'], ['triceps']], 'Spate': [['lats'], ['biceps']], 'Umeri': [['delts'], []], 'Brațe': [['biceps', 'triceps'], []], 'Abdomen': [['core'], ['obliques']], 'Recuperare': [['lowerback'], ['core']], 'Cardio': [['quads'], ['calves']] };
   const MNAME = { chest: 'Piept', delts: 'Umeri', biceps: 'Biceps', triceps: 'Triceps', forearms: 'Antebrațe', core: 'Abdomen', obliques: 'Oblici', quads: 'Cvadricepși', hams: 'Femurali', glutes: 'Fesieri', calves: 'Gambe', lats: 'Dorsali', traps: 'Trapez', lowerback: 'Lombari', reardelts: 'Umăr spate' };
   function musclesOf(ex) { return EXMUS[ex.id] || BY_GROUP[ex.muscle] || [[], []]; }
   // forme simple pentru fiecare mușchi; [mușchi, formă svg]
@@ -211,5 +225,112 @@
       <path d="M50 4L92 18V52C92 78 72 96 50 106C28 96 8 78 8 52V18Z" fill="url(#${id})" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
       <path d="M50 12L84 23.5V52C84 73 68 88 50 97C32 88 16 73 16 52V23.5Z" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2"/>${SYM[i]}</svg>`;
   }
-  root.GymFig = { rankBadge, drawFig: (k, t) => drawFig(PAT[k], t), PATS: Object.keys(PAT), icon, figure, animate, muscleMap, musclesOf, MNAME, patFor };
+
+  /* ───────── figurina membrului („luptătorul tău”): se personalizează și crește odată cu rangul ───────── */
+  const SKIN = ['#FCE3CF', '#F2C9A5', '#D9A47A', '#A9714B', '#6B4428'];
+  const HAIRC = ['#1C1714', '#4A2E1E', '#8A5A2B', '#D9B068', '#B83A2E', '#E3DED6'];
+  const TOPC = ['var(--acc, #C8F03C)', '#1E1E24', '#F2F2F5', '#E5484D', '#3E7BFA', '#8B6CFF', '#FF8A3D', '#2BB673'];
+  const LIGHT_TOP = [0, 2, 6];
+  const LOOK_OPT = {
+    body: [['M', 'Băiat'], ['F', 'Fată']],
+    skin: SKIN, hairCol: HAIRC, topCol: TOPC,
+    hair: ['Scurt', 'Creastă', 'Lung', 'Coc', 'Creț', 'Chel'],
+    top: ['Tricou', 'Maieu', 'Hanorac'],
+    acc: ['Nimic', 'Bentiță', 'Șapcă', 'Căști', 'Ochelari'],
+  };
+  const pick = (arr, i, d = 0) => arr[i | 0] !== undefined ? arr[i | 0] : arr[d];
+  const P2 = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
+  function hero(L, rank, o = {}) {
+    L = L || {}; o = o || {};
+    const r = Math.max(0, Math.min(4, rank | 0)), F = L.body === 'F', sk = pick(SKIN, L.skin, 1), hc = pick(HAIRC, L.hairCol, 0), ti = L.topCol | 0, tc = pick(TOPC, ti, 0);
+    const top = L.top | 0, hs = L.hair | 0, ac = L.acc | 0, cx = 60;
+    const sw = 17 + r * 2.2 - (F ? 2.5 : 0), aw = 8 + r * 1.35 - (F ? 1.2 : 0), bump = 4.2 + r * 1.5 - (F ? 1.2 : 0), waist = F ? 11.5 : 13 + r * 0.5, hip = F ? 15.5 : 13.5;
+    const g = 'hg' + Math.random().toString(36).slice(2, 7), out = [];
+    out.push(`<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient></defs>`);
+    out.push(`<ellipse cx="${cx}" cy="145" rx="30" ry="4.5" fill="#000" opacity=".35"/>`);
+    out.push('<g class="hb">');
+    // pelerina (Comandant și Împărat)
+    if (r >= 3) out.push(`<path d="M${P2(cx - sw + 2, 66)}Q${P2(cx, 60)} ${P2(cx + sw - 2, 66)}L${P2(cx + sw + 9, 134)}Q${P2(cx, 142)} ${P2(cx - sw - 9, 134)}Z" fill="${r >= 4 ? '#8E1426' : '#A61E30'}" stroke="${r >= 4 ? '#FFD34D' : 'none'}" stroke-width="1.6"/>`);
+    // părul lung din spate
+    if (hs === 2) out.push(`<path d="M${P2(cx - 26, 34)}Q${P2(cx - 33, 70)} ${P2(cx - 19, 84)}L${P2(cx + 19, 84)}Q${P2(cx + 33, 70)} ${P2(cx + 26, 34)}Z" fill="${hc}"/>`);
+    // picioare, pantofi, pantaloni scurți
+    out.push(`<path d="M${P2(cx - 7, 110)}L${P2(cx - 9, 138)}M${P2(cx + 7, 110)}L${P2(cx + 9, 138)}" stroke="${sk}" stroke-width="${F ? 8 : 9 + r * 0.6}" stroke-linecap="round"/>`);
+    out.push(`<ellipse cx="${cx - 11}" cy="140.5" rx="8.5" ry="4.6" fill="#F4F4F7"/><ellipse cx="${cx + 11}" cy="140.5" rx="8.5" ry="4.6" fill="#F4F4F7"/><path d="M${P2(cx - 19, 142)}h16M${P2(cx + 3, 142)}h16" stroke="var(--acc, #C8F03C)" stroke-width="2" stroke-linecap="round"/>`);
+    out.push(`<path d="M${P2(cx - hip - 1, 97)}L${P2(cx + hip + 1, 97)}L${P2(cx + hip + 3, 118)}L${P2(cx + 2.5, 118)}L${P2(cx, 110)}L${P2(cx - 2.5, 118)}L${P2(cx - hip - 3, 118)}Z" fill="#2A2A33"/>`);
+    // brațele: poziția de „arată mușchii”
+    const arms = [];
+    for (const d of [-1, 1]) {
+      const S = [cx + d * sw, 70], E = [cx + d * (sw + 17 + r * 0.8), 77], W = [cx + d * (sw + 14 + r * 0.6), 53];
+      const mid = [(S[0] + E[0]) / 2, (S[1] + E[1]) / 2 - aw * 0.38];
+      const arm = [];
+      const skinArm = top === 2 ? tc : sk;
+      arm.push(`<path d="M${P2(S[0], S[1])}L${P2(E[0], E[1])}L${P2(W[0], W[1])}" fill="none" stroke="${skinArm}" stroke-width="${aw}" stroke-linecap="round" stroke-linejoin="round"/>`);
+      arm.push(`<circle cx="${mid[0].toFixed(1)}" cy="${mid[1].toFixed(1)}" r="${bump.toFixed(1)}" fill="${skinArm}"/>`);
+      if (top === 0) arm.push(`<path d="M${P2(S[0], S[1])}L${P2(S[0] + (E[0] - S[0]) * 0.42, S[1] + (E[1] - S[1]) * 0.42)}" stroke="${tc}" stroke-width="${aw + 3}" stroke-linecap="round"/>`);
+      if (r >= 1 && top !== 2) arm.push(`<path d="M${P2(E[0] + (W[0] - E[0]) * 0.66, E[1] + (W[1] - E[1]) * 0.66)}L${P2(E[0] + (W[0] - E[0]) * 0.84, E[1] + (W[1] - E[1]) * 0.84)}" stroke="var(--acc, #C8F03C)" stroke-width="${aw + 1.6}"/>`);
+      arm.push(`<circle cx="${W[0].toFixed(1)}" cy="${(W[1] - 2).toFixed(1)}" r="${(aw * 0.62 + 1.2).toFixed(1)}" fill="${sk}"/>`);
+      arms.push(`<g class="arm" style="transform-origin:${S[0].toFixed(1)}px ${S[1]}px;--d:${d}">${arm.join('')}</g>`);
+    }
+    out.push(arms.join(''));
+    // trunchiul
+    const torso = `M${P2(cx - sw - 3, 71)}Q${P2(cx - sw, 63)} ${P2(cx - 10, 62)}L${P2(cx + 10, 62)}Q${P2(cx + sw, 63)} ${P2(cx + sw + 3, 71)}L${P2(cx + waist + (F ? 0 : 1), 99)}L${P2(cx - waist - (F ? 0 : 1), 99)}Z`;
+    if (top === 1) {
+      out.push(`<path d="${torso}" fill="${sk}"/>`);
+      out.push(`<path d="M${P2(cx - sw + 7, 63)}L${P2(cx - 7, 63)}Q${P2(cx, 71)} ${P2(cx + 7, 63)}L${P2(cx + sw - 7, 63)}L${P2(cx + sw - 3, 76)}L${P2(cx + waist + 1, 99)}L${P2(cx - waist - 1, 99)}L${P2(cx - sw + 3, 76)}Z" fill="${tc}"/>`);
+    } else out.push(`<path d="${torso}" fill="${tc}"/>`);
+    out.push(`<path d="${torso}" fill="url(#${g})"/>`);
+    if (r >= 2 && !F) out.push(`<path d="M${P2(cx - 13, 76)}Q${P2(cx - 6, 81)} ${P2(cx, 76)}Q${P2(cx + 6, 81)} ${P2(cx + 13, 76)}" fill="none" stroke="#000" stroke-opacity=".16" stroke-width="1.6" stroke-linecap="round"/>`);
+    if (top === 2) out.push(`<path d="M${P2(cx - 13, 63)}Q${P2(cx, 74)} ${P2(cx + 13, 63)}" fill="none" stroke="#000" stroke-opacity=".28" stroke-width="3"/><path d="M${P2(cx - 4, 69)}v9M${P2(cx + 4, 69)}v9" stroke="#fff" stroke-opacity=".7" stroke-width="1.4" stroke-linecap="round"/><rect x="${cx - 10}" y="88" width="20" height="8" rx="3" fill="#000" opacity=".15"/>`);
+    out.push(`<text x="${cx}" y="${top === 2 ? 86 : 89}" text-anchor="middle" font-family="Archivo, Inter, sans-serif" font-weight="900" font-size="9" letter-spacing=".5" fill="${LIGHT_TOP.includes(ti) ? '#111' : '#fff'}" opacity=".85">FE</text>`);
+    // centura (de la Gladiator)
+    if (r >= 2) out.push(`<rect x="${(cx - waist - 2).toFixed(1)}" y="94" width="${(2 * waist + 4).toFixed(1)}" height="6.5" rx="2" fill="${r >= 4 ? '#E8B83A' : '#24242B'}"/><rect x="${cx - 6}" y="92.5" width="12" height="9.5" rx="2.5" fill="#FFD34D" stroke="#B07A10" stroke-width="1"/>`);
+    // gâtul și capul
+    out.push(`<rect x="${cx - 6}" y="54" width="12" height="11" rx="4" fill="${sk}"/>`);
+    out.push(`<circle cx="${cx - 24}" cy="44" r="5" fill="${sk}"/><circle cx="${cx + 24}" cy="44" r="5" fill="${sk}"/><circle cx="${cx}" cy="40" r="24" fill="${sk}"/>`);
+    // părul
+    const cap = `M${P2(cx - 24, 38)}Q${P2(cx - 25, 14)} ${P2(cx, 14)}Q${P2(cx + 25, 14)} ${P2(cx + 24, 38)}Q${P2(cx + 20, 25)} ${P2(cx + 6, 25)}Q${P2(cx - 6, 30)} ${P2(cx - 16, 26)}Q${P2(cx - 21, 30)} ${P2(cx - 24, 38)}Z`;
+    if (hs === 0) out.push(`<path d="${cap}" fill="${hc}"/>`);
+    if (hs === 1) out.push(`<path d="${cap}" fill="${hc}" opacity=".35"/><path d="M${P2(cx - 7, 25)}Q${P2(cx - 6, 7)} ${P2(cx, 2)}Q${P2(cx + 6, 7)} ${P2(cx + 7, 25)}Q${P2(cx, 21)} ${P2(cx - 7, 25)}Z" fill="${hc}"/>`);
+    if (hs === 2) out.push(`<path d="M${P2(cx - 25, 46)}Q${P2(cx - 28, 13)} ${P2(cx, 13)}Q${P2(cx + 28, 13)} ${P2(cx + 25, 46)}Q${P2(cx + 21, 24)} ${P2(cx + 2, 25)}Q${P2(cx - 18, 26)} ${P2(cx - 25, 46)}Z" fill="${hc}"/>`);
+    if (hs === 3) out.push(`<circle cx="${cx}" cy="11" r="9" fill="${hc}"/><path d="${cap}" fill="${hc}"/><path d="M${P2(cx - 7, 18)}Q${P2(cx, 21)} ${P2(cx + 7, 18)}" stroke="var(--acc, #C8F03C)" stroke-width="2.4" fill="none"/>`);
+    if (hs === 4) { const c = []; for (let a = -172; a <= -8; a += 23) { const rd = (a * Math.PI) / 180; c.push(`<circle cx="${(cx + Math.cos(rd) * 21).toFixed(1)}" cy="${(37 + Math.sin(rd) * 21).toFixed(1)}" r="7.6" fill="${hc}"/>`); } out.push(`<path d="${cap}" fill="${hc}"/>` + c.join('')); }
+    if (hs === 5) out.push(`<ellipse cx="${cx - 9}" cy="24" rx="8" ry="4" fill="#fff" opacity=".28" transform="rotate(-20 ${cx - 9} 24)"/>`);
+    // fața
+    out.push(`<g class="eyes" style="transform-origin:${cx}px 44px"><ellipse cx="${cx - 9}" cy="44" rx="2.7" ry="3.3" fill="#1A1A1E"/><ellipse cx="${cx + 9}" cy="44" rx="2.7" ry="3.3" fill="#1A1A1E"/><circle cx="${cx - 8}" cy="43" r=".9" fill="#fff"/><circle cx="${cx + 10}" cy="43" r=".9" fill="#fff"/></g>`);
+    out.push(`<path d="M${P2(cx - 13, 37)}L${P2(cx - 5, 35.5)}M${P2(cx + 5, 35.5)}L${P2(cx + 13, 37)}" stroke="${hs === 5 ? '#6B4A3A' : hc}" stroke-width="2.2" stroke-linecap="round"/>`);
+    out.push(`<circle cx="${cx - 15}" cy="50" r="3.6" fill="#FF6B6B" opacity=".22"/><circle cx="${cx + 15}" cy="50" r="3.6" fill="#FF6B6B" opacity=".22"/>`);
+    out.push(r >= 2 ? `<path d="M${P2(cx - 8, 51)}Q${P2(cx, 60)} ${P2(cx + 8, 51)}Z" fill="#5A2A22"/><path d="M${P2(cx - 6.5, 51.6)}H${cx + 6.5}" stroke="#fff" stroke-width="2"/>` : `<path d="M${P2(cx - 7, 52)}Q${P2(cx, 58)} ${P2(cx + 7, 52)}" fill="none" stroke="#5A2A22" stroke-width="2.2" stroke-linecap="round"/>`);
+    // accesorii
+    if (ac === 1) out.push(`<path d="M${P2(cx - 24, 30)}Q${P2(cx, 21)} ${P2(cx + 24, 30)}L${P2(cx + 24.5, 36)}Q${P2(cx, 27)} ${P2(cx - 24.5, 36)}Z" fill="var(--acc, #C8F03C)"/>`);
+    if (ac === 2) out.push(`<path d="M${P2(cx - 24.5, 31)}Q${P2(cx - 25, 11)} ${P2(cx, 11)}Q${P2(cx + 25, 11)} ${P2(cx + 24.5, 31)}Z" fill="${top === 1 || ti === 2 ? '#1E1E24' : tc}"/><ellipse cx="${cx}" cy="31" rx="28" ry="4.5" fill="#15151A"/><circle cx="${cx}" cy="12" r="2" fill="#fff" opacity=".7"/><text x="${cx}" y="26" text-anchor="middle" font-family="Archivo, Inter, sans-serif" font-weight="900" font-size="7" fill="#fff" opacity=".8">FE</text>`);
+    if (ac === 3) out.push(`<path d="M${P2(cx - 27, 42)}Q${P2(cx - 28, 7)} ${P2(cx, 7)}Q${P2(cx + 28, 7)} ${P2(cx + 27, 42)}" fill="none" stroke="#24242B" stroke-width="4.5"/><rect x="${cx - 32}" y="35" width="10" height="17" rx="4.5" fill="#24242B"/><rect x="${cx + 22}" y="35" width="10" height="17" rx="4.5" fill="#24242B"/><circle cx="${cx - 27}" cy="43.5" r="2.3" fill="var(--acc, #C8F03C)"/><circle cx="${cx + 27}" cy="43.5" r="2.3" fill="var(--acc, #C8F03C)"/>`);
+    if (ac === 4) out.push(`<rect x="${cx - 17}" y="39" width="14" height="10" rx="4" fill="#111"/><rect x="${cx + 3}" y="39" width="14" height="10" rx="4" fill="#111"/><path d="M${P2(cx - 3, 42)}H${cx + 3}M${P2(cx - 17, 41)}L${P2(cx - 24, 39)}M${P2(cx + 17, 41)}L${P2(cx + 24, 39)}" stroke="#111" stroke-width="2"/><path d="M${P2(cx - 14, 41.5)}l4 -1M${P2(cx + 6, 41.5)}l4 -1" stroke="#fff" stroke-opacity=".6" stroke-width="1.4" stroke-linecap="round"/>`);
+    // coroana (Împărat)
+    if (r >= 4) out.push(`<path d="M${P2(cx - 14, 19)}L${P2(cx - 17, 3)}L${P2(cx - 7, 11)}L${P2(cx, 0)}L${P2(cx + 7, 11)}L${P2(cx + 17, 3)}L${P2(cx + 14, 19)}Z" fill="#FFD34D" stroke="#B07A10" stroke-width="1.2" stroke-linejoin="round"/><circle cx="${cx}" cy="13" r="2.2" fill="#E5484D"/><circle cx="${cx - 9}" cy="15" r="1.6" fill="#3E7BFA"/><circle cx="${cx + 9}" cy="15" r="1.6" fill="#3E7BFA"/>`);
+    out.push('</g>');
+    const vb = o.bust ? '14 -2 92 92' : '0 -4 120 154';
+    return `<svg class="hero${o.still ? ' still' : ''}" viewBox="${vb}" ${o.size ? `width="${o.size}" height="${o.bust ? o.size : Math.round(o.size * 154 / 120)}"` : ''} role="img" aria-label="${o.label || 'Figurina ta'}" style="${o.style || ''}">${out.join('')}</svg>`;
+  }
+
+  /* ───────── Robo, mini-robotul antrenor ───────── */
+  function robot(size = 80, o = {}) {
+    const g = 'rg' + Math.random().toString(36).slice(2, 7);
+    return `<svg class="robo${o.talk ? ' talk' : ''}" viewBox="0 0 120 130" width="${size}" height="${Math.round(size * 130 / 120)}" role="img" aria-label="Robo">
+      <defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F3F4F8"/><stop offset="1" stop-color="#AEB1BF"/></linearGradient></defs>
+      <g class="rb">
+        <path d="M60 8V21" stroke="#8C8FA0" stroke-width="3.5" stroke-linecap="round"/><circle class="rb-bulb" cx="60" cy="7" r="5.5" fill="var(--acc, #C8F03C)"/>
+        <rect x="10" y="42" width="10" height="20" rx="4" fill="var(--acc, #C8F03C)"/><rect x="100" y="42" width="10" height="20" rx="4" fill="var(--acc, #C8F03C)"/>
+        <rect x="17" y="20" width="86" height="64" rx="21" fill="url(#${g})"/>
+        <rect x="27" y="31" width="66" height="42" rx="14" fill="#0E0F14"/>
+        <g class="rb-eyes" style="transform-origin:60px 50px"><ellipse cx="46" cy="49" rx="6.5" ry="7.5" fill="var(--acc, #C8F03C)"/><ellipse cx="74" cy="49" rx="6.5" ry="7.5" fill="var(--acc, #C8F03C)"/><circle cx="48" cy="46.5" r="2" fill="#fff" opacity=".8"/><circle cx="76" cy="46.5" r="2" fill="#fff" opacity=".8"/></g>
+        <path class="rb-mouth" d="M50 61Q60 68 70 61" fill="none" stroke="var(--acc, #C8F03C)" stroke-width="3" stroke-linecap="round" style="transform-origin:60px 63px"/>
+        <rect x="51" y="83" width="18" height="8" rx="3" fill="#7C7F8E"/>
+        <path d="M37 96L23 112" stroke="#AEB1BF" stroke-width="7" stroke-linecap="round"/>
+        <g class="rb-wave" style="transform-origin:84px 96px"><path d="M84 96L99 80" stroke="#AEB1BF" stroke-width="7" stroke-linecap="round"/><circle cx="101" cy="77" r="5.5" fill="#F3F4F8"/></g>
+        <circle cx="21" cy="114" r="5.5" fill="#F3F4F8"/>
+        <rect x="34" y="88" width="52" height="34" rx="13" fill="url(#${g})"/>
+        <circle cx="60" cy="104" r="6.5" fill="var(--acc, #C8F03C)" opacity=".9"/><circle cx="60" cy="104" r="11" fill="var(--acc, #C8F03C)" opacity=".18"/>
+      </g></svg>`;
+  }
+  root.GymFig = { hero, robot, LOOK_OPT, rankBadge, drawFig: (k, t) => drawFig(PAT[k], t), PATS: Object.keys(PAT), icon, figure, animate, muscleMap, musclesOf, MNAME, patFor };
 })(this);

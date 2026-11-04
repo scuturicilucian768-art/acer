@@ -42,6 +42,7 @@ function load() {
   
   if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
   else { db = Seed.base(baseCtx); if (process.env.SEED_DEMO === '1') Seed.demo(db, baseCtx); }
+  Seed.upgrade(db);
   if (!db.secret) db.secret = crypto.randomBytes(32).toString('hex');
   if (!db.admin && process.env.ADMIN_PASSWORD) db.admin = hash(process.env.ADMIN_PASSWORD);
   if (!db.vapid) { // chei pentru notificările push (generate o singură dată)

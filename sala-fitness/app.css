@@ -124,3 +124,21 @@ textarea.input{min-height:90px;resize:vertical}
 .dn-leg i{width:10px;height:10px;border-radius:3px;flex:none}
 .dn-leg span{flex:1;color:var(--muted)}
 .iconbtn{position:relative;width:42px;height:42px;border-radius:14px;border:1px solid var(--line2);background:var(--card);display:grid;place-items:center;cursor:pointer;color:var(--ink);flex:none}
+/* figurina și robotul (animații) */
+.hero .hb{animation:hbob 2.8s ease-in-out infinite;transform-box:view-box;transform-origin:60px 140px}
+.hero .arm{animation:hflex 2.8s ease-in-out infinite;transform-box:view-box}
+.hero .eyes{animation:blink 4.6s infinite;transform-box:view-box}
+.hero.still .hb,.hero.still .arm,.hero.still .eyes{animation:none}
+@keyframes hbob{50%{transform:translateY(-2.5px)}}
+@keyframes hflex{50%{transform:rotate(calc(var(--d) * 7deg))}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.robo .rb{animation:rfloat 3s ease-in-out infinite}
+.robo .rb-bulb{animation:rbulb 1.6s ease-in-out infinite}
+.robo .rb-eyes{animation:blink 3.8s infinite;transform-box:view-box}
+.robo .rb-wave{animation:rwave 2.4s ease-in-out infinite;transform-box:view-box}
+.robo.talk .rb-mouth{animation:rtalk .32s ease-in-out infinite alternate;transform-box:view-box}
+@keyframes rfloat{50%{transform:translateY(-4px)}}
+@keyframes rbulb{50%{opacity:.35}}
+@keyframes rwave{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-18deg)}80%{transform:rotate(10deg)}90%{transform:rotate(-12deg)}}
+@keyframes rtalk{to{transform:scaleY(.25)}}
+@media (prefers-reduced-motion:reduce){.hero .hb,.hero .arm,.hero .eyes,.robo .rb,.robo .rb-bulb,.robo .rb-eyes,.robo .rb-wave,.robo.talk .rb-mouth{animation:none}}

@@ -20,7 +20,7 @@
   if (!host) {
     host = { db: null, listeners: [] };
     let saved = null; if (solo) try { saved = JSON.parse(ls.get(KEY) || 'null'); } catch (e) {}
-    if (saved && saved.members) host.db = saved;
+    if (saved && saved.members) { host.db = saved; GymSeed.upgrade(host.db); }
     else { host.db = GymSeed.base(ctx); GymSeed.demo(host.db, ctx); host.db.admin = ctx.hash('admin'); }
     top.GymHost = host;
   }

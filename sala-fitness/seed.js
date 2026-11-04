@@ -29,6 +29,17 @@
     ['ex_bike', 'Bicicletă staționară', 'Cardio', 'Aparat', 'ușor', ['Reglează șaua la nivelul șoldului.', 'Pedalează într-un ritm în care poți vorbi.', 'La intervale: 30 s tare, 60 s ușor.'], 'Ideal pentru încălzire și ardere de grăsimi.'],
     ['ex_treadmill', 'Mers înclinat pe bandă', 'Cardio', 'Aparat', 'ușor', ['Înclinație 8–12%, viteză 4,5–5,5 km/h.', 'Nu te ține de bare.', '20–30 de minute, ritm constant.'], 'Una dintre cele mai bune metode de a arde grăsimi fără să forțezi genunchii.'],
     ['ex_rowerg', 'Aparat de vâslit', 'Cardio', 'Aparat', 'mediu', ['Picioarele împing primele, apoi trunchiul, apoi brațele.', 'Revino în ordine inversă.', 'Ritm de 22–26 de trageri pe minut.'], 'Lucrează tot corpul.'],
+    // recuperare: spate, gât, umeri, genunchi (exerciții blânde, fără greutăți mari)
+    ['ex_catcow', 'Pisica–cămila', 'Recuperare', 'Fără echipament', 'ușor', ['În patru labe: palmele sub umeri, genunchii sub șold.', 'Inspiră și lasă burta în jos, cu privirea ușor în sus (cămila).', 'Expiră și rotunjește spatele în sus, cu bărbia spre piept (pisica).', 'Mișcă-te lent, vertebră cu vertebră, 8–10 repetări.'], 'Mișcare fără durere. Dacă te doare, micșorează amplitudinea.'],
+    ['ex_birddog', 'Bird-dog (câine–pasăre)', 'Recuperare', 'Fără echipament', 'ușor', ['În patru labe, spatele drept, abdomenul ușor strâns.', 'Întinde brațul drept înainte și piciorul stâng înapoi, în linie cu trunchiul.', 'Ține 2–3 secunde fără să se miște șoldul, apoi revino.', 'Schimbă partea.'], 'Unul dintre cele mai bune exerciții pentru stabilitatea spatelui de jos.'],
+    ['ex_deadbug', 'Dead bug', 'Recuperare', 'Fără echipament', 'ușor', ['Culcat pe spate, brațele spre tavan, genunchii la 90° deasupra șoldului.', 'Lipește spatele de jos de sol.', 'Coboară încet brațul drept și piciorul stâng spre sol, fără să se dezlipească spatele.', 'Revino și schimbă partea.'], 'Mergi încet. Dacă se arcuiește spatele, nu mai coborî atât de jos.'],
+    ['ex_bridge', 'Pod fesier pe sol', 'Fesieri', 'Fără echipament', 'ușor', ['Culcat pe spate, genunchii îndoiți, tălpile pe sol.', 'Strânge fesierii și ridică șoldul până când corpul e drept de la umeri la genunchi.', 'Ține 2 secunde sus, apoi coboară controlat.'], 'Fesierii puternici iau din efortul spatelui de jos.'],
+    ['ex_childpose', 'Poziția copilului', 'Recuperare', 'Fără echipament', 'ușor', ['Îngenunchează, cu genunchii puțin depărtați.', 'Așază-te pe călcâie și întinde brațele înainte pe sol.', 'Lasă fruntea jos și respiră adânc 30–45 de secunde.'], 'Întindere relaxantă pentru spate, ideală la finalul antrenamentului.'],
+    ['ex_hipflexor', 'Întinderea flexorilor șoldului', 'Recuperare', 'Fără echipament', 'ușor', ['Pune un genunchi pe sol și celălalt picior în față, la 90°.', 'Strânge fesierul piciorului din spate.', 'Împinge ușor șoldul înainte până simți întinderea în fața coapsei.', 'Ține 30 de secunde pe fiecare parte.'], 'Foarte util dacă stai mult pe scaun: șoldurile încordate trag de spatele de jos.'],
+    ['ex_chintuck', 'Retracția bărbiei', 'Recuperare', 'Fără echipament', 'ușor', ['Stai drept, cu umerii relaxați.', 'Trage bărbia înapoi, ca și cum ai face o „bărbie dublă”, fără să apleci capul.', 'Ține 3 secunde, apoi relaxează.'], 'Bun pentru gât și pentru postura de la telefon sau calculator.'],
+    ['ex_wallangel', 'Îngerul pe perete', 'Recuperare', 'Fără echipament', 'ușor', ['Spatele, capul și fesierii lipiți de perete.', 'Brațele în formă de „W”, cu coatele și dosul palmelor pe perete.', 'Glisează brațele în sus, cât poți fără să se dezlipească de perete.', 'Coboară încet înapoi în „W”.'], 'Deschide pieptul și trezește mușchii dintre omoplați.'],
+    ['ex_facepull', 'Face pull la cablu', 'Umeri', 'Cablu', 'ușor', ['Scripetele la înălțimea feței, cu funia.', 'Trage funia spre față, cu coatele sus și în afară.', 'Strânge omoplații 1 secundă, apoi revino controlat.'], 'Greutate mică, mișcare curată. Excelent pentru umeri sănătoși și postură.'],
+    ['ex_wallsit', 'Scaunul la perete', 'Picioare', 'Fără echipament', 'ușor', ['Spatele lipit de perete, picioarele la un pas în față.', 'Coboară până când genunchii sunt la 60–90°, cât nu te doare.', 'Ține poziția 20–45 de secunde, respirând normal.'], 'Întărește coapsele fără să încarce genunchii cu mișcare.'],
   ].map(([id, name, muscle, equipment, level, steps, tip]) => ({ id, name, muscle, equipment, level, steps, tip, video: yt(name) }));
 
   const it = (ex, sets, reps, kg, rest) => ({ ex, sets, reps, kg: kg || 0, rest: rest || 90 });
@@ -190,5 +201,12 @@
     db.bookings.push({ id: ctx.uid('bk'), memberId: db.members[1].id, serviceId: 'sv_pt', date: add(t, 1), time: '18:00', status: 'pending', note: 'Vreau să învăț corect genuflexiunile', createdAt: t });
     db.bookings.push({ id: ctx.uid('bk'), memberId: db.members[0].id, serviceId: 'sv_eval', date: add(t, 2), time: '17:00', status: 'confirmed', note: '', createdAt: t });
   }
-  return { base, demo, EXERCISES, PROGRAMS, NUTRITION, DAILY };
+  // bazele de date mai vechi primesc exercițiile noi (o singură dată; dacă sala le șterge, nu mai revin)
+  function upgrade(db) {
+    db.seedEx = db.seedEx || db.exercises.map((e) => e.id);
+    let changed = false;
+    for (const e of EXERCISES) if (!db.seedEx.includes(e.id)) { db.seedEx.push(e.id); if (!db.exercises.some((x) => x.id === e.id)) db.exercises.push(JSON.parse(JSON.stringify(e))); changed = true; }
+    return changed;
+  }
+  return { base, demo, upgrade, EXERCISES, PROGRAMS, NUTRITION, DAILY };
 });
