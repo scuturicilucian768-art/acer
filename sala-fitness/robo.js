@@ -63,7 +63,7 @@
       genunchi: ['Pentru genunchi:', '• Bicicleta e cel mai prietenos cardio', '• Scaunul la perete și podul fesier întăresc fără să încarce articulația', '• La genuflexiuni, coboară doar cât nu doare, cu genunchii pe direcția vârfurilor', '• Evită pe moment fandările și săriturile', ['ex_wallsit', 'ex_bridge', 'ex_bike']],
       cot: ['Pentru cot sau încheietură:', '• Redu greutatea la exercițiile care provoacă durerea', '• Prinde bara sau ganterele fără să îndoi încheietura', '• Pune gheață 10–15 minute după efort, dacă e iritat', '• Dacă durerea ține mai mult de 2 săptămâni, mergi la un specialist', []],
     };
-    if (!z) return R(intro + 'Spune-mi unde te doare exact (spate, gât, umăr, genunchi, cot) și cum e durerea, ca să te pot ajuta mai bine.\n\nRegula de aur: durerea nu trebuie să crească în timpul exercițiilor. Dacă crește, te oprești.', [{ l: 'Trimite antrenorului', a: 'human' }], ['Mă doare spatele', 'Mă doare genunchiul', 'Mă doare umărul']);
+    if (!z) return R(intro + 'Spune-mi unde te doare exact (spate, gât, umăr, genunchi, cot) și cum e durerea, ca să te pot ajuta mai bine.\n\nRegula de aur: durerea nu trebuie să crească în timpul exercițiilor. Dacă crește, te oprești.', [{ l: 'Scrie-le pe WhatsApp', a: 'human' }], ['Mă doare spatele', 'Mă doare genunchiul', 'Mă doare umărul']);
     const x = T[z], ids = x[x.length - 1];
     const txt = intro + x.slice(0, -1).join('\n') + '\n\nDacă durerea crește în timpul exercițiilor, oprește-te. Dacă nu trece în 1–2 săptămâni, mergi la medic.';
     return R(txt, [...ids.flatMap((id) => EXA(C, id)).slice(0, 2), { l: 'Fă-mi un plan pentru asta', a: 'plan' }], ['Pot să mă antrenez cu durere?', 'Febră musculară sau accidentare?']);
@@ -170,8 +170,8 @@
     if (ex) return exerciseAnswer(ex, C);
     for (const [gname, re] of GROUPS) if (re.test(t) && t.split(' ').length <= 4) { const a = groupAnswer(gname, C); if (a) return a; }
     if (has(t, /^(salut|buna|hey|hei|hello|neata|servus|ce faci|ce mai faci|noroc|sal)\b/)) return R(pick([`Salut, ${C.first}! 😄 Cu ce te pot ajuta azi?`, `Hei, ${C.first}! Gata de antrenament? Întreabă-mă orice.`], seed), [], ['Ce fac azi?', 'N-am chef azi', 'E aglomerat acum?']);
-    if (has(t, /cine esti|ce esti|esti om|esti robot|esti ai/)) return R('Sunt Robo 🤖, asistentul virtual al sălii. Știu exercițiile, programul tău, programul sălii, abonamentele și multe despre antrenament și mâncare. Pentru lucruri personale sau programări speciale te pun în legătură cu antrenorul.');
-    return R('Hmm, nu sunt sigur că am înțeles. 🤔 Încearcă să mă întrebi altfel, de exemplu:\n• „Cum fac fandări?”\n• „Ce mănânc după sală?”\n• „Mă doare genunchiul”\n\nSau îi trimit întrebarea antrenorului și îți răspunde el.', [{ l: 'Trimite antrenorului', a: 'human' }], ['Ce fac azi?', 'Exerciții pentru fesieri', 'N-am chef azi']);
+    if (has(t, /cine esti|ce esti|esti om|esti robot|esti ai/)) return R('Sunt Robo 🤖, asistentul virtual al sălii. Știu exercițiile, programul tău, programul sălii, abonamentele și multe despre antrenament și mâncare. Pentru lucruri personale îți dau legătura directă cu sala, pe WhatsApp sau telefon.');
+    return R('Hmm, nu sunt sigur că am înțeles. 🤔 Încearcă să mă întrebi altfel, de exemplu:\n• „Cum fac fandări?”\n• „Ce mănânc după sală?”\n• „Mă doare genunchiul”\n\nSau scrie-le direct celor de la sală pe WhatsApp.', [{ l: 'Scrie-le pe WhatsApp', a: 'human' }], ['Ce fac azi?', 'Exerciții pentru fesieri', 'N-am chef azi']);
   }
   return { answer, norm };
 });

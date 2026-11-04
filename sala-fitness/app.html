@@ -513,7 +513,7 @@ $('#bell').onclick = openNotifs; $('#chatB').onclick = () => openChat();
 function render(anim) {
   const v = $('#view'); v.className = 'wrap' + (anim ? ' stagger' : '');
   ({ home: vHome, train: vTrain, progress: vProgress, food: vFood, me: vMe })[tab](v);
-  const n = H.unread, c = H.chatUnread;
+  const n = H.unread, c = 0;
   $('#bell').innerHTML = IC('bell', 20) + (n ? `<span class="bd">${n}</span>` : '');
   $('#chatB').innerHTML = IC('chat', 20) + (c ? `<span class="bd">${c}</span>` : '');
   countUp(v); GymFig.animate(v); checkRankUp();
@@ -558,7 +558,7 @@ function vHome(v) {
     <div class="qa">
       <button id="qaC" class="${H.checkedInToday ? 'done' : ''}"><span class="q">${IC(H.checkedInToday ? 'check' : 'qr', 22)}</span>${H.checkedInToday ? 'Ești la sală' : 'Check-in'}</button>
       <button id="qaT"><span class="q">${IC('dumbbell', 22)}</span>Antrenează-te</button>
-      <button id="qaM"><span class="q">${IC('chat', 22)}</span>Mesaje${H.chatUnread ? `<span class="bd">${H.chatUnread}</span>` : ''}</button>
+      <button id="qaM"><span class="q">${IC('chat', 22)}</span>Robo</button>
       <button id="qaL"><span class="q">${IC('trophy', 22)}</span>Clasament</button>
     </div>
     ${roboCard()}
@@ -733,10 +733,9 @@ function openBoard() {
 let chatPoll = null;
 async function openChat(prefill, mode, autoSend) {
   if ($('#chat')) return;
-  let md = mode || (H.chatUnread ? 'gym' : 'robo'), robo = null;
+  let md = 'robo', robo = null;
   const el = document.createElement('div'); el.className = 'chat'; el.id = 'chat'; document.body.appendChild(el); document.body.classList.add('noscroll');
   el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="cx" aria-label="Înapoi">${IC('back', 20)}</button><span id="cav" style="width:42px;height:42px;flex:none;display:grid;place-items:center"></span><div class="grow" style="min-width:0"><b id="cnm"></b><div class="muted small" id="csub"></div></div></div>
-    <div class="ctabs"><button data-md="robo">${GymFig.robot(20)} Robo <small style="font-weight:600;opacity:.75">imediat</small></button><button data-md="gym">${IC('users', 16)} Antrenorii<span class="bd" id="cbd" ${H.chatUnread ? '' : 'hidden'}>${H.chatUnread}</span></button></div>
     <div class="msgs" id="msgs" aria-live="polite"></div><div class="rchips" id="rch"></div>
     <form class="cbar" id="cf"><textarea class="input" id="ct" rows="1" aria-label="Mesaj"></textarea><button class="btn btn-acc" aria-label="Trimite">${IC('send', 20)}</button></form>`;
   const box = $('#msgs'), ta = $('#ct'), chips = $('#rch');
@@ -781,7 +780,7 @@ async function openChat(prefill, mode, autoSend) {
   const doAct = async (a) => {
     const [k, v] = [a.split(':')[0], a.slice(a.indexOf(':') + 1)];
     if (k === 'say') return askRobo(v);
-    if (k === 'human') { const q = lastQ(); md = 'gym'; head(); await loadGym(); ta.value = q ? `Bună! Robo nu a știut să-mi răspundă: ${q}` : ''; ta.focus(); return; }
+    if (k === 'human') { const q = lastQ(); if (S().whatsapp) return window.open(waLink(S().whatsapp, q ? `Bună! Am o întrebare: ${q}` : 'Bună! '), '_blank', 'noopener'); if (S().phone) { location.href = 'tel:' + String(S().phone).replace(/\s/g, ''); } return; }
     if (k === 'url') return window.open(v, '_blank', 'noopener');
     if (k === 'wa') return window.open(waLink(S().whatsapp, 'Bună! '), '_blank', 'noopener');
     if (k === 'call') { location.href = 'tel:' + String(S().phone || '').replace(/\s/g, ''); return; }
@@ -1261,7 +1260,7 @@ function vMe(v) {
     <div class="sec"><h2>Contul meu</h2></div>
     <div class="menu">
       ${M('sub', 'card', 'Abonament și plăți')}
-      ${M('chatM', 'chat', 'Mesaje cu sala', H.chatUnread ? `<span class="chip bad" style="margin-left:auto">${H.chatUnread} noi</span>` : '')}
+      ${M('chatM', 'chat', 'Robo, asistentul tău')}
       ${M('pushT', 'bell', 'Notificări pe telefon', `<span class="toggle ${me.pushOn || LS.get('gymPush') === '1' ? 'on' : ''}"></span>`)}
       ${M('lbT', 'trophy', 'Apar în clasament', `<span class="toggle ${me.hideBoard ? '' : 'on'}"></span>`)}
       ${M('genM', 'chat', 'Robo: scopul și planul meu')}
