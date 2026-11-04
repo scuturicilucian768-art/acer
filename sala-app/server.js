@@ -8,6 +8,8 @@
  *   ADMIN_PASSWORD   opțional: parola panoului (altfel o alegi la prima deschidere a /admin)
  *   PUSH_CONTACT     email pentru serviciile de notificări (ex: mailto:sala@exemplu.ro)
  *   SEED_DEMO=1      creează membri demonstrativi (doar pentru prezentare)
+ *   ANTHROPIC_API_KEY opțional: Robo din Mesaje răspunde cu AI (Claude). Fără cheie, Robo răspunde din baza lui de cunoștințe.
+ *   ROBO_MODEL       opțional: modelul folosit (implicit claude-haiku-4-5-20251001)
  */
 const http = require('http');
 const https = require('https');
@@ -110,6 +112,24 @@ function limited(req, key, max, ms) {
   if (n > b.t) { b.c = 0; b.t = n + ms; } b.c++; buckets.set(k, b); return b.c > max;
 }
 
+
+/* ---------- Robo cu AI (doar dacă există ANTHROPIC_API_KEY) ---------- */
+function askAI(me) {
+  const brief = Core.roboBrief(db, me, today(), ctx);
+  const system = `Ești Robo, asistentul virtual al sălii de fitness din aplicația membrilor. Vorbești în română, cald, prietenos și încurajator, la persoana a doua, ca un antrenor de încredere. Răspunsuri scurte și clare (maximum 120 de cuvinte), cu liste scurte când ajută, fără markdown complicat (fără titluri, fără asteriscuri).
+Răspunzi la orice întrebare despre antrenament, exerciții și tehnică, nutriție generală, recuperare, somn, motivație și despre sală. Folosește datele de mai jos; dacă nu ai o informație despre sală, spune că o află de la recepție.
+Siguranță: nu pui diagnostice. La durere puternică, amorțeli, furnicături, umflături sau după o lovitură recomanzi medic sau kinetoterapeut. La durere în piept, respirație grea sau leșin spui să oprească efortul și să sune la 112. Nu recomanzi steroizi, substanțe interzise sau diete extreme. La întrebări fără legătură cu sala sau sănătatea, spui politicos că te ocupi de fitness.
+Date:
+${brief}`;
+  const hist = (me.robo || []).slice(-10).map((x) => ({ role: x.from === 'u' ? 'user' : 'assistant', content: String(x.text || '').slice(0, 1500) }));
+  return (messages) => new Promise((resolve, reject) => {
+    const body = JSON.stringify({ model: process.env.ROBO_MODEL || 'claude-haiku-4-5-20251001', max_tokens: 500, system, messages: [...hist, ...messages].filter((m, i, a) => !(i === 0 && m.role === 'assistant')) });
+    const rq = https.request({ method: 'POST', hostname: 'api.anthropic.com', path: '/v1/messages', headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-length': Buffer.byteLength(body) } }, (rs) => {
+      const ch = []; rs.on('data', (c) => ch.push(c)); rs.on('end', () => { try { const j = JSON.parse(Buffer.concat(ch).toString()); const t = (j.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('').trim(); t && rs.statusCode < 300 ? resolve(t) : reject(new Error(j.error ? j.error.message : 'fără răspuns')); } catch (e) { reject(e); } });
+    });
+    rq.on('error', reject); rq.setTimeout(20000, () => rq.destroy(new Error('timeout'))); rq.end(body);
+  });
+}
 /* ---------- HTTP ---------- */
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.ico': 'image/x-icon' };
 function send(res, status, data, headers = {}) { const b = JSON.stringify(data); res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers }); res.end(b); }
@@ -168,6 +188,16 @@ const server = http.createServer(async (req, res) => {
         const owner = db.members.find((m) => (m.photos || []).some((x) => x.file === r[1]));
         if (!owner || session.id !== owner.id) return send(res, 403, { error: 'Poză privată.' }); // doar membrul își vede pozele
         res.writeHead(200, { 'Content-Type': MIME[path.extname(r[1])], 'Cache-Control': 'private, max-age=86400' }); return fs.createReadStream(path.join(UPLOADS, r[1])).pipe(res);
+      }
+      // Robo din Mesaje: cu AI dacă e configurat, altfel răspunde din baza lui de cunoștințe
+      if (p === '/api/me/robo' && req.method === 'POST' && process.env.ANTHROPIC_API_KEY && session && session.role === 'member') {
+        if (limited(req, 'robo', 20, 6e4)) return send(res, 429, { error: 'Prea multe întrebări deodată. Mai încearcă peste un minut.' });
+        let raw; try { raw = await readBody(req, 2e4); } catch { return send(res, 413, { error: 'Mesaj prea lung.' }); }
+        let b = {}; try { b = JSON.parse(raw || '{}'); } catch { return send(res, 400, { error: 'Date invalide.' }); }
+        const me = db.members.find((x) => x.id === session.id); let aiReply = null;
+        if (me && String(b.text || '').trim()) { try { aiReply = await askAI(me)([{ role: 'user', content: String(b.text).slice(0, 600) }]); } catch (e) { console.warn('Robo AI:', e.message); } }
+        const out = Core.route(db, { method: 'POST', path: p, body: { text: b.text }, query: {}, session }, { ...ctx, aiReply });
+        save(); return send(res, out.status, out.data);
       }
       let body = {};
       if (['POST', 'PUT', 'DELETE'].includes(req.method)) { let raw; try { raw = await readBody(req, 1e6); } catch { return send(res, 413, { error: 'Prea mare.' }); } if (raw.length) { try { body = JSON.parse(raw); } catch { return send(res, 400, { error: 'Date invalide.' }); } } }

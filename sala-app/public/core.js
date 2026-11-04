@@ -213,6 +213,31 @@
     return [L, null];
   }
 
+  /* ---------- Robo în Mesaje: contextul pentru răspunsuri ---------- */
+  const roboLib = () => (typeof GymRobo !== 'undefined' ? GymRobo : require('./robo.js'));
+  function roboCtx(db, m, t, ctx) {
+    const h = homeFor(db, m, t, ctx), w = (m.weights || []).slice(-1)[0];
+    const exName = (id) => (db.exercises.find((e) => e.id === id) || { name: id }).name;
+    return { me: h.me, first: String(m.name || '').split(' ')[0], S: db.settings, plans: db.plans.filter((x) => x.active), services: db.services, exercises: db.exercises, exName, program: h.program, nextDay: h.nextDay, crowd: h.crowd, board: h.board, kcal: h.kcal, kg: w ? w.kg : null, coach: m.coach || null, fdate: (d) => String(d).split('-').reverse().join('.'), seed: (m.robo || []).length };
+  }
+  // text scurt cu datele sălii și ale membrului, pentru asistentul AI (dacă serverul are cheie)
+  function roboBrief(db, m, t, ctx) {
+    const C = roboCtx(db, m, t, ctx), S = C.S, s = C.me.subscription, p = C.program, d = p ? p.days[C.nextDay] : null;
+    return [
+      `Sala: ${S.name}${S.address ? ', ' + S.address : ''}. Telefon: ${S.phone || '-'}.`,
+      `Program sală: ${(S.hours || []).map((x) => x.d + ' ' + x.h).join('; ')}.`,
+      `Abonamente: ${C.plans.map((x) => `${x.name} ${x.price} lei`).join('; ')}.`,
+      `Servicii: ${C.services.map((x) => `${x.name} ${x.price} lei`).join('; ')}.`,
+      `Acum la sală: ~${C.crowd.now} persoane.`,
+      `Membru: ${m.name}. Obiectiv: ${m.goal || '-'}. Nivel: ${m.level || '-'}. Rang: ${C.me.rank.name}, ${C.me.points.balance} puncte. Serie: ${C.me.streak} zile. Săptămâna asta: ${C.me.weekCount}/${m.weekGoal || 3} antrenamente.`,
+      `Abonamentul lui: ${s.plan ? s.plan.name : 'niciunul'}${s.end ? `, valabil până pe ${C.fdate(s.end)} (${s.state})` : ''}.`,
+      m.coach ? `Scop definit cu Robo: ${m.coach.title}. Dureri: ${m.coach.painNames.join(', ') || 'niciuna'}${m.coach.painLevel ? ' (' + m.coach.painLevel + ')' : ''}. De ce: ${m.coach.answers.why || '-'}.` : '',
+      d ? `Antrenamentul de azi: ${d.name}: ${d.items.map((i) => `${C.exName(i.ex)} ${i.sets}x${i.reps}`).join(', ')}.` : 'Nu are program ales.',
+      C.kcal ? `Ținta de calorii: ~${C.kcal} kcal.` : '',
+      `Exerciții în aplicație: ${db.exercises.map((e) => e.name).join(', ')}.`,
+    ].filter(Boolean).join('\n');
+  }
+
   /* ---------- vederi ---------- */
   const pubSettings = (s) => { const { checkinCode, checkinDate, dailySent, ...r } = s; return r; };
   function memberRow(db, m, t) {
@@ -385,6 +410,17 @@
           me.chat = me.chat || []; me.chat.push({ id: ctx.uid('ms'), from: 'm', text: L.join('\n'), at: ctx.nowISO(), read: false, robo: true });
         }
         return ok({ ...homeFor(db, me, t, ctx), generated: prog.id });
+      }
+      if (p === '/api/me/robo' && m === 'GET') { const C = roboCtx(db, me, t, ctx); return ok({ messages: me.robo || [], intro: roboLib().answer('', C) }); }
+      if (p === '/api/me/robo' && m === 'DELETE') { me.robo = []; return ok({ messages: [] }); }
+      if (p === '/api/me/robo' && m === 'POST') {
+        const tx = text(body.text, 600); if (!tx) return no(400, 'Scrie întrebarea.');
+        const C = roboCtx(db, me, t, ctx), a = roboLib().answer(tx, C);
+        const reply = ctx.aiReply ? { text: text(ctx.aiReply, 2500), actions: a.actions, chips: a.chips, ai: true } : a;
+        me.robo = me.robo || [];
+        me.robo.push({ id: ctx.uid('rb'), from: 'u', text: tx, at: ctx.nowISO() }, { id: ctx.uid('rb'), from: 'r', text: reply.text, actions: (reply.actions || []).slice(0, 4), chips: (reply.chips || []).slice(0, 4), at: ctx.nowISO() });
+        if (me.robo.length > 80) me.robo.splice(0, me.robo.length - 80);
+        return ok({ messages: me.robo });
       }
       if (p === '/api/me/look' && m === 'PUT') { const [L, e] = lookInput(body, rankOf(pointsOf(db, me, t).earned).idx, me.look); if (e) return no(400, e); me.look = L; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/generate' && m === 'POST') { const prog = generateProgram(db, me, body); return ok({ ...homeFor(db, me, t, ctx), generated: prog.id }); }
@@ -681,5 +717,5 @@
     }
     return dirty;
   }
-  return { route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile };
+  return { route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile, roboBrief };
 });

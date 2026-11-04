@@ -16,3 +16,5 @@ Node.js 18+, fără dependențe externe. Datele se salvează într-un fișier JS
 5. Deschide `https://domeniul-tau/admin` și configurează sala.
 
 Opțional: `ADMIN_PASSWORD` (altfel parola se alege la prima deschidere), `SEED_DEMO=1` doar pentru prezentări.
+
+Opțional: `ANTHROPIC_API_KEY` (cheie de la console.anthropic.com) ca Robo din Mesaje să răspundă cu AI. Fără ea, Robo răspunde din baza lui de cunoștințe (exerciții, sală, nutriție, dureri, motivație).

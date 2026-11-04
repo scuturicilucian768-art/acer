@@ -416,6 +416,18 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .evo div.lock svg{opacity:.35;filter:grayscale(1)}
 .evo svg.hero{height:64px;width:auto}
 .stbar{position:sticky;bottom:calc(-22px - env(safe-area-inset-bottom));margin:18px -18px calc(-22px - env(safe-area-inset-bottom));padding:12px 18px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg2) 30%)}
+/* Mesaje: Robo + antrenorii */
+.ctabs{display:flex;gap:6px;padding:10px 16px 0;max-width:640px;width:100%;margin:0 auto}
+.ctabs button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line2);background:var(--card);color:var(--muted);border-radius:14px;padding:9px 8px;font-weight:800;font-size:.8rem;cursor:pointer;position:relative}
+.ctabs button.on{background:color-mix(in srgb,var(--acc) 16%,var(--card));color:var(--ink);border-color:color-mix(in srgb,var(--acc) 55%,transparent)}
+.ctabs .bd[hidden]{display:none}
+.ctabs .bd{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:.66rem;display:grid;place-items:center}
+.racts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.racts button{border:0;background:color-mix(in srgb,var(--acc) 18%,var(--bg2));color:var(--ink);border-radius:999px;padding:7px 12px;font-weight:800;font-size:.8rem;cursor:pointer}
+.rchips{display:flex;gap:8px;overflow-x:auto;padding:8px 12px 2px;max-width:640px;width:100%;margin:0 auto;scrollbar-width:none}
+.rchips:empty{display:none}
+.rchips button{flex:none;border:1.5px solid color-mix(in srgb,var(--acc) 50%,var(--line2));background:var(--card);color:var(--ink);border-radius:999px;padding:8px 13px;font-weight:700;font-size:.84rem;cursor:pointer}
+.rclear{align-self:center;margin-top:10px;border:0;background:none;color:var(--faint);font-size:.76rem;font-weight:700;display:flex;gap:5px;align-items:center;cursor:pointer}
 </style>
 </head>
 <body>
@@ -432,6 +444,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
     <button data-t="me" data-i="user">Profil</button>
   </nav>
 </div>
+<script src="robo.js?v=4"></script>
 <script src="core.js?v=4"></script>
 <script src="seed.js?v=4"></script>
 <script src="env.js?v=4"></script>
@@ -718,24 +731,91 @@ function openBoard() {
 }
 /* ── mesaje cu sala ── */
 let chatPoll = null;
-async function openChat(prefill) {
+async function openChat(prefill, mode, autoSend) {
   if ($('#chat')) return;
+  let md = mode || (H.chatUnread ? 'gym' : 'robo'), robo = null;
   const el = document.createElement('div'); el.className = 'chat'; el.id = 'chat'; document.body.appendChild(el); document.body.classList.add('noscroll');
-  el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="cx" aria-label="Înapoi">${IC('back', 20)}</button><span class="mc-logo" style="width:40px;height:40px;border-radius:13px"><img src="img/logo-mark.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></span><div class="grow"><b>${esc(S().name)}</b><div class="muted small">Recepția și antrenorii · răspundem de obicei în câteva ore</div></div></div>
-    <div class="msgs" id="msgs"><div class="skel" style="height:60px;width:70%"></div></div>
-    <form class="cbar" id="cf"><textarea class="input" id="ct" rows="1" placeholder="Scrie un mesaj…" aria-label="Mesaj"></textarea><button class="btn btn-acc" aria-label="Trimite">${IC('send', 20)}</button></form>`;
-  const draw = (msgs) => {
-    let last = '';
-    $('#msgs').innerHTML = (msgs.length ? '' : `<div class="dsep">Scrie-ne orice: program, abonament, exerciții, programări.</div>`) + msgs.map((m) => { const d = m.at.slice(0, 10), sep = d !== last ? `<div class="dsep">${d === H.today ? 'Azi' : fday(d)}</div>` : ''; last = d; return `${sep}<div class="bub ${m.from}">${esc(m.text)}<time>${new Date(m.at).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}</time></div>`; }).join('');
-    const box = $('#msgs'); box.scrollTop = box.scrollHeight;
+  el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="cx" aria-label="Înapoi">${IC('back', 20)}</button><span id="cav" style="width:42px;height:42px;flex:none;display:grid;place-items:center"></span><div class="grow" style="min-width:0"><b id="cnm"></b><div class="muted small" id="csub"></div></div></div>
+    <div class="ctabs"><button data-md="robo">${GymFig.robot(20)} Robo <small style="font-weight:600;opacity:.75">imediat</small></button><button data-md="gym">${IC('users', 16)} Antrenorii<span class="bd" id="cbd" ${H.chatUnread ? '' : 'hidden'}>${H.chatUnread}</span></button></div>
+    <div class="msgs" id="msgs" aria-live="polite"></div><div class="rchips" id="rch"></div>
+    <form class="cbar" id="cf"><textarea class="input" id="ct" rows="1" aria-label="Mesaj"></textarea><button class="btn btn-acc" aria-label="Trimite">${IC('send', 20)}</button></form>`;
+  const box = $('#msgs'), ta = $('#ct'), chips = $('#rch');
+  const tm = (at) => new Date(at).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+  const head = () => {
+    $$('.ctabs button', el).forEach((b) => b.classList.toggle('on', b.dataset.md === md));
+    $('#cav').innerHTML = md === 'robo' ? GymFig.robot(40) : `<span class="mc-logo" style="width:40px;height:40px;border-radius:13px"><img src="img/logo-mark.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></span>`;
+    $('#cnm').textContent = md === 'robo' ? 'Robo' : S().name;
+    $('#csub').textContent = md === 'robo' ? 'Asistentul tău · exerciții, mâncare, dureri, motivație' : 'Recepția și antrenorii · răspundem de obicei în câteva ore';
+    ta.placeholder = md === 'robo' ? 'Întreabă-l pe Robo…' : 'Scrie antrenorilor…';
   };
-  const load = async () => { try { const r = await api('/api/me/chat'); draw(r.messages); } catch {} };
-  await load(); chatPoll = setInterval(() => { if (!window.GymDemo) load(); }, 6000); window.GymChatReload = load;
-  const ta = $('#ct'); if (prefill) ta.value = prefill; ta.focus();
+  /* ── antrenorii (oameni) ── */
+  const drawGym = (msgs) => {
+    let last = ''; chips.innerHTML = '';
+    box.innerHTML = (msgs.length ? '' : `<div class="dsep">Scrie-ne orice: program, abonament, exerciții, programări.</div>`) + msgs.map((m) => { const d = m.at.slice(0, 10), sep = d !== last ? `<div class="dsep">${d === H.today ? 'Azi' : fday(d)}</div>` : ''; last = d; return `${sep}<div class="bub ${m.from}">${esc(m.text)}<time>${tm(m.at)}</time></div>`; }).join('');
+    box.scrollTop = box.scrollHeight;
+  };
+  const loadGym = async () => { try { const r = await api('/api/me/chat'); if (md === 'gym') drawGym(r.messages); H.chatUnread = 0; const bd = $('#cbd'); if (bd) bd.hidden = true; } catch {} };
+  /* ── Robo ── */
+  const actBtns = (m) => (m.actions || []).length ? `<div class="racts">${m.actions.map((a, i) => `<button data-ra="${esc(a.a)}">${esc(a.l)}</button>`).join('')}</div>` : '';
+  const rb = (m) => m.from === 'u' ? `<div class="bub m">${esc(m.text)}<time>${tm(m.at)}</time></div>` : `<div class="rmsg"><span class="rav">${GymFig.robot(28)}</span><div class="bub g">${esc(m.text)}${actBtns(m)}${m.at ? `<time>${tm(m.at)}</time>` : ''}</div></div>`;
+  const drawRobo = () => {
+    const ms = robo.messages, intro = { ...robo.intro, from: 'r' };
+    box.innerHTML = rb(intro) + ms.map(rb).join('') + (ms.length ? `<button class="rclear" id="rclr">${IC('trash', 13)} Șterge conversația</button>` : '');
+    const lastR = [intro, ...ms].filter((m) => m.from === 'r').slice(-1)[0];
+    chips.innerHTML = (lastR.chips || []).map((c) => `<button data-q="${esc(c)}">${esc(c)}</button>`).join('');
+    box.scrollTop = box.scrollHeight;
+    if ($('#rclr')) $('#rclr').onclick = async () => { if (!(await ask('Ștergi conversația cu Robo?', '', 'Șterge', { danger: true, icon: 'trash' }))) return; robo.messages = (await api('/api/me/robo', { method: 'DELETE', body: {} })).messages; drawRobo(); };
+  };
+  const loadRobo = async () => { robo = await api('/api/me/robo'); if (md === 'robo') drawRobo(); };
+  let busy = false;
+  const askRobo = async (q) => {
+    if (busy) return; busy = true; chips.innerHTML = '';
+    robo.messages = robo.messages.concat({ from: 'u', text: q, at: new Date().toISOString() });
+    drawRobo(); chips.innerHTML = '';
+    box.insertAdjacentHTML('beforeend', `<div class="rmsg" id="rty"><span class="rav">${GymFig.robot(28, { talk: true })}</span><div class="bub g"><span class="typing"><i></i><i></i><i></i></span></div></div>`); box.scrollTop = box.scrollHeight;
+    try { const [r] = await Promise.all([api('/api/me/robo', { method: 'POST', body: { text: q } }), wait(650)]); robo.messages = r.messages; }
+    catch (e) { robo.messages = robo.messages.concat({ from: 'r', text: 'Ups, n-am putut răspunde acum: ' + e.message, actions: [{ l: 'Trimite antrenorului', a: 'human' }] }); }
+    busy = false; drawRobo();
+  };
+  const lastQ = () => (robo.messages.filter((m) => m.from === 'u').slice(-1)[0] || {}).text || '';
+  const doAct = async (a) => {
+    const [k, v] = [a.split(':')[0], a.slice(a.indexOf(':') + 1)];
+    if (k === 'say') return askRobo(v);
+    if (k === 'human') { const q = lastQ(); md = 'gym'; head(); await loadGym(); ta.value = q ? `Bună! Robo nu a știut să-mi răspundă: ${q}` : ''; ta.focus(); return; }
+    if (k === 'url') return window.open(v, '_blank', 'noopener');
+    if (k === 'wa') return window.open(waLink(S().whatsapp, 'Bună! '), '_blank', 'noopener');
+    if (k === 'call') { location.href = 'tel:' + String(S().phone || '').replace(/\s/g, ''); return; }
+    await closeChat();
+    if (k === 'ex') return setTimeout(() => openEx(v), 200);
+    if (k === 'tab') return go(v);
+    if (k === 'plan') return openRobo();
+    if (k === 'start') { if (H.program) return startWorkout(H.program, H.nextDay); return go('train'); }
+    if (k === 'checkin') return H.checkedInToday ? toast('Ai făcut deja check-in azi. Spor!') : openCheckin();
+    if (k === 'board') return openBoard();
+    if (k === 'sub') return openSub();
+    if (k === 'book') { go('train'); return setTimeout(() => openBook(v), 300); }
+  };
+  el.addEventListener('click', (e) => {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.md && t.dataset.md !== md) { md = t.dataset.md; head(); md === 'robo' ? drawRobo() : (box.innerHTML = '<div class="skel" style="height:60px;width:70%"></div>', loadGym()); }
+    if (t.dataset.q) askRobo(t.dataset.q);
+    if (t.dataset.ra) doAct(t.dataset.ra);
+  });
+  head();
+  try { await loadRobo(); } catch (e) { robo = { messages: [], intro: { text: 'Robo nu e disponibil acum.', chips: [] } }; }
+  if (md === 'gym') await loadGym();
+  chatPoll = setInterval(() => { if (!window.GymDemo && md === 'gym') loadGym(); }, 6000); window.GymChatReload = () => (md === 'gym' ? loadGym() : null);
+  if (prefill) { if (autoSend && md === 'robo') askRobo(prefill); else ta.value = prefill; }
+  if (matchMedia('(pointer:fine)').matches) ta.focus();
   ta.oninput = () => { ta.style.height = 'auto'; ta.style.height = Math.min(120, ta.scrollHeight) + 'px'; };
   ta.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey && matchMedia('(pointer:fine)').matches) { e.preventDefault(); $('#cf').requestSubmit(); } };
-  $('#cf').onsubmit = async (e) => { e.preventDefault(); const tx = ta.value.trim(); if (!tx) return; ta.value = ''; ta.style.height = ''; try { const r = await api('/api/me/chat', { method: 'POST', body: { text: tx } }); draw(r.messages); } catch (er) { toast(er.message, 'bad'); ta.value = tx; } };
-  $('#cx').onclick = async () => { clearInterval(chatPoll); window.GymChatReload = null; el.remove(); document.body.classList.remove('noscroll'); if (location.hash === '#chat') history.replaceState(null, '', '#' + tab); H = await api('/api/me'); render(); };
+  $('#cf').onsubmit = async (e) => {
+    e.preventDefault(); const tx = ta.value.trim(); if (!tx) return; ta.value = ''; ta.style.height = '';
+    if (md === 'robo') return askRobo(tx);
+    try { const r = await api('/api/me/chat', { method: 'POST', body: { text: tx } }); drawGym(r.messages); } catch (er) { toast(er.message, 'bad'); ta.value = tx; }
+  };
+  const closeChat = async () => { clearInterval(chatPoll); window.GymChatReload = null; el.remove(); document.body.classList.remove('noscroll'); if (location.hash === '#chat') history.replaceState(null, '', '#' + tab); H = await api('/api/me'); render(); };
+  $('#cx').onclick = closeChat;
 }
 
 /* ───────── FIGURINA TA ───────── */
@@ -977,9 +1057,9 @@ function openEx(id) {
     <h3 style="margin-top:18px">Cum se face, pas cu pas</h3><ol class="steps">${(e.steps || []).map((s) => `<li>${esc(s)}</li>`).join('')}</ol>
     ${e.tip ? `<div class="tip">${IC('info', 18)} ${esc(e.tip)}</div>` : ''}
     <a class="btn btn-acc btn-block" style="margin-top:16px" href="${esc(e.video)}" target="_blank" rel="noopener">${IC('play', 18)} Vezi video demonstrativ</a>
-    <button class="btn btn-ghost btn-block" style="margin-top:10px" id="askT">${IC('chat', 18)} Întreabă antrenorul</button>`);
+    <button class="btn btn-ghost btn-block" style="margin-top:10px" id="askT">${IC('chat', 18)} Întreabă-l pe Robo</button>`);
   GymFig.animate(el);
-  $('#askT', el).onclick = () => { closeSheet(); setTimeout(() => openChat(`Bună! Am o întrebare despre exercițiul „${e.name}”: `), 260); };
+  $('#askT', el).onclick = () => { closeSheet(); setTimeout(() => openChat(`Cum fac corect ${e.name.toLowerCase()}?`, 'robo', true), 260); };
 }
 function chooseProgram() {
   const el = sheet(`<h2>Alege programul</h2><p class="muted">Poți schimba oricând. Antrenorul îți poate face și unul personalizat.</p><div class="list" style="margin-top:14px">${H.programs.map((p) => `<button class="day ${H.program && p.id === H.program.id ? 'next-up' : ''}" data-p="${p.id}"><span class="n">${p.nDays}×</span><span class="grow"><b>${esc(p.name)}</b>${p.owner ? ` <span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">personal</span>` : ''}<br><small class="muted">${esc(p.goal)} · ${esc(p.level)}</small><br><small class="muted">${esc(p.desc || '')}</small></span></button>`).join('')}</div>`);
