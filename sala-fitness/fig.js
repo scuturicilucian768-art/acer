@@ -237,6 +237,7 @@
     hair: ['Scurt', 'Creastă', 'Lung', 'Coc', 'Creț', 'Chel'],
     top: ['Tricou', 'Maieu', 'Hanorac'],
     acc: ['Nimic', 'Bentiță', 'Șapcă', 'Căști', 'Ochelari'],
+    build: ['Slab', 'Fit', 'Bodybuilder'],
   };
   const pick = (arr, i, d = 0) => arr[i | 0] !== undefined ? arr[i | 0] : arr[d];
   const P2 = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
@@ -244,7 +245,13 @@
     L = L || {}; o = o || {};
     const r = Math.max(0, Math.min(4, rank | 0)), F = L.body === 'F', sk = pick(SKIN, L.skin, 1), hc = pick(HAIRC, L.hairCol, 0), ti = L.topCol | 0, tc = pick(TOPC, ti, 0);
     const top = L.top | 0, hs = L.hair | 0, ac = L.acc | 0, cx = 60;
-    const sw = 17 + r * 2.2 - (F ? 2.5 : 0), aw = 8 + r * 1.35 - (F ? 1.2 : 0), bump = 4.2 + r * 1.5 - (F ? 1.2 : 0), waist = F ? 11.5 : 13 + r * 0.5, hip = F ? 15.5 : 13.5;
+    const bd = L.build === undefined || L.build === null ? 1 : Math.max(0, Math.min(2, L.build | 0)), SK = bd === 0, BB = bd === 2;
+    // corpul: rangul adaugă mușchi, tipul de corp ales (slab / fit / bodybuilder) dă forma de bază
+    const sw = Math.min(27.5, 17 + r * (BB ? 2.6 : SK ? 1.2 : 2.2) - (F ? 4 : 0) + (BB ? (F ? 3.5 : 6) : SK ? -3.5 : 0));
+    const aw = Math.min(15.5, 8 + r * (BB ? 1.5 : SK ? 0.6 : 1.35) - (F ? 2 : 0) + (BB ? (F ? 2.2 : 3.6) : SK ? -2.4 : 0));
+    const bump = Math.min(11, Math.max(1.2, 4.2 + r * (BB ? 1.8 : SK ? 0.5 : 1.5) - (F ? 1.8 : 0) + (BB ? (F ? 2 : 3.6) : SK ? -2.6 : 0)));
+    const waist = F ? (SK ? 9 : BB ? 11 : 9.8) : 13 + r * 0.5 + (BB ? 0.5 : SK ? -2.5 : 0), hip = F ? (SK ? 14.5 : BB ? 17.5 : 17) : (SK ? 11.5 : BB ? 14.5 : 13.5);
+    const leg = (F ? 8.6 : 9 + r * 0.6) + (BB ? 3.4 : SK ? -2.6 : 0), lips = '#C24A5A';
     const g = 'hg' + Math.random().toString(36).slice(2, 7), out = [];
     out.push(`<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient></defs>`);
     out.push(`<ellipse cx="${cx}" cy="145" rx="30" ry="4.5" fill="#000" opacity=".35"/>`);
@@ -254,9 +261,15 @@
     // părul lung din spate
     if (hs === 2) out.push(`<path d="M${P2(cx - 26, 34)}Q${P2(cx - 33, 70)} ${P2(cx - 19, 84)}L${P2(cx + 19, 84)}Q${P2(cx + 33, 70)} ${P2(cx + 26, 34)}Z" fill="${hc}"/>`);
     // picioare, pantofi, pantaloni scurți
-    out.push(`<path d="M${P2(cx - 7, 110)}L${P2(cx - 9, 138)}M${P2(cx + 7, 110)}L${P2(cx + 9, 138)}" stroke="${sk}" stroke-width="${F ? 8 : 9 + r * 0.6}" stroke-linecap="round"/>`);
+    if (F) {
+      // colanți până la gleznă + coapse mai pline
+      out.push(`<path d="M${P2(cx - 8.5, 108)}Q${P2(cx - 11.5, 118)} ${P2(cx - 9.5, 130)}L${P2(cx - 9, 136)}M${P2(cx + 8.5, 108)}Q${P2(cx + 11.5, 118)} ${P2(cx + 9.5, 130)}L${P2(cx + 9, 136)}" fill="none" stroke="#2A2A33" stroke-width="${leg}" stroke-linecap="round"/>`);
+      out.push(`<path d="M${P2(cx - 9, 134)}L${P2(cx - 9, 138)}M${P2(cx + 9, 134)}L${P2(cx + 9, 138)}" stroke="${sk}" stroke-width="${leg - 1.5}" stroke-linecap="round"/>`);
+      out.push(`<path d="M${P2(cx - 12.5, 112)}L${P2(cx - 10, 132)}M${P2(cx + 12.5, 112)}L${P2(cx + 10, 132)}" stroke="var(--acc, #C8F03C)" stroke-width="1.3" stroke-linecap="round" opacity=".8"/>`);
+    } else out.push(`<path d="M${P2(cx - 7, 110)}L${P2(cx - 9, 138)}M${P2(cx + 7, 110)}L${P2(cx + 9, 138)}" stroke="${sk}" stroke-width="${leg}" stroke-linecap="round"/>`);
     out.push(`<ellipse cx="${cx - 11}" cy="140.5" rx="8.5" ry="4.6" fill="#F4F4F7"/><ellipse cx="${cx + 11}" cy="140.5" rx="8.5" ry="4.6" fill="#F4F4F7"/><path d="M${P2(cx - 19, 142)}h16M${P2(cx + 3, 142)}h16" stroke="var(--acc, #C8F03C)" stroke-width="2" stroke-linecap="round"/>`);
-    out.push(`<path d="M${P2(cx - hip - 1, 97)}L${P2(cx + hip + 1, 97)}L${P2(cx + hip + 3, 118)}L${P2(cx + 2.5, 118)}L${P2(cx, 110)}L${P2(cx - 2.5, 118)}L${P2(cx - hip - 3, 118)}Z" fill="#2A2A33"/>`);
+    if (F) out.push(`<path d="M${P2(cx - waist - 1, 95)}Q${P2(cx - hip - 3, 100)} ${P2(cx - hip - 1, 112)}L${P2(cx - 3, 113)}L${P2(cx, 108)}L${P2(cx + 3, 113)}L${P2(cx + hip + 1, 112)}Q${P2(cx + hip + 3, 100)} ${P2(cx + waist + 1, 95)}Z" fill="#2A2A33"/>`);
+    else out.push(`<path d="M${P2(cx - hip - 1, 97)}L${P2(cx + hip + 1, 97)}L${P2(cx + hip + 3, 118)}L${P2(cx + 2.5, 118)}L${P2(cx, 110)}L${P2(cx - 2.5, 118)}L${P2(cx - hip - 3, 118)}Z" fill="#2A2A33"/>`);
     // brațele: poziția de „arată mușchii”
     const arms = [];
     for (const d of [-1, 1]) {
@@ -273,19 +286,29 @@
     }
     out.push(arms.join(''));
     // trunchiul
-    const torso = `M${P2(cx - sw - 3, 71)}Q${P2(cx - sw, 63)} ${P2(cx - 10, 62)}L${P2(cx + 10, 62)}Q${P2(cx + sw, 63)} ${P2(cx + sw + 3, 71)}L${P2(cx + waist + (F ? 0 : 1), 99)}L${P2(cx - waist - (F ? 0 : 1), 99)}Z`;
-    if (top === 1) {
+    // femeie: siluetă de clepsidră (umeri mai înguști, talie, șolduri); bărbat: formă de V
+    const torso = F
+      ? `M${P2(cx - sw - 2, 71)}Q${P2(cx - sw, 63)} ${P2(cx - 9, 62)}L${P2(cx + 9, 62)}Q${P2(cx + sw, 63)} ${P2(cx + sw + 2, 71)}C${P2(cx + sw + 2.5, 79)} ${P2(cx + waist + 0.5, 82)} ${P2(cx + waist, 88)}C${P2(cx + waist - 0.5, 92)} ${P2(cx + hip - 2, 95)} ${P2(cx + hip - 1, 99)}L${P2(cx - hip + 1, 99)}C${P2(cx - hip + 2, 95)} ${P2(cx - waist + 0.5, 92)} ${P2(cx - waist, 88)}C${P2(cx - waist - 0.5, 82)} ${P2(cx - sw - 2.5, 79)} ${P2(cx - sw - 2, 71)}Z`
+      : `M${P2(cx - sw - 3, 71)}Q${P2(cx - sw, 63)} ${P2(cx - 10, 62)}L${P2(cx + 10, 62)}Q${P2(cx + sw, 63)} ${P2(cx + sw + 3, 71)}L${P2(cx + waist + 1, 99)}L${P2(cx - waist - 1, 99)}Z`;
+    if (top === 1 && F) {
+      out.push(`<path d="${torso}" fill="${sk}"/>`);
+      out.push(`<path d="M${P2(cx - sw + 5, 63)}L${P2(cx - 7, 63)}Q${P2(cx, 70)} ${P2(cx + 7, 63)}L${P2(cx + sw - 5, 63)}L${P2(cx + sw + 1.5, 74)}Q${P2(cx + sw, 81)} ${P2(cx + waist + 2, 82)}L${P2(cx - waist - 2, 82)}Q${P2(cx - sw, 81)} ${P2(cx - sw - 1.5, 74)}Z" fill="${tc}"/>`);
+      out.push(`<path d="M${P2(cx - 1.2, 86)}v3.5" stroke="#000" stroke-opacity=".2" stroke-width="1.4" stroke-linecap="round"/>`);
+    } else if (top === 1) {
       out.push(`<path d="${torso}" fill="${sk}"/>`);
       out.push(`<path d="M${P2(cx - sw + 7, 63)}L${P2(cx - 7, 63)}Q${P2(cx, 71)} ${P2(cx + 7, 63)}L${P2(cx + sw - 7, 63)}L${P2(cx + sw - 3, 76)}L${P2(cx + waist + 1, 99)}L${P2(cx - waist - 1, 99)}L${P2(cx - sw + 3, 76)}Z" fill="${tc}"/>`);
     } else out.push(`<path d="${torso}" fill="${tc}"/>`);
     out.push(`<path d="${torso}" fill="url(#${g})"/>`);
-    if (r >= 2 && !F) out.push(`<path d="M${P2(cx - 13, 76)}Q${P2(cx - 6, 81)} ${P2(cx, 76)}Q${P2(cx + 6, 81)} ${P2(cx + 13, 76)}" fill="none" stroke="#000" stroke-opacity=".16" stroke-width="1.6" stroke-linecap="round"/>`);
+    if (F) out.push(`<path d="M${P2(cx - 11, 72)}Q${P2(cx - 6, 80.5)} ${P2(cx - 0.8, 75)}M${P2(cx + 0.8, 75)}Q${P2(cx + 6, 80.5)} ${P2(cx + 11, 72)}" fill="none" stroke="#000" stroke-opacity=".17" stroke-width="1.5" stroke-linecap="round"/>`);
+    else if (r >= 2 || BB) out.push(`<path d="M${P2(cx - 13, 76)}Q${P2(cx - 6, 81)} ${P2(cx, 76)}Q${P2(cx + 6, 81)} ${P2(cx + 13, 76)}" fill="none" stroke="#000" stroke-opacity=".16" stroke-width="1.6" stroke-linecap="round"/>`);
+    if (BB && top !== 2) out.push(`<path d="M${P2(cx, 81)}V${F ? 80 : 93}M${P2(cx - 5, 84)}h10M${P2(cx - 5, 89)}h10" stroke="#000" stroke-opacity="${top === 1 && !F ? 0 : 0.13}" stroke-width="1.3" stroke-linecap="round"/>`);
+    if (BB && top === 1 && F) out.push(`<path d="M${P2(cx - 4, 85)}h8M${P2(cx - 4, 90)}h8M${P2(cx, 84)}v9" stroke="#000" stroke-opacity=".14" stroke-width="1.2" stroke-linecap="round"/>`);
     if (top === 2) out.push(`<path d="M${P2(cx - 13, 63)}Q${P2(cx, 74)} ${P2(cx + 13, 63)}" fill="none" stroke="#000" stroke-opacity=".28" stroke-width="3"/><path d="M${P2(cx - 4, 69)}v9M${P2(cx + 4, 69)}v9" stroke="#fff" stroke-opacity=".7" stroke-width="1.4" stroke-linecap="round"/><rect x="${cx - 10}" y="88" width="20" height="8" rx="3" fill="#000" opacity=".15"/>`);
     out.push(`<text x="${cx}" y="${top === 2 ? 86 : 89}" text-anchor="middle" font-family="Archivo, Inter, sans-serif" font-weight="900" font-size="9" letter-spacing=".5" fill="${LIGHT_TOP.includes(ti) ? '#111' : '#fff'}" opacity=".85">FE</text>`);
     // centura (de la Gladiator)
     if (r >= 2) out.push(`<rect x="${(cx - waist - 2).toFixed(1)}" y="94" width="${(2 * waist + 4).toFixed(1)}" height="6.5" rx="2" fill="${r >= 4 ? '#E8B83A' : '#24242B'}"/><rect x="${cx - 6}" y="92.5" width="12" height="9.5" rx="2.5" fill="#FFD34D" stroke="#B07A10" stroke-width="1"/>`);
     // gâtul și capul
-    out.push(`<rect x="${cx - 6}" y="54" width="12" height="11" rx="4" fill="${sk}"/>`);
+    const nk = F ? 4.8 : BB ? 8 : SK ? 5 : 6; out.push(`<rect x="${cx - nk}" y="54" width="${2 * nk}" height="11" rx="4" fill="${sk}"/>`);
     out.push(`<circle cx="${cx - 24}" cy="44" r="5" fill="${sk}"/><circle cx="${cx + 24}" cy="44" r="5" fill="${sk}"/><circle cx="${cx}" cy="40" r="24" fill="${sk}"/>`);
     // părul
     const cap = `M${P2(cx - 24, 38)}Q${P2(cx - 25, 14)} ${P2(cx, 14)}Q${P2(cx + 25, 14)} ${P2(cx + 24, 38)}Q${P2(cx + 20, 25)} ${P2(cx + 6, 25)}Q${P2(cx - 6, 30)} ${P2(cx - 16, 26)}Q${P2(cx - 21, 30)} ${P2(cx - 24, 38)}Z`;
@@ -299,7 +322,8 @@
     out.push(`<g class="eyes" style="transform-origin:${cx}px 44px"><ellipse cx="${cx - 9}" cy="44" rx="2.7" ry="3.3" fill="#1A1A1E"/><ellipse cx="${cx + 9}" cy="44" rx="2.7" ry="3.3" fill="#1A1A1E"/><circle cx="${cx - 8}" cy="43" r=".9" fill="#fff"/><circle cx="${cx + 10}" cy="43" r=".9" fill="#fff"/></g>`);
     out.push(`<path d="M${P2(cx - 13, 37)}L${P2(cx - 5, 35.5)}M${P2(cx + 5, 35.5)}L${P2(cx + 13, 37)}" stroke="${hs === 5 ? '#6B4A3A' : hc}" stroke-width="2.2" stroke-linecap="round"/>`);
     out.push(`<circle cx="${cx - 15}" cy="50" r="3.6" fill="#FF6B6B" opacity=".22"/><circle cx="${cx + 15}" cy="50" r="3.6" fill="#FF6B6B" opacity=".22"/>`);
-    out.push(r >= 2 ? `<path d="M${P2(cx - 8, 51)}Q${P2(cx, 60)} ${P2(cx + 8, 51)}Z" fill="#5A2A22"/><path d="M${P2(cx - 6.5, 51.6)}H${cx + 6.5}" stroke="#fff" stroke-width="2"/>` : `<path d="M${P2(cx - 7, 52)}Q${P2(cx, 58)} ${P2(cx + 7, 52)}" fill="none" stroke="#5A2A22" stroke-width="2.2" stroke-linecap="round"/>`);
+    if (F) out.push(`<path d="M${P2(cx - 12.2, 41.6)}l-2.4-1.6M${P2(cx - 11.6, 40.4)}l-1.6-2M${P2(cx + 12.2, 41.6)}l2.4-1.6M${P2(cx + 11.6, 40.4)}l1.6-2" stroke="#1A1A1E" stroke-width="1.2" stroke-linecap="round"/><circle cx="${cx - 24}" cy="50" r="1.8" fill="var(--acc, #C8F03C)"/><circle cx="${cx + 24}" cy="50" r="1.8" fill="var(--acc, #C8F03C)"/>`);
+    out.push(F ? `<path d="M${P2(cx - 6.5, 52)}Q${P2(cx, 58.5)} ${P2(cx + 6.5, 52)}Q${P2(cx, 54.5)} ${P2(cx - 6.5, 52)}Z" fill="${lips}"/>` : r >= 2 ? `<path d="M${P2(cx - 8, 51)}Q${P2(cx, 60)} ${P2(cx + 8, 51)}Z" fill="#5A2A22"/><path d="M${P2(cx - 6.5, 51.6)}H${cx + 6.5}" stroke="#fff" stroke-width="2"/>` : `<path d="M${P2(cx - 7, 52)}Q${P2(cx, 58)} ${P2(cx + 7, 52)}" fill="none" stroke="#5A2A22" stroke-width="2.2" stroke-linecap="round"/>`);
     // accesorii
     if (ac === 1) out.push(`<path d="M${P2(cx - 24, 30)}Q${P2(cx, 21)} ${P2(cx + 24, 30)}L${P2(cx + 24.5, 36)}Q${P2(cx, 27)} ${P2(cx - 24.5, 36)}Z" fill="var(--acc, #C8F03C)"/>`);
     if (ac === 2) out.push(`<path d="M${P2(cx - 24.5, 31)}Q${P2(cx - 25, 11)} ${P2(cx, 11)}Q${P2(cx + 25, 11)} ${P2(cx + 24.5, 31)}Z" fill="${top === 1 || ti === 2 ? '#1E1E24' : tc}"/><ellipse cx="${cx}" cy="31" rx="28" ry="4.5" fill="#15151A"/><circle cx="${cx}" cy="12" r="2" fill="#fff" opacity=".7"/><text x="${cx}" y="26" text-anchor="middle" font-family="Archivo, Inter, sans-serif" font-weight="900" font-size="7" fill="#fff" opacity=".8">FE</text>`);

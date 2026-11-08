@@ -1111,7 +1111,7 @@ function openRobo() {
 /* ───────── PERSONALIZARE: card + figurină ───────── */
 function openStudio(startTab) {
   const me = H.me, rk = me.rank.idx, TH = GymCore.CARD_THEMES, PT = GymCore.CARD_PATTERNS, LO = GymFig.LOOK_OPT;
-  const L = { card: 'empire', pattern: 0, motto: '', body: 'M', skin: 1, hair: 0, hairCol: 0, top: 0, topCol: 0, acc: 0, ...(me.look || {}) };
+  const L = { card: 'empire', pattern: 0, motto: '', body: 'M', skin: 1, hair: 0, hairCol: 0, top: 0, topCol: 0, acc: 0, build: 1, ...(me.look || {}) };
   if (L.useFig === undefined) L.useFig = !me.avatar;
   let tb = startTab === 'fig' ? 'fig' : 'card';
   const el = sheet('<div class="studio" id="std"></div>'), root = $('#std', el), sc = $('#sheet .sheet');
@@ -1131,6 +1131,7 @@ function openStudio(startTab) {
         <h4>Pe card apare</h4><div class="segs"><button data-k="useFig" data-v="false" class="${!L.useFig ? 'on' : ''}" ${me.avatar ? '' : 'disabled title="Pune întâi o poză de profil"'}>Poza mea</button><button data-k="useFig" data-v="true" class="${L.useFig ? 'on' : ''}">Figurina</button></div>`
       : `<div class="figpv" id="fpv">${GymFig.hero(L, rk)}</div>
         <h4>Corp</h4>${segs('body', LO.body)}
+        <h4>Tipul de corp <span class="muted" style="font-weight:600;text-transform:none;letter-spacing:0">· corpul tău ideal</span></h4>${segs('build', LO.build.map((x, i) => [i, ['🌱 ', '💪 ', '🏆 '][i] + x]))}
         <h4>Piele</h4>${dots('skin', LO.skin)}
         <h4>Păr</h4>${segs('hair', LO.hair)}
         <h4>Culoarea părului</h4>${dots('hairCol', LO.hairCol)}
@@ -1150,7 +1151,7 @@ function openStudio(startTab) {
     if (b.dataset.tab) { tb = b.dataset.tab; return draw(); }
     if (b.dataset.th) { const t = TH.find((x) => x.id === b.dataset.th); if (t.min > rk) return toast(`Tema ${t.name} se deblochează la rangul ${GymCore.RANKS[t.min].name}. Mai antrenează-te! 💪`); L.card = t.id; return draw(); }
     if (b.dataset.mot) { L.motto = b.dataset.mot; return draw(); }
-    if (b.dataset.k) { const k = b.dataset.k, v = b.dataset.v; L[k] = k === 'body' ? v : k === 'useFig' ? v === 'true' : +v; return draw(); }
+    if (b.dataset.k) { const k = b.dataset.k, v = b.dataset.v; L[k] = k === 'body' ? v : k === 'useFig' ? v === 'true' : +v; if (k === 'body' && v === 'F' && !L.hair) L.hair = 2; return draw(); }
     if (b.id === 'sv') { b.disabled = true; try { await act('/api/me/look', L, 'PUT'); closeSheet(); toast('Salvat! Arăți super 😎'); render(); } catch { b.disabled = false; } }
   };
   draw();

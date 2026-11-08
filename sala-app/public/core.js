@@ -210,7 +210,7 @@
     if (b.pattern !== undefined) L.pattern = int(b.pattern, CARD_PATTERNS.length);
     if (b.motto !== undefined) L.motto = clean(b.motto, 34);
     if (b.body !== undefined) L.body = b.body === 'F' ? 'F' : 'M';
-    for (const [k, n] of [['skin', 5], ['hair', 6], ['hairCol', 6], ['top', 3], ['topCol', 8], ['acc', 5]]) if (b[k] !== undefined) L[k] = int(b[k], n);
+    for (const [k, n] of [['skin', 5], ['hair', 6], ['hairCol', 6], ['top', 3], ['topCol', 8], ['acc', 5], ['build', 3]]) if (b[k] !== undefined) L[k] = int(b[k], n);
     if (b.useFig !== undefined) L.useFig = !!b.useFig;
     return [L, null];
   }
