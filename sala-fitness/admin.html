@@ -9,7 +9,7 @@
 <link rel="icon" href="img/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="app.css?v=11">
+<link rel="stylesheet" href="app.css?v=12">
 <style>
 body{min-height:100vh}
 .lay{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
@@ -160,7 +160,6 @@ body{min-height:100vh}
       <button data-p="daily" data-i="spark">Motivația zilei</button>
       <button data-p="programs" data-i="dumbbell">Antrenamente</button>
       <button data-p="nutrition" data-i="food">Nutriție</button>
-      <button data-p="pt" data-i="calendar">Antrenor personal<em class="bd hide" id="ptb"></em></button>
       <button data-p="gallery" data-i="camera">Galerie foto</button>
       <button data-p="ann" data-i="megaphone">Anunțuri</button>
       <button data-p="rewards" data-i="gift">Premii</button>
@@ -172,13 +171,13 @@ body{min-height:100vh}
     <main class="main" id="main"></main>
   </div>
 </div>
-<script src="diet.js?v=11"></script>
-<script src="core.js?v=11"></script>
-<script src="seed.js?v=11"></script>
-<script src="env.js?v=11"></script>
-<script src="common.js?v=11"></script>
-<script src="fig.js?v=11"></script>
-<script src="qr.js?v=11"></script>
+<script src="diet.js?v=12"></script>
+<script src="core.js?v=12"></script>
+<script src="seed.js?v=12"></script>
+<script src="env.js?v=12"></script>
+<script src="common.js?v=12"></script>
+<script src="fig.js?v=12"></script>
+<script src="qr.js?v=12"></script>
 <script>
 let page = 'dash', O = null, CFG = null;
 $$('.side [data-i]').forEach((b) => b.insertAdjacentHTML('afterbegin', IC(b.dataset.i, 20)));
@@ -218,12 +217,12 @@ function showLogin() {
     <div class="field"><label>Parola</label><input class="input" type="password" id="pw" autocomplete="current-password" required></div><p class="err" id="le"></p><button class="btn btn-acc btn-block">Intră</button>${window.GymDemo ? '<p class="tip" style="margin-top:14px">Demo: parola <b>admin</b></p>' : ''}</form></div>`;
   $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/api/admin/login', { method: 'POST', body: { password: $('#pw').value } }); boot(); } catch (er) { $('#le').textContent = er.message; } };
 }
-const TITLES = { gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', pt: 'Antrenor personal', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
+const TITLES = { gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
 function go(p) {
   page = TITLES[p] ? p : 'dash'; history.replaceState(null, '', '#' + page);
   $$('.side [data-p]').forEach((b) => b.classList.toggle('on', b.dataset.p === page)); $('#mtitle').textContent = TITLES[page]; $('#side').classList.remove('open');
   M().innerHTML = '<div class="skel" style="height:60px;margin-bottom:14px"></div><div class="skel" style="height:220px"></div>'; M().classList.remove('stagger'); clearInterval(window._poll); window._quiet = null; window._convReload = null; stopScan();
-  const fn = ({ gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, pt: pPT, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
+  const fn = ({ gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
   fn().then(() => { M().classList.add('stagger'); countUp(M()); if (!window._quiet && ['dash', 'members', 'pt', 'rewards'].includes(page)) window._quiet = async () => { await fn(); countUp(M()); }; }).catch((e) => { if (e.status === 401) return showLogin(); M().innerHTML = `<p class="err">${esc(e.message)}</p>`; });
   scrollTo(0, 0);
 }
@@ -235,7 +234,6 @@ document.addEventListener('click', (e) => { if ($('#side').classList.contains('o
 /* ───────── PANOU ───────── */
 async function pDash() {
   O = await api('/api/admin/overview'); const s = O.stats; updBadges();
-  $('#ptb').textContent = O.bookings.filter((b) => b.status === 'pending').length || ''; $('#ptb').classList.toggle('hide', !O.bookings.some((b) => b.status === 'pending'));
   const al = (r, kind) => `<div class="alert">${avatarHtml(r.name, r.avatar)}<div class="grow"><b>${esc(r.name)}</b><br><small>${kind === 'exp' ? (r.state === 'expired' ? `expirat din ${fdate(r.end)}` : `expiră ${r.daysLeft === 0 ? 'azi' : `pe ${fdate(r.end)}`}`) + ` · ${esc(r.plan || '')}` : `ultima vizită ${idleTxt(r)}`}</small></div>
     <a class="btn btn-sm" href="${waTo(r.phone, kind === 'exp' ? `Bună, ${r.name.split(' ')[0]}! Abonamentul tău la ${S().name} ${r.state === 'expired' ? 'a expirat' : 'expiră ' + (r.daysLeft === 0 ? 'azi' : 'pe ' + fdate(r.end))}. Te așteptăm să-l reînnoiești! 💪` : `Bună, ${r.name.split(' ')[0]}! Nu te-am mai văzut de ceva vreme la sală. Totul e ok? Te așteptăm! 💪`)}" target="_blank" rel="noopener">${IC('chat', 16)}</a>
     ${kind === 'exp' ? `<button class="btn btn-sm btn-acc" data-pay="${r.id}">Reînnoiește</button>` : `<button class="btn btn-sm" data-open="${r.id}">Vezi</button>`}</div>`;
@@ -261,7 +259,6 @@ async function pDash() {
         ${O.chatUnread ? `<div class="alert"><span class="av" style="background:var(--acc);color:var(--acc-ink)">${IC('chat', 18)}</span><div class="grow"><b>${O.chatUnread} ${O.chatUnread === 1 ? 'mesaj nou' : 'mesaje noi'}</b><br><small>de la membri</small></div><button class="btn btn-sm btn-acc" data-go="chat">Răspunde</button></div>` : ''}
         <div class="alert"><span class="av">${IC('users', 18)}</span><div class="grow"><b>${O.todayVisits.length} ${O.todayVisits.length === 1 ? 'membru a venit' : 'membri au venit'} azi</b><br><small>${O.todayVisits.slice(0, 4).map((x) => esc(x.name.split(' ')[0]) + (x.ciToday ? ' ' + x.ciToday : '')).join(' · ') || 'încă nimeni'}</small></div><button class="btn btn-sm" data-go="desk">Vezi</button></div>
         <div class="alert"><span class="av">${IC('spark', 18)}</span><div class="grow"><b>Motivația zilei</b><br><small>„${esc(O.daily.quote)}”</small></div></div>
-        <div class="alert"><span class="av">${IC('calendar', 18)}</span><div class="grow"><b>${O.bookings.length} programări PT</b><br><small>${O.bookings.filter((b) => b.status === 'pending').length} așteaptă confirmare</small></div><button class="btn btn-sm" data-go="pt">Vezi</button></div>
         <div class="alert"><span class="av">${IC('gift', 18)}</span><div class="grow"><b>${O.redemptions.length} premii de acordat</b><br><small>${O.redemptions.slice(0, 2).map((x) => esc(x.member + ': ' + x.name)).join(' · ') || 'niciunul'}</small></div><button class="btn btn-sm" data-go="rewards">Vezi</button></div>
         <div class="alert"><span class="av">${IC('calendar', 18)}</span><div class="grow"><b>${O.dailyScheduled} zile de motivație programate</b><br><small>${O.dailyScheduled < 7 ? 'Programează următoarele 30 de zile' : 'Totul e pregătit'}</small></div><button class="btn btn-sm" data-go="daily">Vezi</button></div>
       </div>
@@ -327,8 +324,7 @@ async function openMember(id, focus) {
         <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip acc">${esc(m.coach.goalTxt)}</span>${m.coach.pains.length ? `<span class="chip">🩹 ${esc(m.coach.painNames.join(', '))} · ${({ usoara: 'ușoare', moderata: 'moderate', puternica: 'puternice' })[m.coach.painLevel] || ''}</span>` : '<span class="chip">fără dureri</span>'}<span class="chip">${m.coach.answers.days}×/săpt · ${m.coach.answers.minutes} min</span><span class="chip">${m.coach.answers.place === 'acasa' ? 'acasă' : 'la sală'}</span>${m.coach.answers.daily ? `<span class="chip">${({ birou: 'stă mult pe scaun', picioare: 'mult pe picioare', fizic: 'muncă fizică' })[m.coach.answers.daily]}</span>` : ''}</div>
         ${m.coach.warn ? '<p style="margin:10px 0 0;color:#FFC23D;font-size:.88rem">⚠️ A raportat dureri puternice sau amorțeli. Robo i-a recomandat control medical și doar exerciții blânde. Verifică înainte să-i crești efortul.</p>' : ''}</div>` : '<p class="muted" style="font-size:.86rem;margin:0 0 14px">🤖 Membrul n-a vorbit încă cu Robo. Când o face, aici apar scopul, durerile și programul ales.</p>'}<div class="field"><label>Program de antrenament</label><select class="input" id="pr"><option value="">–</option>${progs.map((p) => `<option value="${p.id}" ${p.id === m.programId ? 'selected' : ''}>${esc(p.name)} (${esc(p.goal)})</option>`).join('')}</select></div>
       <div class="field"><label>Plan alimentar</label><select class="input" id="nu"><option value="">–</option>${dt.personal ? `<option value="${dt.plan.id}" ${dt.plan.id === m.nutritionId ? 'selected' : ''}>⭐ ${esc(dt.plan.name)} (personală, ${dt.plan.kcal} kcal)</option>` : ''}${nus.map((p) => `<option value="${p.id}" ${p.id === m.nutritionId ? 'selected' : ''}>${esc(p.name)} (${p.kcal} kcal)</option>`).join('')}</select></div>
-      <button class="btn btn-acc" id="prs">Salvează</button><p class="muted" style="font-size:.84rem;margin-top:12px">Vrei un program făcut doar pentru el? Creează-l în „Antrenamente” și alege-l aici.</p>
-      ${bookings.length ? `<h3 style="margin:16px 0 8px">Programări PT</h3>${bookings.map((b) => `<div class="alert"><div class="grow"><b>${fday(b.date)} · ${b.time}</b><br><small>${esc(b.note || '')}</small></div><span class="chip">${esc(b.status)}</span></div>`).join('')}` : ''}`,
+      <button class="btn btn-acc" id="prs">Salvează</button><p class="muted" style="font-size:.84rem;margin-top:12px">Vrei un program făcut doar pentru el? Creează-l în „Antrenamente” și alege-l aici.</p>`,
     diet: () => {
       const pl = dt.plan, fd = dt.food, LK = (k) => (GymDiet.LIKES.find((x) => x[0] === k) || [k, k])[1], DT = (k) => (GymDiet.DIETS.find((x) => x[0] === k) || [k, k])[1], AL = (k) => (GymDiet.ALLERGIES.find((x) => x[0] === k) || [k, k])[1];
       return `<div class="card" style="background:var(--bg)"><h3>🍽️ Ce îi place să mănânce</h3>${fd ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><span class="chip acc">${({ slabire: 'Slăbire', mentinere: 'Menținere', masa: 'Masă musculară' })[fd.goal]}</span><span class="chip">${esc(DT(fd.diet))}</span><span class="chip">${fd.meals} mese/zi</span><span class="chip">gătit: ${({ zilnic: 'zilnic', rapid: 'simplu și rapid', drum: 'mănâncă pe drum' })[fd.cook]}</span><span class="chip">buget ${({ mic: 'economic', normal: 'normal', mare: 'mare' })[fd.budget]}</span></div>
@@ -583,24 +579,6 @@ function simpleForm(title, fields, x, path, after) {
   $('#s', el).onclick = async () => { const body = {}; $$('[data-k]', el).forEach((i) => (body[i.dataset.k] = i.type === 'checkbox' ? i.checked : i.value)); try { await api(path + (x.id ? '/' + x.id : ''), { method: x.id ? 'PUT' : 'POST', body }); closeSheet(); toast('Salvat ✅'); after(); } catch (e) { $('#e', el).textContent = e.message; } };
   if ($('#del', el)) $('#del', el).onclick = async () => { if (!(await ask('Ștergi?', '', 'Șterge', { danger: true }))) return; await api(path + '/' + x.id, { method: 'DELETE', body: {} }); closeSheet(); after(); };
 }
-let ptWeek = 0;
-async function pPT() {
-  const { bookings } = await api('/api/admin/bookings'), { services } = await api('/api/admin/services');
-  const st = { pending: '<span class="chip warn">Așteaptă</span>', confirmed: '<span class="chip ok">Confirmat</span>', done: '<span class="chip">Făcut</span>', anulat: '<span class="chip bad">Anulat</span>' };
-  const mon = GymCore.add(todayStr(), -((new Date().getDay() + 6) % 7) + 7 * ptWeek), days = Array.from({ length: 7 }, (_, i) => GymCore.add(mon, i));
-  M().innerHTML = `<div class="ph"><div><h1>Antrenor personal</h1><p>Cereri de antrenament personal din aplicație și serviciile oferite.</p></div><button class="btn btn-acc" id="add">+ Serviciu nou</button></div>
-    <div class="card"><div class="row" style="margin-bottom:12px"><h3 class="grow">Calendarul săptămânii</h3><button class="btn btn-sm" id="wp" aria-label="Săptămâna trecută">${IC('back', 16)}</button><b style="min-width:140px;text-align:center">${fdate(days[0])} – ${fdate(days[6])}</b><button class="btn btn-sm" id="wn" aria-label="Săptămâna viitoare">${IC('chev', 16)}</button></div>
-      <div class="wk">${days.map((d) => `<div class="dcol ${d === todayStr() ? 'td' : ''}"><div class="dh">${esc(fday(d))}</div>${bookings.filter((b) => b.date === d && b.status !== 'anulat').sort((a, b) => a.time.localeCompare(b.time)).map((b) => `<div class="bk ${b.status}" data-bk="${b.id}"><b>${b.time}</b> ${esc(String(b.member || '').split(' ')[0])}<br><span class="muted">${esc(b.service || '')}</span></div>`).join('') || '<small class="muted">liber</small>'}</div>`).join('')}</div>
-      <div class="row muted small" style="gap:14px;margin-top:10px;flex-wrap:wrap"><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--amber)"></i> așteaptă confirmare</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--green)"></i> confirmat</span></div></div>
-    <div class="cols"><div class="card"><h3>Programări</h3>${bookings.map((b) => `<div class="alert"><span class="av">${esc(ini(b.member))}</span><div class="grow"><b>${esc(b.member || '?')}</b> · ${esc(b.service || '')}<br><small>${esc(fday(b.date))} la ${b.time}${b.note ? ' · „' + esc(b.note) + '”' : ''}</small></div>${st[b.status] || ''}${b.status === 'pending' ? `<button class="btn btn-sm btn-acc" data-s="confirmed" data-b="${b.id}">Confirmă</button><button class="btn btn-sm btn-red" data-s="anulat" data-b="${b.id}">Refuză</button>` : b.status === 'confirmed' ? `<button class="btn btn-sm" data-s="done" data-b="${b.id}">✓ Făcut</button>` : ''}<a class="btn btn-sm" href="${waTo(b.phone || '', `Bună, ${String(b.member || '').split(' ')[0]}! În legătură cu antrenamentul din ${fdate(b.date)} la ${b.time}: `)}" target="_blank" rel="noopener">${IC('chat', 16)}</a></div>`).join('') || '<p class="muted">Nicio programare încă.</p>'}</div>
-    <div class="card"><h3>Servicii</h3>${services.map((s) => `<div class="alert"><div class="grow"><b>${esc(s.name)}</b><br><small>${lei(s.price)} · ${s.duration} min</small></div><button class="btn btn-sm" data-sv="${s.id}">Editează</button></div>`).join('')}</div></div>`;
-  $('#wp').onclick = () => { ptWeek--; pPT(); }; $('#wn').onclick = () => { ptWeek++; pPT(); };
-  $$('[data-bk]').forEach((x) => (x.onclick = () => { const b = bookings.find((y) => y.id === x.dataset.bk); const el = sheet(`<h2>${esc(b.member || '')}</h2><p class="muted">${esc(b.service || '')} · ${esc(fday(b.date))} la ${b.time}</p>${b.note ? `<div class="tip">„${esc(b.note)}”</div>` : ''}<div class="row" style="gap:8px;margin-top:16px;flex-wrap:wrap">${b.status === 'pending' ? `<button class="btn btn-acc" data-s2="confirmed">Confirmă</button><button class="btn btn-red" data-s2="anulat">Refuză</button>` : ''}${b.status === 'confirmed' ? `<button class="btn" data-s2="done">Marchează făcut</button><button class="btn btn-red" data-s2="anulat">Anulează</button>` : ''}<a class="btn" href="${waTo(b.phone || '', `Bună, ${String(b.member || '').split(' ')[0]}! `)}" target="_blank" rel="noopener">${IC('chat', 16)} WhatsApp</a></div>`); $$('[data-s2]', el).forEach((y) => (y.onclick = async () => { await api('/api/admin/bookings/' + b.id, { method: 'PUT', body: { status: y.dataset.s2 } }); closeSheet(); toast('Salvat. Membrul a primit notificare.'); pPT(); })); }));
-  $$('[data-b]').forEach((b) => (b.onclick = async () => { await api('/api/admin/bookings/' + b.dataset.b, { method: 'PUT', body: { status: b.dataset.s } }); toast('Salvat — membrul a primit notificare'); pPT(); }));
-  const F = [['name', 'Nume'], ['price', 'Preț (lei)', 'number'], ['duration', 'Durată (minute)', 'number'], ['desc', 'Descriere']];
-  $('#add').onclick = () => simpleForm('Serviciu nou', F, {}, '/api/admin/services', pPT);
-  $$('[data-sv]').forEach((b) => (b.onclick = () => simpleForm('Editează serviciul', F, services.find((s) => s.id === b.dataset.sv), '/api/admin/services', pPT)));
-}
 async function pAnn() {
   const { announcements } = await api('/api/admin/announcements');
   const F = [['title', 'Titlu'], ['type', 'Tip', 'select', [['noutate', '📣 Noutate'], ['program', '🕐 Program'], ['oferta', '🏷️ Ofertă'], ['eveniment', '🎉 Eveniment']]], ['body', 'Text', 'textarea'], ['until', 'Vizibil până la (opțional)', 'date'], ['pinned', '📌 Fixat sus (important)', 'check'], ['notify', '🔔 Trimite și ca notificare membrilor activi', 'check']];
@@ -764,7 +742,7 @@ async function pReports() {
       <div class="card"><h3>Abonamente active pe tip</h3><div style="margin-top:14px">${donut(r.mix.map((x) => ({ l: x.name, v: x.n })), { sub: 'activi', label: 'Abonamente' })}</div></div></div>
     <div class="cols"><div class="card"><h3>Reînnoiri și abandon</h3><div class="g2" style="margin-top:14px"><div class="kpi"><small>Reînnoiri luna asta</small><b>${s.renewals}</b></div><div class="kpi"><small>Au expirat (30 de zile)</small><b>${s.churn}</b></div></div><p class="muted small" style="margin:10px 0 0">Abandon: ${s.churnRate}% din cei cu abonament.</p></div>
       <div class="card"><h3>Membri noi pe luni</h3>${barChart(r.growth.slice(-6).map((x) => ({ v: x.added, l: MONTHS[+x.month.slice(5) - 1] })), { label: 'Membri noi' })}</div></div>
-    <div class="card" style="margin-top:14px"><div class="row" style="flex-wrap:wrap"><div class="grow"><h3>Orele aglomerate</h3><p class="muted small" style="margin:2px 0 12px">Check-in-uri din ultimele 8 săptămâni, pe zile și ore. Bun pentru programarea antrenorilor și a curățeniei.</p></div></div>
+    <div class="card" style="margin-top:14px"><div class="row" style="flex-wrap:wrap"><div class="grow"><h3>Orele aglomerate</h3><p class="muted small" style="margin:2px 0 12px">Check-in-uri din ultimele 8 săptămâni, pe zile și ore. Bun pentru programarea personalului și a curățeniei.</p></div></div>
       <div style="overflow-x:auto"><div class="heat" style="min-width:560px"><span></span>${Array.from({ length: 17 }, (_, i) => `<span>${6 + i}</span>`).join('')}${r.heat.map((row, d) => `<span>${DN[d]}</span>${row.map((n, hh) => `<i title="${DN[d]} ${6 + hh}:00 · ${n} check-in" style="opacity:${n ? 0.12 + (n / hmax) * 0.88 : 0.05}"></i>`).join('')}`).join('')}</div></div></div>
     <div class="cols"><div class="card"><h3>Vizite în ultimele 30 de zile</h3>${barChart(r.visits30.map((x, i) => ({ v: x.n, l: i % 5 === 0 || i === 29 ? String(+x.date.slice(8)) : '' })), { label: 'Vizite', fmt: () => '' })}</div>
       <div class="card"><h3>Cei mai activi (30 de zile)</h3>${r.top.map((x, i) => `<div class="alert"><span class="av" style="${i === 0 ? 'background:linear-gradient(140deg,#FFD66B,#E9A100);color:#2a1a00' : ''}">${i + 1}</span><div class="grow"><b>${esc(x.name)}</b></div><b>${x.n} vizite</b></div>`).join('')}</div></div>`;

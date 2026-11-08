@@ -180,7 +180,7 @@
     if (a.goal === 'masa') tips.push('Mănâncă suficiente proteine (carne, ouă, lactate) la fiecare masă și dormi 7–8 ore.');
     if (a.goal === 'forta') tips.push('Notează greutățile la fiecare antrenament și crește puțin câte puțin.');
     if (a.goal === 'tonifiere') tips.push('Constanța bate intensitatea: 3 antrenamente bune pe săptămână fac diferența.');
-    if (pains.length) tips.push('Durerea nu trebuie să crească în timpul exercițiilor. Dacă crește, oprește-te și spune-i antrenorului.');
+    if (pains.length) tips.push('Durerea nu trebuie să crească în timpul exercițiilor. Dacă crește, oprește-te și cere sfatul unui kinetoterapeut.');
     const warn = a.painLevel === 'puternica';
     return { at: null, answers: a, goal: a.goal, goalTxt: GOAL_TXT[a.goal] || 'Tonifiere', title: GOAL_TITLE[a.goal] || GOAL_TITLE.tonifiere, pains, painNames: pains.map((p) => PAIN[p].name), painLevel: pains.length ? a.painLevel || 'usoara' : '', warn, tips: tips.slice(0, 5) };
   }
@@ -227,7 +227,6 @@
       `Sala: ${S.name}${S.address ? ', ' + S.address : ''}. Telefon: ${S.phone || '-'}.`,
       `Program sală: ${(S.hours || []).map((x) => x.d + ' ' + x.h).join('; ')}.`,
       `Abonamente: ${C.plans.map((x) => `${x.name} ${x.price} lei`).join('; ')}.`,
-      `Servicii: ${C.services.map((x) => `${x.name} ${x.price} lei`).join('; ')}.`,
       `Acum la sală: ~${C.crowd.now} persoane.`,
       `Membru: ${m.name}. Obiectiv: ${m.goal || '-'}. Nivel: ${m.level || '-'}. Rang: ${C.me.rank.name}, ${C.me.points.balance} puncte. Serie: ${C.me.streak} zile. Săptămâna asta: ${C.me.weekCount}/${m.weekGoal || 3} antrenamente.`,
       `Abonamentul lui: ${s.plan ? s.plan.name : 'niciunul'}${s.end ? `, valabil până pe ${C.fdate(s.end)} (${s.state})` : ''}.`,
@@ -594,7 +593,7 @@
       if (sub === '/diet' && m === 'PUT') {
         const meals = mealsInput(body.meals); if (!meals.length) return no(400, 'Adaugă cel puțin o masă.');
         const pl = savePersonalDiet(db, mem, { name: clean(body.name, 80) || 'Dieta mea personală', goal: clean(body.goal, 60), desc: text(body.desc, 400), meals }, 'admin', ctx.nowISO());
-        if (body.notify) notify(db, ctx, [mem], 'Antrenorul ți-a actualizat dieta 🥗', `Planul tău alimentar are acum ${pl.meals.length} mese, ~${pl.kcal} kcal pe zi. Vezi-l la Nutriție.`, 'dieta', '/app.html#food');
+        if (body.notify) notify(db, ctx, [mem], 'Sala ți-a actualizat dieta 🥗', `Planul tău alimentar are acum ${pl.meals.length} mese, ~${pl.kcal} kcal pe zi. Vezi-l la Nutriție.`, 'dieta', '/app.html#food');
         return ok({ plan: pl });
       }
       if (sub === '/diet' && m === 'DELETE') { db.nutrition = db.nutrition.filter((x) => x.id !== 'nu_my_' + mem.id); if (mem.nutritionId === 'nu_my_' + mem.id) mem.nutritionId = ''; return ok({ ok: true }); }

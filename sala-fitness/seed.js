@@ -211,6 +211,8 @@
   function upgrade(db) {
     db.seedEx = db.seedEx || db.exercises.map((e) => e.id);
     let changed = false;
+    // sala nu are antrenori: fără servicii de antrenament personal
+    if (!db.noPT) { db.noPT = true; db.services = []; changed = true; }
     // fără evidență de bani: plățile vechi devin doar istoric de abonamente (fără sume)
     for (const m of db.members || []) if (m.payments) { m.subLog = [...(m.subLog || []), ...m.payments.map((p) => ({ id: p.id, date: p.date, planId: p.planId }))]; delete m.payments; changed = true; }
     if (!db.seedGal) { db.seedGal = true; db.gallery = db.gallery || []; for (const g of GALLERY) if (!db.gallery.some((x) => x.id === g.id)) db.gallery.push({ ...g, order: g.order - 100 }); changed = true; }
