@@ -513,7 +513,7 @@ function openConsent(fromAction) {
   const box = $('#cAgree', el), yes = $('#cYes', el);
   box.onchange = () => { yes.disabled = !box.checked; };
   const close = () => { el.remove(); document.body.classList.remove('noscroll'); };
-  yes.onclick = async () => { yes.disabled = true; try { H = await _apiRaw('/api/me/consent', { method: 'POST', body: { accept: true } }); close(); toast('Mulțumim! ✅ Poți folosi toată aplicația.'); render(); } catch (e) { $('#cErr', el).textContent = e.message; yes.disabled = false; } };
+  yes.onclick = async () => { yes.disabled = true; try { H = await _apiRaw('/api/me/consent', { method: 'POST', body: { accept: true } }); close(); toast('Mulțumim! ✅ Poți folosi toată aplicația.'); render(); } catch (e) { if (e.status === 404) { $('#cErr', el).textContent = 'Aplicația tocmai s-a actualizat. O reîncarc acum… 🔄'; setTimeout(() => location.reload(), 1500); return; } $('#cErr', el).textContent = e.message; yes.disabled = false; } };
   $('#cNo', el).onclick = () => { try { localStorage.setItem(skipKey(), H.today); } catch {} close(); if (fromAction) toast('Bine. Fără acord nu salvăm date de sănătate.'); };
   setTimeout(() => box.focus(), 100);
 }

@@ -1,8 +1,8 @@
 // Service worker: aplicația pornește repede, merge și cu semnal slab, și primește notificări push.
 // Căile sunt relative la locul aplicației, ca să meargă și într-un subfolder.
-const C = 'gym-v18';
+const C = 'gym-7e5ced16';
 const B = new URL('./', self.location).pathname;
-const SHELL = ['app.html', 'app.css', 'common.js', 'diet.js', 'core.js', 'robo-kb.js', 'robo.js', 'seed.js', 'env.js', 'fig.js', 'vision.js', 'qr.js', 'img/icon-192.png'].map((x) => B + x);
+const SHELL = ['app.html', 'app.afda9a8c.css', 'common.e54266c5.js', 'diet.92d1c98a.js', 'core.824e65ff.js', 'robo-kb.75d77752.js', 'robo.dd82a5df.js', 'seed.7aa466a3.js', 'env.d6392d2f.js', 'fig.3a7383e8.js', 'vision.cb2683f3.js', 'qr.40840928.js', 'img/icon-192.png'].map((x) => B + x);
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(C).then((c) => c.addAll(SHELL)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x.startsWith('gym-') && x !== C).map((x) => caches.delete(x))))); self.clients.claim(); });
 self.addEventListener('fetch', (e) => {

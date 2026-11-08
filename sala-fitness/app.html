@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Fraunces:ital,wght@1,500;1,600&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="app.css?v=14">
+<link rel="stylesheet" href="app.afda9a8c.css">
 <style>
 body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--acc) 9%,transparent),transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
 .wrap{max-width:560px;margin:0 auto;padding:0 16px calc(120px + env(safe-area-inset-bottom))}
@@ -458,16 +458,16 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
     <button data-t="me" data-i="user">Profil</button>
   </nav>
 </div>
-<script src="robo-kb.js?v=14"></script>
-<script src="robo.js?v=14"></script>
-<script src="diet.js?v=14"></script>
-<script src="core.js?v=14"></script>
-<script src="seed.js?v=14"></script>
-<script src="env.js?v=14"></script>
-<script src="common.js?v=14"></script>
-<script src="fig.js?v=14"></script>
-<script src="vision.js?v=14"></script>
-<script src="qr.js?v=14"></script>
+<script src="robo-kb.75d77752.js"></script>
+<script src="robo.dd82a5df.js"></script>
+<script src="diet.92d1c98a.js"></script>
+<script src="core.824e65ff.js"></script>
+<script src="seed.7aa466a3.js"></script>
+<script src="env.d6392d2f.js"></script>
+<script src="common.e54266c5.js"></script>
+<script src="fig.3a7383e8.js"></script>
+<script src="vision.cb2683f3.js"></script>
+<script src="qr.40840928.js"></script>
 <script>
 let CFG = null, H = null, EX = [], tab = 'home', GAL = { sections: [], photos: [] };
 const exById = (id) => EX.find((e) => e.id === id) || { id, name: id, muscle: '', steps: [] };
@@ -513,7 +513,7 @@ function openConsent(fromAction) {
   const box = $('#cAgree', el), yes = $('#cYes', el);
   box.onchange = () => { yes.disabled = !box.checked; };
   const close = () => { el.remove(); document.body.classList.remove('noscroll'); };
-  yes.onclick = async () => { yes.disabled = true; try { H = await _apiRaw('/api/me/consent', { method: 'POST', body: { accept: true } }); close(); toast('Mulțumim! ✅ Poți folosi toată aplicația.'); render(); } catch (e) { $('#cErr', el).textContent = e.message; yes.disabled = false; } };
+  yes.onclick = async () => { yes.disabled = true; try { H = await _apiRaw('/api/me/consent', { method: 'POST', body: { accept: true } }); close(); toast('Mulțumim! ✅ Poți folosi toată aplicația.'); render(); } catch (e) { if (e.status === 404) { $('#cErr', el).textContent = 'Aplicația tocmai s-a actualizat. O reîncarc acum… 🔄'; setTimeout(() => location.reload(), 1500); return; } $('#cErr', el).textContent = e.message; yes.disabled = false; } };
   $('#cNo', el).onclick = () => { try { localStorage.setItem(skipKey(), H.today); } catch {} close(); if (fromAction) toast('Bine. Fără acord nu salvăm date de sănătate.'); };
   setTimeout(() => box.focus(), 100);
 }
