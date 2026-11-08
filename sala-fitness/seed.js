@@ -103,6 +103,7 @@
     { id: 'gl_sala24', file: 'img/sala-24.jpg', cat: 'aparate', caption: 'Raftul de gantere', order: 24, date: '2026-11-08' },
     { id: 'gl_sala25', file: 'img/sala-25.jpg', cat: 'aparate', caption: 'Aparate și frânghii', order: 25, date: '2026-11-08' },
     { id: 'gl_sala26', file: 'img/sala-26.jpg', cat: 'sala', caption: 'Zona de forță și recepția', order: 26, date: '2026-11-08' },
+    { id: 'gl_sala27', file: 'img/sala-27.jpg', cat: 'sala', caption: 'Inima sălii și Fitness Empire', order: 27, date: '2026-11-08' },
   ];
   const DAILY = [
     ['Disciplina înseamnă să faci ce trebuie, chiar și când nu ai chef.', 'Anonim', 'Bea 2 litri de apă azi'],
@@ -168,7 +169,7 @@
         { id: 'rw_towel', name: 'Prosop cu logo', points: 800, desc: 'Prosop de sală' },
         { id: 'rw_week', name: '7 zile gratuite', points: 1500, desc: 'Se adaugă la abonament' },
       ],
-      redemptions: [], sent: [], gallery: GALLERY.map((x) => ({ ...x })), seedGal: 3, admin: null,
+      redemptions: [], sent: [], gallery: GALLERY.map((x) => ({ ...x })), seedGal: 4, admin: null,
     };
   }
 
@@ -239,7 +240,7 @@
     // fără evidență de bani: plățile vechi devin doar istoric de abonamente (fără sume)
     for (const m of db.members || []) if (m.payments) { m.subLog = [...(m.subLog || []), ...m.payments.map((p) => ({ id: p.id, date: p.date, planId: p.planId }))]; delete m.payments; changed = true; }
     if (!db.seedGal) { db.seedGal = true; db.gallery = db.gallery || []; for (const g of GALLERY) if (!db.gallery.some((x) => x.id === g.id)) db.gallery.push({ ...g, order: g.order - 100 }); changed = true; }
-    if ((db.seedGal | 0) < 3) { db.seedGal = 3; db.gallery = db.gallery || []; for (const g of GALLERY) if (!db.gallery.some((x) => x.id === g.id)) db.gallery.push({ ...g, order: g.order - 100 }); changed = true; }
+    if ((db.seedGal | 0) < 4) { db.seedGal = 4; db.gallery = db.gallery || []; for (const g of GALLERY) if (!db.gallery.some((x) => x.id === g.id)) db.gallery.push({ ...g, order: g.order - 100 }); changed = true; }
     // numărul nou al sălii (și în bazele de date mai vechi)
     if (db.settings && db.settings.phone === '0785 769 200') { db.settings.phone = '0772 232 960'; db.settings.whatsapp = '40772232960'; changed = true; }
     for (const e of EXERCISES) if (!db.seedEx.includes(e.id)) { db.seedEx.push(e.id); if (!db.exercises.some((x) => x.id === e.id)) db.exercises.push(JSON.parse(JSON.stringify(e))); changed = true; }
