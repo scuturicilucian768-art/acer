@@ -315,6 +315,20 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .vfull video{width:100%;height:100%;object-fit:contain}
 .vfull .iconbtn{position:absolute;top:calc(12px + env(safe-area-inset-top));z-index:2;background:rgba(0,0,0,.5);color:#fff}
 .vfull #vfx{left:12px}.vfull #vfs{right:12px}
+.bdays{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.bdays::-webkit-scrollbar{display:none}
+.bdays button{flex:0 0 auto;display:grid;gap:1px;padding:9px 14px;border-radius:14px;border:1px solid var(--line2);background:var(--card);color:var(--muted);font-weight:800;cursor:pointer;text-align:center}
+.bdays button small{font-size:.68rem;font-weight:700;color:var(--faint)}
+.bdays button.on{background:color-mix(in srgb,var(--acc) 16%,var(--card));border-color:color-mix(in srgb,var(--acc) 50%,transparent);color:var(--acc)}
+.bdays .add{display:flex;align-items:center;gap:4px;border-style:dashed}
+.bit{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px}
+.bit .th{width:46px;height:46px;flex:0 0 46px;border-radius:12px;overflow:hidden;background:var(--card2);display:grid;place-items:center}
+.bit .th svg{width:100%;height:100%}
+.bmv{display:flex;gap:4px}.bmv button{width:32px;height:32px;border-radius:10px;border:1px solid var(--line2);background:var(--card2);color:var(--ink);font-weight:800;cursor:pointer}.bmv button:disabled{opacity:.3}
+.bnums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.bnums label{display:grid;gap:3px;font-size:.68rem;font-weight:800;color:var(--faint);min-width:0}
+.bnums .input{padding:8px 6px;text-align:center;font-size:.95rem;min-width:0}
+.bld .empty{display:grid;justify-items:center;gap:6px;text-align:center;padding:30px 16px;border:1px dashed var(--line2);border-radius:18px;color:var(--muted)}
+.exg.in{border-color:color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 10%,var(--card))}
 .gstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
 .gstrip::-webkit-scrollbar{display:none}
 .gstrip button{flex:0 0 76%;aspect-ratio:4/3;border-radius:22px;overflow:hidden;scroll-snap-align:start;position:relative;border:1px solid var(--line2);padding:0;cursor:pointer;background:#000}
@@ -1198,10 +1212,11 @@ function vTrain(v) {
   const prog = H.program, last = (H.me.workouts || []).slice(-6).reverse();
   const muscles = ['Toate', ...new Set(EX.map((e) => e.muscle))];
   v.innerHTML = `<div class="hello"><small>Antrenament</small><h1>Programul tău</h1></div>
-    ${prog ? `<div class="prog"><div class="row" style="flex-wrap:wrap;gap:6px">${prog.owner ? `<span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">${IC('spark', 13)} Făcut pentru tine</span>` : ''}<span class="chip acc">${esc(prog.goal || '')}</span><span class="chip">${esc(prog.level || '')}</span></div>
+    ${prog ? `<div class="prog"><div class="row" style="flex-wrap:wrap;gap:6px">${prog.custom ? `<span class="chip" style="background:rgba(61,220,151,.18);color:#7CF0BE">✍️ Scris de tine</span>` : prog.owner ? `<span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">${IC('spark', 13)} Făcut pentru tine</span>` : ''}${prog.goal ? `<span class="chip acc">${esc(prog.goal)}</span>` : ''}${prog.level ? `<span class="chip">${esc(prog.level)}</span>` : ''}</div>
       <h2 style="font-size:1.5rem;margin:10px 0 4px">${esc(prog.name)}</h2><p class="muted small" style="margin:0 0 14px">${esc(prog.desc || '')}</p>
-      <div class="list">${prog.days.map((d, i) => `<button class="day ${i === H.nextDay ? 'next-up' : ''}" data-d="${i}"><span class="n">${i + 1}</span><span class="grow"><b>${esc(d.name)}</b><br><small class="muted">${d.items.length} exerciții · ~${estMin(d)} min${i === H.nextDay ? ' · <span class="acc">urmează</span>' : ''}</small></span>${IC('chev', 18)}</button>`).join('')}</div>
+      <div class="list">${prog.custom ? '' : ''}${prog.days.map((d, i) => `<button class="day ${i === H.nextDay ? 'next-up' : ''}" data-d="${i}"><span class="n">${i + 1}</span><span class="grow"><b>${esc(d.name)}</b><br><small class="muted">${d.items.length} exerciții · ~${estMin(d)} min${i === H.nextDay ? ' · <span class="acc">urmează</span>' : ''}</small></span>${IC('chev', 18)}</button>`).join('')}</div>
       <button class="btn btn-ghost btn-block" id="chP" style="margin-top:12px">Alege alt program</button></div>` : `<button class="btn btn-acc btn-block" id="chP">Alege un program</button>`}
+    <button class="rvcard bldcard" id="bldGo"><span class="rvi">✍️</span><span class="grow"><b>${prog && prog.custom ? 'Editează programul tău' : 'Scrie-ți singur programul'}</b><small>${prog && prog.custom ? 'Schimbă exercițiile, seriile, kilogramele sau adaugă zile.' : 'Alegi tu zilele, exercițiile, seriile și kilogramele.'}</small></span>${IC('chev', 18)}</button>
     <div class="ai" style="margin-top:14px"><div class="row" style="position:relative">${GymFig.robot(58)}<div class="grow"><b style="font-size:1.08rem">Robo, antrenorul tău virtual</b><div class="small" style="color:#C9BCFF">Te întreabă ce vrei să obții, dacă ai dureri (spate, gât, genunchi) și cât timp ai. Apoi îți face programul.</div></div></div><button class="btn btn-block" id="gen" style="margin-top:14px;background:#fff;color:#1A1240;position:relative">${IC('chat', 18)} ${prog && prog.owner ? 'Refă-mi programul cu Robo' : 'Vorbește cu Robo'}</button></div>
     <button class="rvcard" id="rvGo"><span class="rvi">📷</span><span class="grow"><b>Robo te vede <span class="chip acc" style="vertical-align:2px">NOU</span></b><small>Pune telefonul jos: Robo îți numără repetările și îți corectează forma, cu voce.</small></span>${IC('chev', 18)}</button>
     <div class="sec"><h2>Ghidul exercițiilor</h2><small class="muted">${EX.length} exerciții</small></div>
@@ -1213,11 +1228,74 @@ function vTrain(v) {
     <div class="sec"><h2>Istoric</h2></div>
     <div class="list">${last.length ? last.map((w) => { const vol = (w.sets || []).reduce((a, s) => a + (s.kg || 0) * (s.reps || 0), 0); return `<div class="card row" style="padding:12px 14px"><span class="ico" style="color:var(--green)">${IC('check', 20)}</span><div class="grow"><b>${esc(w.title || (prog && prog.id === w.programId && prog.days[w.dayIdx] ? prog.days[w.dayIdx].name : 'Antrenament'))}</b><div class="muted" style="font-size:.84rem">${fday(w.date)}${w.duration ? ` · ${w.duration} min` : ''}${w.sets && w.sets.length ? ` · ${w.sets.length} serii` : ''}${vol ? ` · ${Math.round(vol).toLocaleString('ro-RO')} kg` : ''}</div></div></div>`; }).join('') : '<p class="muted">Primul antrenament te așteaptă.</p>'}</div>`;
   $$('.day', v).forEach((b) => (b.onclick = () => openDay(prog, +b.dataset.d)));
-  $('#chP').onclick = chooseProgram; $('#gen').onclick = openRobo; $('#rvGo').onclick = () => openVision(); $('#scanEx').onclick = scanMachine;
+  $('#chP').onclick = chooseProgram; $('#bldGo').onclick = openBuilder; $('#gen').onclick = openRobo; $('#rvGo').onclick = () => openVision(); $('#scanEx').onclick = scanMachine;
   const drawEx = () => { const q = exQuery.toLowerCase(); $('#exl').innerHTML = EX.filter((e) => (exFilter === 'Toate' || e.muscle === exFilter) && (!q || e.name.toLowerCase().includes(q))).map((e) => `<button class="exg" data-ex="${e.id}">${thumb(e)}<b>${esc(e.name)}</b><small>${esc(e.muscle)} · ${esc(e.level)}</small></button>`).join('') || '<p class="muted">Niciun exercițiu găsit.</p>'; $$('[data-ex]', v).forEach((b) => (b.onclick = () => openEx(b.dataset.ex))); };
   drawEx();
   $('#exq').oninput = (e) => { exQuery = e.target.value; drawEx(); };
   $$('.filters button', v).forEach((b) => (b.onclick = () => { exFilter = b.dataset.m; $$('.filters button', v).forEach((x) => x.classList.toggle('on', x === b)); drawEx(); }));
+}
+/* ── programul scris de membru ── */
+async function openBuilder() {
+  let P = null;
+  try { P = (await api('/api/me/custom')).program; } catch (e) { if (e.status === 404) { toast('Aplicația s-a actualizat. O reîncarc…'); setTimeout(() => location.reload(), 1200); return; } }
+  const fresh = !P;
+  P = P ? { name: P.name, days: P.days.map((d) => ({ name: d.name, items: d.items.map((i) => ({ ...i })) })) } : { name: 'Programul meu', days: [{ name: 'Ziua 1', items: [] }] };
+  let cur = 0, dirty = false, warned = false;
+  const el = document.createElement('div'); el.className = 'gal-ov bld'; el.id = 'bld'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Scrie-ți programul');
+  document.body.appendChild(el); document.body.classList.add('noscroll');
+  const mark = () => { dirty = true; warned = false; };
+  const copyFrom = H.program && !H.program.custom ? H.program : null;
+  const draw = () => {
+    const d = P.days[cur];
+    el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="bx" aria-label="Înapoi">${IC('back', 20)}</button><div class="grow"><b>${fresh ? 'Scrie-ți programul' : 'Editează programul'}</b><div class="muted small">${P.days.length} ${P.days.length === 1 ? 'zi' : 'zile'} · ${P.days.reduce((a, x) => a + x.items.length, 0)} exerciții</div></div><button class="btn btn-sm btn-acc" id="bs">${IC('check', 15)} Salvează</button></div>
+      <div class="wrap" style="padding-top:14px;padding-bottom:120px">
+        <div class="field"><label for="bn">Numele programului</label><input class="input" id="bn" maxlength="60" value="${esc(P.name)}"></div>
+        ${fresh && copyFrom && P.days.length === 1 && !P.days[0].items.length ? `<button class="btn btn-ghost btn-block" id="bcp" style="margin-bottom:12px;white-space:normal;line-height:1.3;text-align:center">📋 Pornește de la „${esc(copyFrom.name)}” și modifică-l</button>` : ''}
+        <div class="bdays">${P.days.map((x, i) => `<button class="${i === cur ? 'on' : ''}" data-bd="${i}">Ziua ${i + 1}<small>${x.items.length} ex.</small></button>`).join('')}${P.days.length < 7 ? `<button class="add" id="bad" aria-label="Adaugă o zi">${IC('plus', 16)} Zi</button>` : ''}</div>
+        <div class="row" style="gap:8px;margin:12px 0 10px"><input class="input grow" id="bdn" maxlength="60" value="${esc(d.name)}" aria-label="Numele zilei" placeholder="ex: Piept și triceps">${P.days.length > 1 ? `<button class="iconbtn" id="bdd" aria-label="Șterge ziua">🗑</button>` : ''}</div>
+        <div class="list">${d.items.map((it, k) => { const e = exById(it.ex); return `<div class="bit"><div class="row" style="gap:10px"><span class="th">${thumb(e)}</span><div class="grow"><b>${esc(e.name)}</b><div class="muted small">${esc(e.muscle || '')}</div></div><div class="bmv"><button data-up="${k}" aria-label="Mută mai sus" ${k ? '' : 'disabled'}>↑</button><button data-dn="${k}" aria-label="Mută mai jos" ${k < d.items.length - 1 ? '' : 'disabled'}>↓</button><button data-rm="${k}" aria-label="Scoate exercițiul">✕</button></div></div>
+            <div class="bnums"><label>Serii<input class="input" inputmode="numeric" data-k="${k}" data-f="sets" value="${it.sets}"></label><label>Repetări<input class="input" data-k="${k}" data-f="reps" value="${esc(it.reps)}"></label><label>Kg<input class="input" inputmode="decimal" data-k="${k}" data-f="kg" value="${it.kg || ''}" placeholder="–"></label><label>Pauză (s)<input class="input" inputmode="numeric" data-k="${k}" data-f="rest" value="${it.rest}"></label></div></div>`; }).join('') || `<div class="empty">${IC('dumbbell', 30)}<b>Ziua e goală</b><span class="muted small">Adaugă exercițiile în ordinea în care vrei să le faci.</span></div>`}</div>
+        <button class="btn btn-acc btn-block" id="bae" style="margin-top:12px">${IC('plus', 18)} Adaugă exerciții</button>
+        ${fresh ? '' : `<button class="btn btn-ghost btn-block" id="bdel" style="margin-top:22px;color:var(--red)">Șterge programul meu</button>`}
+        <p class="muted small" style="margin-top:14px">${IC('spark', 13)} Sfat: 3–5 serii a câte 8–12 repetări merg pentru majoritatea exercițiilor. La primul antrenament alege o greutate cu care mai poți face 2 repetări la final.</p>
+      </div>`;
+    $('#bx', el).onclick = () => { if (dirty && !warned) { warned = true; toast('Ai modificări nesalvate. Apasă din nou „Înapoi” ca să ieși fără să salvezi.'); return; } el.remove(); document.body.classList.remove('noscroll'); };
+    $('#bn', el).oninput = (e) => { P.name = e.target.value; mark(); };
+    $('#bdn', el).oninput = (e) => { d.name = e.target.value; mark(); };
+    $$('[data-bd]', el).forEach((b) => (b.onclick = () => { cur = +b.dataset.bd; draw(); }));
+    if ($('#bad', el)) $('#bad', el).onclick = () => { P.days.push({ name: `Ziua ${P.days.length + 1}`, items: [] }); cur = P.days.length - 1; mark(); draw(); };
+    if ($('#bdd', el)) $('#bdd', el).onclick = () => { if (d.items.length && !el.dataset.dd) { el.dataset.dd = 1; toast('Apasă din nou 🗑 ca să ștergi ziua cu tot cu exerciții.'); setTimeout(() => delete el.dataset.dd, 3000); return; } P.days.splice(cur, 1); cur = Math.max(0, cur - 1); mark(); draw(); };
+    if ($('#bcp', el)) $('#bcp', el).onclick = () => { P.name = copyFrom.name + ' (al meu)'; P.days = copyFrom.days.map((x) => ({ name: x.name, items: x.items.filter((i) => EX.some((e) => e.id === i.ex)).map((i) => ({ ...i })) })); cur = 0; mark(); draw(); };
+    $$('[data-up]', el).forEach((b) => (b.onclick = () => { const k = +b.dataset.up; [d.items[k - 1], d.items[k]] = [d.items[k], d.items[k - 1]]; mark(); draw(); }));
+    $$('[data-dn]', el).forEach((b) => (b.onclick = () => { const k = +b.dataset.dn; [d.items[k + 1], d.items[k]] = [d.items[k], d.items[k + 1]]; mark(); draw(); }));
+    $$('[data-rm]', el).forEach((b) => (b.onclick = () => { d.items.splice(+b.dataset.rm, 1); mark(); draw(); }));
+    $$('[data-f]', el).forEach((i) => (i.oninput = () => { const it = d.items[+i.dataset.k], f = i.dataset.f; it[f] = f === 'reps' ? i.value : Number(String(i.value).replace(',', '.')) || 0; mark(); }));
+    $('#bae', el).onclick = () => pick(d);
+    if ($('#bdel', el)) $('#bdel', el).onclick = async () => { if (!el.dataset.del) { el.dataset.del = 1; $('#bdel', el).textContent = 'Sigur? Apasă din nou ca să ștergi'; return; } H = await api('/api/me/custom', { method: 'DELETE', body: {} }); el.remove(); document.body.classList.remove('noscroll'); toast('Programul tău a fost șters'); render(); };
+    $('#bs', el).onclick = save;
+  };
+  const save = async () => {
+    const bad = P.days.findIndex((x) => !x.items.length);
+    if (!P.days.some((x) => x.items.length)) { toast('Adaugă cel puțin un exercițiu.'); return; }
+    if (bad >= 0) { cur = bad; draw(); toast(`Ziua ${bad + 1} e goală. Adaugă exerciții sau șterge ziua.`); return; }
+    const b = $('#bs', el); b.disabled = true;
+    try { H = await api('/api/me/custom', { method: 'POST', body: P }); el.remove(); document.body.classList.remove('noscroll'); confetti(); toast('Programul tău e salvat și e acum programul activ 💪'); go('train'); }
+    catch (e) { b.disabled = false; toast(e.status === 404 ? 'Aplicația s-a actualizat. Reîncarcă pagina și încearcă din nou.' : e.message); }
+  };
+  const pick = (d) => {
+    let q = '', mf = 'Toate', added = 0;
+    const muscles = ['Toate', ...new Set(EX.map((e) => e.muscle).filter(Boolean))];
+    const pv = document.createElement('div'); pv.className = 'gal-ov bld'; pv.style.zIndex = 140; el.appendChild(pv);
+    pv.innerHTML = `<div class="chat-top"><button class="iconbtn" id="px" aria-label="Înapoi">${IC('back', 20)}</button><div class="grow"><b>Alege exercițiile</b><div class="muted small" id="pc">Atinge ca să adaugi în ${esc(d.name)}</div></div><button class="btn btn-sm btn-acc" id="pok">Gata</button></div>
+      <div class="wrap" style="padding-top:12px;padding-bottom:40px"><div class="search">${IC('search', 18)}<input class="input" id="pq" placeholder="Caută un exercițiu…" style="margin-bottom:10px"></div><div class="filters" id="pf">${muscles.map((m) => `<button class="${m === mf ? 'on' : ''}" data-m="${esc(m)}">${esc(m)}</button>`).join('')}</div><div class="exgrid" id="pl" style="margin-top:12px"></div></div>`;
+    const list = () => { const s = q.toLowerCase(); $('#pl', pv).innerHTML = EX.filter((e) => (mf === 'Toate' || e.muscle === mf) && (!s || e.name.toLowerCase().includes(s))).map((e) => `<button class="exg ${d.items.some((i) => i.ex === e.id) ? 'in' : ''}" data-pe="${e.id}">${thumb(e)}<b>${esc(e.name)}</b><small>${esc(e.muscle)}${d.items.some((i) => i.ex === e.id) ? ' · ✓ adăugat' : ''}</small></button>`).join('') || '<p class="muted">Niciun exercițiu găsit.</p>';
+      $$('[data-pe]', pv).forEach((b) => (b.onclick = () => { if (d.items.length >= 15) { toast('Maxim 15 exerciții pe zi.'); return; } const e = exById(b.dataset.pe); const card = /cardio|bicicl|band|alerg|eliptic|vâsl/i.test(e.muscle + ' ' + e.name); d.items.push({ ex: e.id, sets: card ? 1 : 3, reps: card ? '10 min' : '10', kg: 0, rest: card ? 0 : 90 }); added++; mark(); $('#pc', pv).textContent = `${added} ${added === 1 ? 'adăugat' : 'adăugate'} în ${d.name}`; list(); })); };
+    list();
+    $('#pq', pv).oninput = (e) => { q = e.target.value; list(); };
+    $$('#pf button', pv).forEach((b) => (b.onclick = () => { mf = b.dataset.m; $$('#pf button', pv).forEach((x) => x.classList.toggle('on', x === b)); list(); }));
+    $('#px', pv).onclick = $('#pok', pv).onclick = () => { pv.remove(); draw(); };
+  };
+  draw();
 }
 function scanMachine() {
   const canScan = 'BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -1257,7 +1335,8 @@ function openEx(id) {
   $('#askT', el).onclick = () => { closeSheet(); setTimeout(() => openChat(`Cum fac corect ${e.name.toLowerCase()}?`, 'robo', true), 260); };
 }
 function chooseProgram() {
-  const el = sheet(`<h2>Alege programul</h2><p class="muted">Poți schimba oricând. Robo îți poate face și unul personalizat.</p><div class="list" style="margin-top:14px">${H.programs.map((p) => `<button class="day ${H.program && p.id === H.program.id ? 'next-up' : ''}" data-p="${p.id}"><span class="n">${p.nDays}×</span><span class="grow"><b>${esc(p.name)}</b>${p.owner ? ` <span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">personal</span>` : ''}<br><small class="muted">${esc(p.goal)} · ${esc(p.level)}</small><br><small class="muted">${esc(p.desc || '')}</small></span></button>`).join('')}</div>`);
+  const el = sheet(`<h2>Alege programul</h2><p class="muted">Poți schimba oricând. Robo îți poate face și unul personalizat, sau îl poți scrie tu.</p><button class="btn btn-ghost btn-block" id="chB" style="margin-top:12px">✍️ Scrie-ți singur programul</button><div class="list" style="margin-top:14px">${H.programs.map((p) => `<button class="day ${H.program && p.id === H.program.id ? 'next-up' : ''}" data-p="${p.id}"><span class="n">${p.nDays}×</span><span class="grow"><b>${esc(p.name)}</b>${p.owner ? ` <span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">personal</span>` : ''}<br><small class="muted">${esc(p.goal)} · ${esc(p.level)}</small><br><small class="muted">${esc(p.desc || '')}</small></span></button>`).join('')}</div>`);
+  $('#chB', el).onclick = () => { closeSheet(); setTimeout(openBuilder, 250); };
   $$('[data-p]', el).forEach((b) => (b.onclick = async () => { await act('/api/me/program', { programId: b.dataset.p }); closeSheet(); toast('Program schimbat'); render(); }));
 }
 /* ── antrenorul inteligent ── */

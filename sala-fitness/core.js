@@ -510,6 +510,21 @@
         const set = new Set(me.meals[d] || []); body.done ? set.add(i) : set.delete(i); me.meals[d] = [...set];
         return ok(homeFor(db, me, t, ctx));
       }
+      if (p === '/api/me/custom' && m === 'POST') {
+        const ids = new Set(db.exercises.map((e) => e.id));
+        const days = (Array.isArray(body.days) ? body.days : []).slice(0, 7).map((d, i) => ({ name: clean(d && d.name, 60) || `Ziua ${i + 1}`, items: (Array.isArray(d && d.items) ? d.items : []).filter((it) => it && ids.has(it.ex)).slice(0, 15).map((it) => ({ ex: it.ex, sets: Math.max(1, Math.min(10, Math.round(num(it.sets, 1, 10) || 3))), reps: clean(String(it.reps == null ? '10' : it.reps), 20) || '10', kg: num(it.kg, 0, 500) || 0, rest: Math.max(0, Math.min(600, Math.round(num(it.rest, 0, 600) || 90))) })) })).filter((d) => d.items.length);
+        if (!days.length) return no(400, 'Adaugă cel puțin un exercițiu într-o zi.');
+        const id = 'pr_cu_' + me.id, prev = db.programs.find((x) => x.id === id);
+        const prog = { id, owner: me.id, custom: true, name: clean(body.name, 60) || 'Programul meu', goal: '', level: '', daysPerWeek: days.length, desc: `${days.length} ${days.length === 1 ? 'zi' : 'zile'} de antrenament, scrise de tine.`, days, createdAt: prev ? prev.createdAt : t };
+        db.programs = db.programs.filter((x) => x.id !== id); db.programs.push(prog); me.programId = id;
+        return ok({ ...homeFor(db, me, t, ctx), saved: id });
+      }
+      if (p === '/api/me/custom' && m === 'DELETE') {
+        const id = 'pr_cu_' + me.id; db.programs = db.programs.filter((x) => x.id !== id);
+        if (me.programId === id) { const pub = db.programs.find((x) => !x.owner) || db.programs.find((x) => x.owner === me.id); me.programId = pub ? pub.id : ''; }
+        return ok(homeFor(db, me, t, ctx));
+      }
+      if (p === '/api/me/custom' && m === 'GET') { const x = db.programs.find((y) => y.id === 'pr_cu_' + me.id); return ok({ program: x || null }); }
       if (p === '/api/me/program' && m === 'POST') { if (!db.programs.some((x) => x.id === body.programId && (!x.owner || x.owner === me.id))) return no(400, 'Program inexistent.'); me.programId = body.programId; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/nutrition' && m === 'POST') { if (!db.nutrition.some((x) => x.id === body.nutritionId && (!x.owner || x.owner === me.id))) return no(400, 'Plan inexistent.'); me.nutritionId = body.nutritionId; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/notifs' && m === 'GET') return ok({ notifs: (me.notifs || []).slice().reverse() });
