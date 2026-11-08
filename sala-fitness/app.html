@@ -363,6 +363,10 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .slot.full .sl{color:var(--red);font-weight:800}.slot.few .sl b{color:var(--amber)}.slot.past,.slot.closed{opacity:.45}
 .slot.mine{border-color:color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 8%,var(--card))}.slot.mine .sl{color:var(--acc);font-weight:800}
 .empty-s{padding:26px 16px;text-align:center;border:1px dashed var(--line2);border-radius:18px;color:var(--muted)}
+.ratecard{margin-top:14px;padding:14px;border-radius:20px;border:1px solid color-mix(in srgb,var(--amber) 45%,var(--line2));background:linear-gradient(135deg,color-mix(in srgb,var(--amber) 12%,var(--card)),var(--card))}
+.ratecard small{display:block;font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}.ratecard b{display:block;margin-top:2px;line-height:1.3}
+.stars{display:flex;gap:6px;justify-content:center;margin-top:10px}.stars button{border:0;background:none;font-size:2rem;line-height:1;color:var(--line2);cursor:pointer;padding:2px 4px;transition:transform .15s,color .15s}
+.stars button:hover,.stars button.on{color:#FFC23D}.stars button:active{transform:scale(1.25)}.stars.big button{font-size:2.6rem}
 .gstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
 .gstrip::-webkit-scrollbar{display:none}
 .gstrip button{flex:0 0 76%;aspect-ratio:4/3;border-radius:22px;overflow:hidden;scroll-snap-align:start;position:relative;border:1px solid var(--line2);padding:0;cursor:pointer;background:#000}
@@ -529,7 +533,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 <script src="robo-kb.75d77752.js"></script>
 <script src="robo.dd82a5df.js"></script>
 <script src="diet.e2c419a4.js"></script>
-<script src="core.b4880b45.js"></script>
+<script src="core.6e7bb0b0.js"></script>
 <script src="seed.d978784b.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
@@ -727,7 +731,7 @@ function vHome(v) {
     <div class="card crowd lv${c.level}" style="margin-top:10px"><div class="row"><span class="dot"></span><div class="grow"><small>ACUM LA SALĂ</small><span class="lvl">${LV[c.level]}</span></div><div style="text-align:right"><b style="font-family:var(--fd);font-size:1.6rem" data-count="${c.now}">0</b><br><small style="letter-spacing:0">${c.now === 1 ? 'persoană' : 'persoane'}</small></div></div>
       <div class="hb" aria-hidden="true">${c.hours.map((x) => `<i class="${x.h === curH ? 'on' : ''}" style="height:${Math.max(6, ((x.h === curH ? Math.max(x.n, c.now) : x.n) / mx) * 100)}%">${x.h % 3 === 0 ? `<em>${x.h}</em>` : ''}</i>`).join('')}</div>
       <p class="muted small" style="margin:24px 0 0">${peak.n > 0 ? `De obicei, ${DAYS[c.weekday]} e cel mai aglomerat în jur de ora ${peak.h}:00.` : 'Vino când îți convine.'}</p></div>
-    ${slotCard()}
+    ${rateCard()}${slotCard()}
     <div class="sec"><h2>Motivația zilei</h2></div>
     <div class="quote"><div class="q">„${esc(d.quote)}”</div><div class="a">— ${esc(d.author || 'Anonim')}</div>
       <button class="chal ${d.done ? 'done' : ''}" id="chal"><span class="box">${IC('check', 20)}</span><span class="grow"><small>Provocarea zilei · +5 puncte</small><b>${esc(d.challenge)}</b></span></button></div>
@@ -753,6 +757,7 @@ function vHome(v) {
   mc.onclick = (e) => { if (e.target.closest('#subD')) return openSub(); mc.classList.toggle('flip'); };
   mc.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mc.classList.toggle('flip'); } };
   if ($('#slotGo')) $('#slotGo').onclick = () => openSlots();
+  if ($('#rateC')) { $$('[data-rs]').forEach((b) => (b.onclick = () => openReview(H.rateDue.id, +b.dataset.rs))); $('#rateX').onclick = async () => { H = await api('/api/me/review', { method: 'POST', body: { skip: true, bookingId: H.rateDue.id } }); render(); }; }
   $('#chal').onclick = async () => { const done = !H.daily.done; await act('/api/me/challenge', { done }); if (done) { confetti(); toast('Bravo! +5 puncte'); } render(); };
   $('#qaC').onclick = () => (H.checkedInToday ? toast(`Check-in făcut azi${H.checkinTime ? ' la ' + H.checkinTime : ''}. Spor!`) : openCheckin());
   $('#hero').onclick = (e) => { if (e.target.closest('#hRk')) return openRanks(); openStudio(e.target.closest('#hEd') ? 'card' : 'fig'); };
@@ -1296,6 +1301,33 @@ async function openSlots(pickDate) {
   draw();
 }
 
+/* ───────── EVALUAREA ANTRENORULUI ───────── */
+function rateCard() {
+  const r = H.rateDue; if (!r) return '';
+  return `<div class="ratecard" id="rateC"><div class="row" style="gap:10px"><span class="si">⭐</span><div class="grow"><small>Evaluează antrenamentul</small><b>Cum a fost ora de ${fdShort(r.date)}, ${esc(r.time)}${r.coach ? ' cu ' + esc(r.coach) : ''}?</b></div><button class="iconbtn" id="rateX" aria-label="Nu acum" style="width:34px;height:34px">✕</button></div><div class="stars" role="group" aria-label="Alege stelele">${[1, 2, 3, 4, 5].map((k) => `<button data-rs="${k}" aria-label="${k} ${k === 1 ? 'stea' : 'stele'}">★</button>`).join('')}</div></div>`;
+}
+function openReview(bookingId, preset) {
+  const r = H.rateDue && H.rateDue.id === bookingId ? H.rateDue : null, coach = (r && r.coach) || (H.booking && H.booking.coach) || '';
+  let stars = preset || 0; const tags = new Set();
+  const GOOD = ['Explică clar', 'Motivant', 'Atent la tehnică', 'Punctual', 'Antrenament bun'], BAD = ['Prea grăbit', 'Prea mulți oameni', 'Puțină atenție', 'Prea greu', 'Prea ușor'];
+  const el = sheet('');
+  const draw = () => {
+    const L = stars >= 4 ? GOOD : stars ? BAD.concat(GOOD.slice(0, 2)) : [];
+    el.innerHTML = `<h2>${r ? 'Cum a fost antrenamentul?' : 'Evaluează antrenorul'}</h2><p class="muted">${r ? `${fdShort(r.date)}, ora ${esc(r.time)}${coach ? ' · ' + esc(coach) : ''}` : coach ? esc(coach) : 'Spune-ne cum ți se par antrenamentele de la sală.'}</p>
+      <div class="stars big" style="margin:14px 0 6px">${[1, 2, 3, 4, 5].map((k) => `<button data-st="${k}" class="${k <= stars ? 'on' : ''}" aria-label="${k} ${k === 1 ? 'stea' : 'stele'}">★</button>`).join('')}</div>
+      <p class="muted small" style="text-align:center;min-height:1.2em;margin:0 0 10px">${['Atinge stelele', 'Slab', 'Se poate mai bine', 'OK', 'Foarte bine', 'Excelent! 🔥'][stars]}</p>
+      ${L.length ? `<div class="segs" style="justify-content:center;margin-bottom:12px">${L.map((x) => `<button data-tg="${esc(x)}" class="${tags.has(x) ? 'on' : ''}">${esc(x)}</button>`).join('')}</div>` : ''}
+      <div class="field"><label for="rvt">Vrei să adaugi ceva? <span class="muted" style="font-weight:600">(opțional)</span></label><textarea class="input" id="rvt" rows="3" maxlength="600" placeholder="${stars && stars <= 3 ? 'Ce ar trebui să facem mai bine?' : 'Ce ți-a plăcut?'}"></textarea></div>
+      <label class="cchk" style="margin:0 0 12px"><input type="checkbox" id="rva"><span>Trimite anonim (sala nu vede cine a scris)</span></label>
+      <p class="err" id="rve"></p><button class="btn btn-acc btn-block" id="rvs" ${stars ? '' : 'disabled'}>Trimite evaluarea</button>`;
+    const keep = el.dataset.t || ''; $('#rvt', el).value = keep; $('#rvt', el).oninput = (e) => (el.dataset.t = e.target.value);
+    $$('[data-st]', el).forEach((b) => (b.onclick = () => { stars = +b.dataset.st; tags.clear(); draw(); }));
+    $$('[data-tg]', el).forEach((b) => (b.onclick = () => { const x = b.dataset.tg; tags.has(x) ? tags.delete(x) : tags.add(x); b.classList.toggle('on'); }));
+    $('#rvs', el).onclick = async () => { const b = $('#rvs', el); b.disabled = true; try { H = await api('/api/me/review', { method: 'POST', body: { bookingId: r ? r.id : '', stars, tags: [...tags], text: $('#rvt', el).value, anon: $('#rva', el).checked } }); closeSheet(); if (stars >= 4) confetti(); toast('Mulțumim! Părerea ta contează 🙏'); render(); } catch (e) { b.disabled = false; $('#rve', el).textContent = e.status === 404 ? 'Aplicația s-a actualizat. Reîncarcă pagina.' : e.message; } };
+  };
+  draw();
+}
+
 /* ───────── ANTRENAMENT ───────── */
 let exFilter = 'Toate', exQuery = '';
 function vTrain(v) {
@@ -1643,6 +1675,7 @@ function vMe(v) {
       ${M('lookM', 'card', 'Personalizează cardul și figurina')}
       ${M('ann', 'megaphone', 'Anunțuri și evenimente')}
       ${M('galM', 'camera', 'Galerie foto')}
+      ${M('rvM', 'star', 'Evaluează antrenorul')}
       ${M('hdM', 'lock', 'Datele mele de sănătate', H.me.consent ? '<span class="chip ok" style="margin-left:auto">acord dat</span>' : '<span class="chip warn" style="margin-left:auto">fără acord</span>')}
       ${M('pw', 'lock', 'Schimbă parola')}
     </div>
@@ -1659,7 +1692,7 @@ function vMe(v) {
   $('#avB').onclick = openAvatar;
   $('#rkP').onclick = openRanks; if ($('#galM')) $('#galM').onclick = () => openGallery();
   $('#sub').onclick = openSub; $('#ann').onclick = openAnns; $('#chatM').onclick = () => openChat(); $('#genM').onclick = openRobo; $('#lookM').onclick = () => openStudio('card');
-  $('#pushT').onclick = togglePush; $('#hdM').onclick = openHealthData;
+  $('#pushT').onclick = togglePush; $('#hdM').onclick = openHealthData; $('#rvM').onclick = () => openReview('');
   $('#lbT').onclick = async () => { await act('/api/me', { hideBoard: !me.hideBoard }, 'PUT'); toast(H.me.hideBoard ? 'Nu mai apari în clasament' : 'Apari în clasament'); render(); };
   $('#ed').onclick = () => {
     const el = sheet(`<h2>Despre mine</h2><div class="field" style="margin-top:14px"><label for="pn">Nume</label><input class="input" id="pn" value="${esc(me.name)}"></div>

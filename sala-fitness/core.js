@@ -301,7 +301,7 @@
       bookings: db.bookings.filter((b) => b.memberId === m.id).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 20),
       services: db.services, rewards: db.rewards, redemptions: db.redemptions.filter((r) => r.memberId === m.id).slice(-20).reverse(),
       programs: db.programs.filter((p) => !p.owner || p.owner === m.id).map(({ days, ...p }) => ({ ...p, nDays: days.length })), plans: db.plans.filter((p) => p.active),
-      slotBk: myBookings(db, m, t), booking: bookPublic(bkCfg(db)),
+      slotBk: myBookings(db, m, t), booking: bookPublic(bkCfg(db)), rateDue: rateDue(db, m, t, ctx.time ? ctx.time() : '00:00'),
       board: boardFor(db, m, t), crowd: crowdFor(db, t, ctx.time ? ctx.time() : '12:00'), water: (m.water || {})[t] || 0, chatUnread: (m.chat || []).filter((x) => x.from === 'g' && !x.read).length,
       memberCode: 'GYM:' + m.id, checkinTime: (m.ciAt || {})[t] || null,
       nutritionPlans: db.nutrition.filter((n) => !n.owner || n.owner === m.id).map(({ meals, ...n }) => n), unread: (m.notifs || []).filter((n) => !n.read).length, checkedInToday: (m.checkins || []).includes(t),
@@ -361,6 +361,16 @@
   }
   function slotsWeek(db, from, n, t, now, meId, admin) { const out = []; for (let i = 0; i < n; i++) { const d = add(from, i); { const c = bkCfg(db); out.push({ date: d, dow: DOW[new Date(d + 'T12:00:00Z').getUTCDay()], cap: dayCapOf(c, d), capSpecial: c.dayCap[d] !== undefined, slots: slotsDay(db, d, t, now, meId, admin) }); } } return out; }
   function bookPublic(c) { return { on: c.on, cap: c.cap, dur: c.dur, ahead: c.ahead, cancelH: c.cancelH, perDay: c.perDay, needSub: c.needSub, title: c.title, coach: c.coach }; }
+  function rateDue(db, m, t, now) {
+    const c = bkCfg(db), done = new Set((db.reviews || []).filter((r) => r.memberId === m.id && r.bookingId).map((r) => r.bookingId));
+    const past = (db.slotBk || []).filter((b) => b.memberId === m.id && b.status === 'ok' && !done.has(b.id) && !b.noRate && diff(t, b.date) <= 7 && (b.date < t || toMin(b.time) + c.dur <= toMin(now)));
+    past.sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+    return past[0] ? { id: past[0].id, date: past[0].date, time: past[0].time, coach: c.coach || '', title: c.title } : null;
+  }
+  function reviewStats(db) {
+    const L = db.reviews || [], n = L.length, avg = n ? Math.round((L.reduce((a, r) => a + r.stars, 0) / n) * 10) / 10 : 0;
+    return { n, avg, dist: [5, 4, 3, 2, 1].map((k) => ({ k, n: L.filter((r) => r.stars === k).length })) };
+  }
   function myBookings(db, m, t) { return (db.slotBk || []).filter((b) => b.memberId === m.id && b.status === 'ok' && b.date >= t).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)); }
   function notify(db, ctx, members, title, body, kind = 'mesaj', url = '/app.html') {
     const at = ctx.nowISO(); let pushed = 0;
@@ -601,6 +611,16 @@
         return ok({ ok: true });
       }
       if (p === '/api/me/push' && m === 'DELETE') { me.push = (me.push || []).filter((x) => x.endpoint !== body.endpoint); return ok({ ok: true }); }
+      if (p === '/api/me/review' && m === 'POST') {
+        db.reviews = db.reviews || []; const stars = Math.round(num(body.stars, 0, 5) || 0);
+        if (body.skip && body.bookingId) { const b = (db.slotBk || []).find((x) => x.id === body.bookingId && x.memberId === me.id); if (b) b.noRate = true; return ok(homeFor(db, me, t, ctx)); }
+        if (stars < 1) return no(400, 'Alege de la 1 la 5 stele.');
+        let bk = null; if (body.bookingId) { bk = (db.slotBk || []).find((x) => x.id === body.bookingId && x.memberId === me.id); if (!bk) return no(404, 'Ora nu există.'); if (db.reviews.some((r) => r.bookingId === bk.id)) return no(409, 'Ai evaluat deja ora asta.'); }
+        else if (db.reviews.some((r) => r.memberId === me.id && !r.bookingId && diff(t, r.date) < 30)) return no(409, 'Ai trimis deja o evaluare luna asta. Mulțumim!');
+        const c = bkCfg(db);
+        db.reviews.push({ id: ctx.uid('rv'), memberId: me.id, bookingId: bk ? bk.id : '', slot: bk ? bk.date + ' ' + bk.time : '', coach: c.coach || '', stars, tags: (Array.isArray(body.tags) ? body.tags : []).map((x) => clean(x, 30)).filter(Boolean).slice(0, 6), text: text(body.text, 600), anon: !!body.anon, date: t, at: ctx.nowISO() });
+        return ok({ ...homeFor(db, me, t, ctx), reviewed: true });
+      }
       if (p === '/api/me/slots' && m === 'GET') { const c = bkCfg(db), now = ctx.time ? ctx.time() : '00:00'; return ok({ cfg: bookPublic(c), days: c.on ? slotsWeek(db, t, c.ahead, t, now, me.id, false) : [], mine: myBookings(db, me, t) }); }
       if (p === '/api/me/slots' && m === 'POST') {
         const c = bkCfg(db), now = ctx.time ? ctx.time() : '00:00'; if (!c.on) return no(403, 'Programările nu sunt pornite momentan.');
@@ -650,6 +670,7 @@
         idle7: rows.filter((x) => (x.state === 'active' || x.state === 'expiring') && x.idle !== null && x.idle >= 7 && x.idle <= 14).sort((a, b) => b.idle - a.idle),
         idle14: rows.filter((x) => (x.state === 'active' || x.state === 'expiring') && (x.idle === null || x.idle > 14)).sort((a, b) => (b.idle || 999) - (a.idle || 999)),
         todayVisits: rows.filter((x) => x.ciToday || x.lastActive === t).sort((a, b) => String(b.ciToday || '').localeCompare(String(a.ciToday || ''))),
+        reviews: reviewStats(db), reviewsNew: (db.reviews || []).filter((x) => diff(t, x.date) <= 7).length,
         slotsToday: (bkCfg(db), db.slotBk.filter((b) => b.date === t && b.status === 'ok').length),
         newSignups: rows.filter((x) => x.isNew).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))),
         chatUnread: db.members.reduce((a, x) => a + (x.chat || []).filter((y) => y.from === 'm' && !y.read).length, 0),
@@ -800,6 +821,8 @@
       return ok({ made });
     }
     if (p === A + '/daily/lib' && m === 'POST') { const quote = text(body.quote, 300), challenge = text(body.challenge, 200); if (!quote || !challenge) return no(400, 'Completează citatul și provocarea.'); db.dailyLib.push({ quote, author: clean(body.author, 60), challenge }); return ok({ library: db.dailyLib.length }); }
+    if (p === A + '/reviews' && m === 'GET') { const L = (db.reviews || []).slice().sort((a, b) => String(b.at).localeCompare(String(a.at))).map((r) => { const mm = db.members.find((x) => x.id === r.memberId) || {}; return { ...r, name: r.anon ? 'Anonim' : mm.name || '—', memberId: r.anon ? '' : r.memberId }; }); return ok({ stats: reviewStats(db), reviews: L }); }
+    if ((r = /^\/api\/admin\/reviews\/(\w+)$/.exec(p)) && m === 'DELETE') { db.reviews = (db.reviews || []).filter((x) => x.id !== r[1]); return ok({ ok: true }); }
     if (p === A + '/slots' && m === 'GET') { const c = bkCfg(db), from = isDate(q.from) ? q.from : t, now = ctx.time ? ctx.time() : '00:00'; return ok({ cfg: c, days: slotsWeek(db, from, 7, t, now, null, true), today: t }); }
     if (p === A + '/slots/config' && m === 'PUT') {
       const c = bkCfg(db);
@@ -874,6 +897,7 @@
     // cod nou de check-in în fiecare zi
     if (st.checkinDate !== t) { st.checkinCode = String(1000 + Math.floor(ctx.rand() * 9000)); st.checkinDate = t; dirty = true; }
     // reamintire cu o oră înainte de ora rezervată
+    if (db.slotBk && db.slotBk.length && ctx.time) { const c = bkCfg(db), nowM = toMin(ctx.time()); for (const b of db.slotBk) { if (b.status !== 'ok' || b.date !== t || b.askR) continue; const after = nowM - (toMin(b.time) + c.dur); if (after >= 30 && after < 180) { b.askR = true; dirty = true; const mem = db.members.find((x) => x.id === b.memberId); if (mem) notify(db, ctx, [mem], 'Cum a fost antrenamentul? ⭐', `Spune-ne în 5 secunde cum a fost ora de la ${b.time}${c.coach ? ' cu ' + c.coach : ''}. Ne ajută să fim mai buni.`, 'evaluare', '/app.html'); } } }
     if (db.slotBk && db.slotBk.length && ctx.time) { const nowM = toMin(ctx.time()); for (const b of db.slotBk) { if (b.status !== 'ok' || b.date !== t || b.rem) continue; const left = toMin(b.time) - nowM; if (left <= 60 && left > 0) { b.rem = true; dirty = true; const mem = db.members.find((x) => x.id === b.memberId); if (mem) notify(db, ctx, [mem], 'Ne vedem într-o oră 💪', `Ai rezervare azi la ${b.time}. Dacă nu mai poți veni, anulează din aplicație, ca să eliberezi locul.`, 'programare', '/app.html'); } } }
     // motivația zilei, ca notificare, la ora aleasă
     st.dailySent = st.dailySent || '';

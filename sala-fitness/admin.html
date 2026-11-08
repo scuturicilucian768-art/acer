@@ -57,6 +57,7 @@ body{min-height:100vh}
 .ed-item{display:grid;grid-template-columns:2fr 70px 90px 80px 80px 36px;gap:6px;align-items:center;margin-bottom:6px}
 .ed-meal{display:grid;grid-template-columns:1fr 80px 2fr 70px 60px 60px 60px 36px;gap:6px;align-items:center;margin-bottom:6px}
 .ed-item .input,.ed-meal .input{padding:9px 10px;font-size:.88rem}
+.rvbar{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;color:inherit;padding:4px 6px;border-radius:8px;cursor:pointer;font-weight:700}.rvbar.on,.rvbar:hover{background:var(--card2)}
 .pp{display:inline-flex;align-items:center;gap:4px;margin:0 8px 4px 0;padding:3px 4px 3px 10px;border-radius:999px;background:var(--card2);font-weight:600}.lnk{border:0;background:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:2px 6px;border-radius:999px}.lnk:hover{color:var(--red);background:rgba(229,72,77,.12)}
 .pill-tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px;width:max-content;max-width:100%;overflow:auto;margin-bottom:16px}
 .pill-tabs button{border:0;background:none;padding:9px 14px;border-radius:10px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
@@ -159,6 +160,7 @@ body{min-height:100vh}
       <button data-p="members" data-i="users">Membri</button>
       <em class="bd hide" id="chb" style="display:none"></em>
       <button data-p="slots" data-i="calendar">Programări</button>
+      <button data-p="reviews" data-i="star">Evaluări</button>
       <button data-p="reports" data-i="chart">Rapoarte</button>
       <button data-p="notify" data-i="bell">Notificări</button>
       <button data-p="daily" data-i="spark">Motivația zilei</button>
@@ -176,7 +178,7 @@ body{min-height:100vh}
   </div>
 </div>
 <script src="diet.e2c419a4.js"></script>
-<script src="core.b4880b45.js"></script>
+<script src="core.6e7bb0b0.js"></script>
 <script src="seed.d978784b.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
@@ -221,12 +223,12 @@ function showLogin() {
     <div class="field"><label>Parola</label><input class="input" type="password" id="pw" autocomplete="current-password" required></div><p class="err" id="le"></p><button class="btn btn-acc btn-block">Intră</button>${window.GymDemo ? '<p class="tip" style="margin-top:14px">Demo: parola <b>admin</b></p>' : ''}</form></div>`;
   $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/api/admin/login', { method: 'POST', body: { password: $('#pw').value } }); boot(); } catch (er) { $('#le').textContent = er.message; } };
 }
-const TITLES = { slots: 'Programări', gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
+const TITLES = { reviews: 'Evaluări', slots: 'Programări', gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
 function go(p) {
   page = TITLES[p] ? p : 'dash'; history.replaceState(null, '', '#' + page);
   $$('.side [data-p]').forEach((b) => b.classList.toggle('on', b.dataset.p === page)); $('#mtitle').textContent = TITLES[page]; $('#side').classList.remove('open');
   M().innerHTML = '<div class="skel" style="height:60px;margin-bottom:14px"></div><div class="skel" style="height:220px"></div>'; M().classList.remove('stagger'); clearInterval(window._poll); window._quiet = null; window._convReload = null; stopScan();
-  const fn = ({ slots: pSlots, gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
+  const fn = ({ reviews: pReviews, slots: pSlots, gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
   fn().then(() => { M().classList.add('stagger'); countUp(M()); if (!window._quiet && ['dash', 'members', 'pt', 'rewards'].includes(page)) window._quiet = async () => { await fn(); countUp(M()); }; }).catch((e) => { if (e.status === 401) return showLogin(); M().innerHTML = `<p class="err">${esc(e.message)}</p>`; });
   scrollTo(0, 0);
 }
@@ -262,6 +264,7 @@ async function pDash() {
       <div class="card"><h3>Azi</h3>
         <div class="alert"><span class="av">${IC('users', 18)}</span><div class="grow"><b>${O.todayVisits.length} ${O.todayVisits.length === 1 ? 'membru a venit' : 'membri au venit'} azi</b><br><small>${O.todayVisits.slice(0, 4).map((x) => esc(x.name.split(' ')[0]) + (x.ciToday ? ' ' + x.ciToday : '')).join(' · ') || 'încă nimeni'}</small></div><button class="btn btn-sm" data-go="desk">Vezi</button></div>
         <div class="alert"><span class="av">${IC('spark', 18)}</span><div class="grow"><b>Motivația zilei</b><br><small>„${esc(O.daily.quote)}”</small></div></div>
+        ${O.reviews && O.reviews.n ? `<div class="alert"><span class="av" style="color:#FFC23D">★</span><div class="grow"><b>Nota antrenamentelor: ${O.reviews.avg.toLocaleString('ro-RO')} din 5</b><br><small>${O.reviews.n} evaluări${O.reviewsNew ? ` · ${O.reviewsNew} noi săptămâna asta` : ''}</small></div><button class="btn btn-sm" data-go="reviews">Vezi</button></div>` : ''}
         ${O.slotsToday !== undefined ? `<div class="alert"><span class="av">${IC('calendar', 18)}</span><div class="grow"><b>${O.slotsToday} ${O.slotsToday === 1 ? 'programare' : 'programări'} azi</b><br><small>cine vine și la ce oră</small></div><button class="btn btn-sm" data-go="slots">Vezi</button></div>` : ''}
         ${O.newSignups && O.newSignups.length ? `<div class="alert" style="border-color:color-mix(in srgb,var(--acc) 45%,transparent)"><span class="av" style="background:var(--acc);color:var(--acc-ink)">${IC('user', 18)}</span><div class="grow"><b>${O.newSignups.length} ${O.newSignups.length === 1 ? 'cont nou creat' : 'conturi noi create'} din aplicație</b><br><small>${O.newSignups.slice(0, 3).map((x) => esc(x.name)).join(' · ')}${O.newSignups.length > 3 ? ' …' : ''} · activează-le abonamentul când plătesc</small></div><button class="btn btn-sm btn-acc" id="nsGo">Vezi</button></div>` : ''}
         <div class="alert"><span class="av">${IC('gift', 18)}</span><div class="grow"><b>${O.redemptions.length} premii de acordat</b><br><small>${O.redemptions.slice(0, 2).map((x) => esc(x.member + ': ' + x.name)).join(' · ') || 'niciunul'}</small></div><button class="btn btn-sm" data-go="rewards">Vezi</button></div>
@@ -795,6 +798,21 @@ async function pSlots() {
     $('#ms', el).oninput = draw; draw(); $('#ms', el).focus();
   }));
   $('#ssv').onclick = async () => { $('#se').textContent = ''; const fix = (v) => { const m = /^(\d{1,2})[:.,h ]?(\d{2})?$/.exec(String(v).trim()); return m ? String(+m[1]).padStart(2, '0') + ':' + (m[2] || '00') : v; }; const hours = $$('.shr').map((r) => { const [cb, a, b2, cp] = $$('input', r); return { d: +r.dataset.d, on: cb.checked, from: fix(a.value), to: fix(b2.value), cap: cp.value }; }); try { await api('/api/admin/slots/config', { method: 'PUT', body: { cap: $('#scap').value, dur: $('#sdur').value, title: $('#stit').value, coach: $('#scoa').value, ahead: $('#sah').value, cancelH: $('#scx').value, perDay: $('#spd').value, needSub: $('#sns').checked, hours } }); toast('Setările programărilor au fost salvate ✅'); pSlots(); } catch (e) { $('#se').textContent = e.message; } };
+}
+/* ───────── EVALUĂRI ───────── */
+let rvF = 0;
+async function pReviews() {
+  const { stats: st, reviews } = await api('/api/admin/reviews'), L = reviews.filter((r) => !rvF || r.stars === rvF);
+  const star = (n) => `<span style="color:#FFC23D;letter-spacing:1px">${'★'.repeat(n)}</span><span style="color:var(--line2);letter-spacing:1px">${'★'.repeat(5 - n)}</span>`;
+  const tagCount = {}; reviews.forEach((r) => (r.tags || []).forEach((x) => (tagCount[x] = (tagCount[x] || 0) + 1)));
+  M().innerHTML = `<div class="ph"><div><h1>Evaluări</h1><p>Ce spun membrii despre antrenamente și antrenor. Le cerem părerea automat după fiecare oră programată, iar din Profil o pot da oricând.</p></div></div>
+    <div class="cols"><div class="card"><div class="row" style="gap:18px;align-items:center"><div style="text-align:center;min-width:110px"><b style="font-size:3rem;line-height:1">${st.n ? st.avg.toLocaleString('ro-RO') : '–'}</b><div>${star(Math.round(st.avg))}</div><small class="muted">${st.n} ${st.n === 1 ? 'evaluare' : 'evaluări'}</small></div>
+      <div class="grow">${st.dist.map((d) => `<button class="rvbar ${rvF === d.k ? 'on' : ''}" data-rf="${d.k}"><span>${d.k} ★</span><span class="bar-p" style="flex:1;height:8px"><i style="width:${st.n ? (d.n / st.n) * 100 : 0}%;background:#FFC23D"></i></span><span class="muted" style="min-width:24px;text-align:right">${d.n}</span></button>`).join('')}</div></div>
+      ${Object.keys(tagCount).length ? `<h3 style="margin:16px 0 8px">Ce apare cel mai des</h3><div style="display:flex;gap:6px;flex-wrap:wrap">${Object.entries(tagCount).sort((a, b) => b[1] - a[1]).map(([x, n]) => `<span class="chip">${esc(x)} · ${n}</span>`).join('')}</div>` : ''}</div>
+    <div class="card"><div class="row"><h3 class="grow">${rvF ? `Doar ${rvF} ★` : 'Toate evaluările'}</h3>${rvF ? '<button class="btn btn-sm" id="rvAll">Arată toate</button>' : ''}</div><div class="list" style="margin-top:10px">${L.map((r) => `<div class="alert" style="align-items:flex-start"><div class="grow"><div class="row" style="gap:8px;flex-wrap:wrap">${star(r.stars)}<b>${esc(r.name)}</b><small class="muted">${r.slot ? `ora de ${r.slot.split(' ')[0].split('-').reverse().slice(0, 2).join('.')}, ${esc(r.slot.split(' ')[1])}` : `${r.date.split('-').reverse().join('.')} · evaluare generală`}${r.coach ? ' · ' + esc(r.coach) : ''}</small></div>${(r.tags || []).length ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">${r.tags.map((x) => `<span class="chip" style="font-size:.7rem">${esc(x)}</span>`).join('')}</div>` : ''}${r.text ? `<p style="margin:6px 0 0">„${esc(r.text)}”</p>` : ''}</div><button class="lnk" data-rd="${r.id}" title="Șterge">✕</button></div>`).join('') || '<p class="muted">Nicio evaluare încă. Apar aici după ce membrii își evaluează orele.</p>'}</div></div></div>`;
+  $$('[data-rf]').forEach((b) => (b.onclick = () => { rvF = rvF === +b.dataset.rf ? 0 : +b.dataset.rf; pReviews(); }));
+  if ($('#rvAll')) $('#rvAll').onclick = () => { rvF = 0; pReviews(); };
+  $$('[data-rd]').forEach((b) => (b.onclick = async () => { if (!(await ask('Ștergi evaluarea?', '', 'Șterge', { danger: true }))) return; await api('/api/admin/reviews/' + b.dataset.rd, { method: 'DELETE', body: {} }); pReviews(); }));
 }
 async function pChat() {
   M().innerHTML = `<div class="ph"><div><h1>Mesaje</h1><p>Conversațiile cu membrii din aplicație. Când răspunzi, membrul primește notificare pe telefon.</p></div><button class="btn btn-acc" id="nw">${IC('plus', 18)} Conversație nouă</button></div><div class="inbox ${chatSel ? 'open' : ''}" id="ib"><div class="thr" id="thr"></div><div class="conv" id="conv"><div class="muted" style="margin:auto;text-align:center;padding:40px">${IC('chat', 40)}<p>Alege o conversație</p></div></div></div>`;
