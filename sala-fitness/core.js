@@ -571,7 +571,7 @@
       const pw = String(body.password || '').trim() || phoneKey(mem.phone).slice(-4);
       mem.pass = ctx.hash(pw); mem.tags = (Array.isArray(body.tags) ? body.tags : String(body.tags || '').split(',')).map((x) => clean(x, 30)).filter(Boolean);
       if (body.planId) { const e2 = renewSub(db, mem, t, ctx, body); if (e2) return no(400, e2); }
-      if (body.weight) { const kg = num(body.weight, 25, 300); if (kg) mem.weights.push({ date: t, kg }); }
+      // greutatea e dată de sănătate: o notează membrul, după ce își dă acordul în aplicație
       db.members.push(mem);
       notify(db, ctx, [mem], `Bine ai venit la ${db.settings.name}! 💪`, 'Aici îți vezi abonamentul, antrenamentele, progresul și provocarea zilei.', 'bun-venit');
       return ok({ member: memberFull(db, mem, t), password: pw }, 201);
