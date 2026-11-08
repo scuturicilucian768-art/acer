@@ -1,6 +1,6 @@
 // Service worker: aplicația pornește repede, merge și cu semnal slab, și primește notificări push.
 // Căile sunt relative la locul aplicației, ca să meargă și într-un subfolder.
-const C = 'gym-v16';
+const C = 'gym-v17';
 const B = new URL('./', self.location).pathname;
 const SHELL = ['app.html', 'app.css', 'common.js', 'diet.js', 'core.js', 'robo-kb.js', 'robo.js', 'seed.js', 'env.js', 'fig.js', 'qr.js', 'img/icon-192.png'].map((x) => B + x);
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(C).then((c) => c.addAll(SHELL)).catch(() => {})); self.skipWaiting(); });

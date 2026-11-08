@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Fraunces:ital,wght@1,500;1,600&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="app.css?v=12">
+<link rel="stylesheet" href="app.css?v=13">
 <style>
 body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--acc) 9%,transparent),transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
 .wrap{max-width:560px;margin:0 auto;padding:0 16px calc(120px + env(safe-area-inset-bottom))}
@@ -428,6 +428,17 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .rchips:empty{display:none}
 .rchips button{flex:none;border:1.5px solid color-mix(in srgb,var(--acc) 50%,var(--line2));background:var(--card);color:var(--ink);border-radius:999px;padding:8px 13px;font-weight:700;font-size:.84rem;cursor:pointer}
 .rclear{align-self:center;margin-top:10px;border:0;background:none;color:var(--faint);font-size:.76rem;font-weight:700;display:flex;gap:5px;align-items:center;cursor:pointer}
+/* acordul pentru datele de sănătate */
+.consent{position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;display:grid;place-items:start center;padding:max(24px,env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));animation:rise .3s both}
+.consent .cbox{width:100%;max-width:520px}
+.consent .cico{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;font-size:2rem;background:color-mix(in srgb,var(--acc) 16%,var(--card));margin:8px 0 14px}
+.consent h1{font-family:var(--fd);font-size:1.7rem;margin:0 0 6px}
+.consent .clist{display:grid;gap:10px;margin:18px 0}
+.consent .clist div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;gap:3px}
+.consent .clist span{color:var(--muted);font-size:.9rem;line-height:1.45}
+.consent .cchk{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px;border:1.5px solid color-mix(in srgb,var(--acc) 45%,var(--line2));background:var(--card);cursor:pointer;font-size:.92rem;line-height:1.45;margin-bottom:10px}
+.consent .cchk input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--acc)}
+.consent .cchk a{color:var(--acc)}
 </style>
 </head>
 <body>
@@ -444,15 +455,15 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
     <button data-t="me" data-i="user">Profil</button>
   </nav>
 </div>
-<script src="robo-kb.js?v=12"></script>
-<script src="robo.js?v=12"></script>
-<script src="diet.js?v=12"></script>
-<script src="core.js?v=12"></script>
-<script src="seed.js?v=12"></script>
-<script src="env.js?v=12"></script>
-<script src="common.js?v=12"></script>
-<script src="fig.js?v=12"></script>
-<script src="qr.js?v=12"></script>
+<script src="robo-kb.js?v=13"></script>
+<script src="robo.js?v=13"></script>
+<script src="diet.js?v=13"></script>
+<script src="core.js?v=13"></script>
+<script src="seed.js?v=13"></script>
+<script src="env.js?v=13"></script>
+<script src="common.js?v=13"></script>
+<script src="fig.js?v=13"></script>
+<script src="qr.js?v=13"></script>
 <script>
 let CFG = null, H = null, EX = [], tab = 'home', GAL = { sections: [], photos: [] };
 const exById = (id) => EX.find((e) => e.id === id) || { id, name: id, muscle: '', steps: [] };
@@ -465,6 +476,60 @@ const e1rm = (kg, reps) => (kg && reps ? kg * (1 + Math.min(reps, 15) / 30) : 0)
 const thumb = (ex) => GymFig.figure(ex, { still: true });
 
 /* ───────── pornire ───────── */
+
+/* ───────── ACORDUL PENTRU DATELE DE SĂNĂTATE (GDPR) ───────── */
+const _apiRaw = api;
+api = async (...a) => { try { return await _apiRaw(...a); } catch (e) { if (e.status === 428 && H && H.me && !H.me.consent) setTimeout(() => openConsent(true), 50); throw e; } };
+const skipKey = () => 'fet-consent-later-' + (H && H.me ? H.me.id : '');
+function consentDue() {
+  if (!H || !H.me || H.me.consent) return false;
+  try { const d = localStorage.getItem(skipKey()); if (d && GymCore.diff(H.today, d) < 7) return false; } catch {}
+  return true;
+}
+function openConsent(fromAction) {
+  if ($('#consent')) return;
+  const el = document.createElement('div'); el.id = 'consent'; el.className = 'consent'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'cTitle');
+  el.innerHTML = `<div class="cbox">
+    <div class="cico">🔒</div>
+    <h1 id="cTitle">Datele tale de sănătate</h1>
+    <p class="muted">${fromAction ? 'Ca să salvăm ce ai introdus, avem nevoie de acordul tău.' : `Bun venit, ${esc(H.me.name.split(' ')[0])}! Înainte să începi, vrem să știi ce date păstrăm și de ce.`}</p>
+    <div class="clist">
+      <div><b>Ce date păstrăm</b><span>Greutatea și măsurătorile, pozele de progres, durerile și scopul pe care i le spui lui Robo, ce-ți place să mănânci, alergiile și antrenamentele.</span></div>
+      <div><b>De ce</b><span>Ca să-ți facem programul și dieta potrivite și să-ți arătăm progresul. Nu le folosim pentru nimic altceva.</span></div>
+      <div><b>Cine le vede</b><span>Doar tu și ${esc(S().name)}. Pozele de progres le vezi doar tu. Nu le dăm și nu le vindem nimănui.</span></div>
+      <div><b>Poți renunța oricând</b><span>Din Profil, la „Datele mele de sănătate”. Atunci le ștergem pe toate.</span></div>
+    </div>
+    <label class="cchk"><input type="checkbox" id="cAgree"><span>Sunt de acord ca ${esc(S().name)} să păstreze și să folosească datele mele de sănătate, așa cum e scris mai sus și în <a href="confidentialitate.html" target="_blank" rel="noopener">politica de confidențialitate</a>.</span></label>
+    <p class="err" id="cErr"></p>
+    <button class="btn btn-acc btn-block" id="cYes" disabled>${IC('check', 18)} Sunt de acord și continui</button>
+    <button class="btn btn-ghost btn-block" id="cNo" style="margin-top:8px">Nu acum</button>
+    <p class="muted small" style="margin:12px 0 0;text-align:center">Fără acord poți folosi în continuare abonamentul, check-in-ul, exercițiile și pe Robo. Doar nu salvăm date de sănătate.</p>
+  </div>`;
+  document.body.appendChild(el); document.body.classList.add('noscroll');
+  const box = $('#cAgree', el), yes = $('#cYes', el);
+  box.onchange = () => { yes.disabled = !box.checked; };
+  const close = () => { el.remove(); document.body.classList.remove('noscroll'); };
+  yes.onclick = async () => { yes.disabled = true; try { H = await _apiRaw('/api/me/consent', { method: 'POST', body: { accept: true } }); close(); toast('Mulțumim! ✅ Poți folosi toată aplicația.'); render(); } catch (e) { $('#cErr', el).textContent = e.message; yes.disabled = false; } };
+  $('#cNo', el).onclick = () => { try { localStorage.setItem(skipKey(), H.today); } catch {} close(); if (fromAction) toast('Bine. Fără acord nu salvăm date de sănătate.'); };
+  setTimeout(() => box.focus(), 100);
+}
+function openHealthData() {
+  const c = H.me.consent;
+  const el = sheet(`<h2>Datele mele de sănătate</h2>
+    ${c ? `<div class="card" style="margin:12px 0;background:rgba(61,220,151,.1);border-color:rgba(61,220,151,.35)">✅ Ți-ai dat acordul pe ${fdate(c.at.slice(0, 10), true)}.</div>
+      <p class="muted">Păstrăm greutatea, măsurătorile, pozele de progres, durerile și scopul spus lui Robo, preferințele alimentare și alergiile, ca să-ți facem programul și dieta. Le vede doar sala, iar pozele doar tu.</p>
+      <p class="muted">Dacă îți retragi acordul, <b>ștergem pe loc</b> toate datele acestea, inclusiv pozele și dieta personală. Abonamentul, check-in-urile, antrenamentele și punctele rămân.</p>
+      <button class="btn btn-block" id="hdW" style="margin-top:12px;border-color:var(--red);color:var(--red)">Retrage acordul și șterge datele</button>`
+    : `<div class="card" style="margin:12px 0;background:rgba(255,194,61,.1);border-color:rgba(255,194,61,.4)">⚠️ Nu ți-ai dat încă acordul. Fără el nu putem salva greutatea, pozele, durerile sau dieta ta personală.</div>
+      <button class="btn btn-acc btn-block" id="hdA">Vreau să-mi dau acordul</button>`}
+    <a href="confidentialitate.html" class="muted small" style="display:block;text-align:center;margin-top:14px">Politica de confidențialitate</a>`);
+  if ($('#hdA', el)) $('#hdA', el).onclick = () => { closeSheet(); setTimeout(() => openConsent(false), 250); };
+  if ($('#hdW', el)) $('#hdW', el).onclick = async () => {
+    if (!(await ask('Retragi acordul?', 'Se șterg definitiv greutatea, măsurătorile, pozele de progres, durerile, preferințele alimentare și dieta personală.', 'Retrage și șterge', { danger: true, icon: 'trash' }))) return;
+    H = await _apiRaw('/api/me/consent', { method: 'DELETE', body: {} }); closeSheet(); toast('Acordul a fost retras și datele au fost șterse.'); render();
+  };
+}
+
 async function boot() {
   const t0 = performance.now();
   CFG = await api('/api/config'); applyAccent(S().accent);
@@ -478,6 +543,7 @@ async function boot() {
   if (/^ci-\d{4}$/.test(h)) doCheckin(h.slice(3));
   if (h === 'chat') openChat();
   if (/^ex-\w+$/.test(h)) openExFromQR(h.slice(3));
+  if (consentDue()) setTimeout(() => openConsent(false), 500);
 }
 function openExFromQR(id) {
   const e = EX.find((x) => x.id === id); history.replaceState(null, '', '#' + tab);
@@ -1345,6 +1411,7 @@ function vMe(v) {
       ${M('lookM', 'card', 'Personalizează cardul și figurina')}
       ${M('ann', 'megaphone', 'Anunțuri și evenimente')}
       ${M('galM', 'camera', 'Galerie foto')}
+      ${M('hdM', 'lock', 'Datele mele de sănătate', H.me.consent ? '<span class="chip ok" style="margin-left:auto">acord dat</span>' : '<span class="chip warn" style="margin-left:auto">fără acord</span>')}
       ${M('pw', 'lock', 'Schimbă parola')}
     </div>
     <div class="sec"><h2>Sala</h2></div>
@@ -1360,7 +1427,7 @@ function vMe(v) {
   $('#avB').onclick = openAvatar;
   $('#rkP').onclick = openRanks; if ($('#galM')) $('#galM').onclick = () => openGallery();
   $('#sub').onclick = openSub; $('#ann').onclick = openAnns; $('#chatM').onclick = () => openChat(); $('#genM').onclick = openRobo; $('#lookM').onclick = () => openStudio('card');
-  $('#pushT').onclick = togglePush;
+  $('#pushT').onclick = togglePush; $('#hdM').onclick = openHealthData;
   $('#lbT').onclick = async () => { await act('/api/me', { hideBoard: !me.hideBoard }, 'PUT'); toast(H.me.hideBoard ? 'Nu mai apari în clasament' : 'Apari în clasament'); render(); };
   $('#ed').onclick = () => {
     const el = sheet(`<h2>Despre mine</h2><div class="field" style="margin-top:14px"><label for="pn">Nume</label><input class="input" id="pn" value="${esc(me.name)}"></div>

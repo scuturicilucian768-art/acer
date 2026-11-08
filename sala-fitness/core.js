@@ -165,6 +165,8 @@
     return prog;
   }
 
+  const CONSENT_V = 1;
+  const HEALTH_PATHS = ['/api/me/weight', '/api/me/measure', '/api/me/photo', '/api/me/coach', '/api/me/food', '/api/me/generate'];
   /* ---------- Robo: definește scopul fiecărui membru ---------- */
   const GOAL_TXT = { slabire: 'Slăbire', tonifiere: 'Tonifiere', masa: 'Masă musculară', forta: 'Forță', sanatate: 'Sănătate și energie', recuperare: 'Fără dureri' };
   const GOAL_TITLE = { slabire: 'Mai ușor și mai plin de energie', tonifiere: 'Un corp ferm și definit', masa: 'Mai mult mușchi, pas cu pas', forta: 'Mai puternic la fiecare antrenament', sanatate: 'Sănătos și plin de energie', recuperare: 'Spate și articulații fără dureri' };
@@ -415,6 +417,17 @@
       const me = db.members.find((x) => x.id === s.id);
       if (!me) return no(401, 'Contul nu mai există. Vorbește cu recepția.');
       if (p === '/api/me' && m === 'GET') return ok(homeFor(db, me, t, ctx));
+      // acordul pentru datele de sănătate (GDPR, art. 9): fără el nu salvăm greutate, măsurători, poze, dureri sau alergii
+      const hasConsent = !!(me.consent && me.consent.v >= CONSENT_V);
+      if (m === 'POST' && HEALTH_PATHS.includes(p) && !hasConsent) return no(428, 'Pentru asta e nevoie de acordul tău pentru datele de sănătate.');
+      if (p === '/api/me/consent' && m === 'POST') { if (body.accept !== true) return no(400, 'Bifează că ești de acord.'); me.consent = { v: CONSENT_V, at: ctx.nowISO() }; delete me.consentWithdrawn; return ok(homeFor(db, me, t, ctx)); }
+      if (p === '/api/me/consent' && m === 'DELETE') {
+        const files = (me.photos || []).map((x) => x.file);
+        me.weights = []; me.measures = []; me.photos = []; delete me.coach; delete me.food;
+        db.nutrition = db.nutrition.filter((x) => x.owner !== me.id); if (String(me.nutritionId || '').startsWith('nu_my_')) me.nutritionId = '';
+        me.consent = null; me.consentWithdrawn = ctx.nowISO();
+        return ok({ ...homeFor(db, me, t, ctx), files });
+      }
       if (p === '/api/me' && m === 'PUT') { if (body.hideBoard !== undefined) me.hideBoard = !!body.hideBoard; const e = memberInput({ ...body, phone: undefined }, me); return e ? no(400, e) : ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/water' && m === 'POST') { me.water = me.water || {}; me.water[t] = num(body.n, 0, 20) || 0; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/coach' && m === 'POST') {
@@ -584,6 +597,7 @@
       if (sub === '/checkin' && m === 'POST') { mem.checkins = mem.checkins || []; const already = mem.checkins.includes(t); if (!already) { mem.checkins.push(t); mem.ciAt = mem.ciAt || {}; mem.ciAt[t] = ctx.time ? ctx.time() : ''; } return ok({ member: memberFull(db, mem, t), already }); }
       if (sub === '/diet' && m === 'GET') { const pl = db.nutrition.find((x) => x.id === mem.nutritionId) || null; return ok({ plan: pl, food: mem.food || null, personal: !!(pl && pl.owner === mem.id) }); }
       if (sub === '/diet/auto' && m === 'POST') {
+        if (body.food && !(mem.consent && mem.consent.v >= CONSENT_V)) return no(428, 'Membrul nu și-a dat încă acordul pentru datele de sănătate (alergii, preferințe). Îl poate da din aplicație, la Profil.');
         const P = foodInput(body.food ? body.food : mem.food || { goal: dietInfo(mem, t).kcalGoal });
         if (body.food) mem.food = { ...P, at: ctx.nowISO(), byAdmin: true };
         const pl = savePersonalDiet(db, mem, dietLib().generate(P, dietInfo(mem, t)), 'auto', ctx.nowISO());
