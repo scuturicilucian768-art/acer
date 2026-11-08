@@ -304,6 +304,17 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .notif.new{border-color:color-mix(in srgb,var(--acc) 50%,transparent)}
 .notif p{margin:4px 0 0;color:var(--muted);font-size:.92rem}
 .small{font-size:.84rem}
+.vtour{position:relative;display:block;width:100%;aspect-ratio:4/5;max-height:440px;border-radius:24px;overflow:hidden;border:1px solid color-mix(in srgb,var(--acc) 35%,var(--line2));padding:0;cursor:pointer;background:#000;box-shadow:0 18px 50px -20px color-mix(in srgb,var(--acc) 45%,transparent)}
+.vtour video{width:100%;height:100%;object-fit:cover;display:block}
+.vtour::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(8,8,12,.9))}
+.vt-t{position:absolute;left:16px;right:16px;bottom:14px;z-index:1;display:grid;gap:2px;text-align:left;color:#fff}
+.vt-t small{font-size:.7rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--acc)}
+.vt-t b{font-size:1.4rem;line-height:1.1}
+.vt-p{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:.84rem;font-weight:700;color:rgba(255,255,255,.85)}
+.vfull{position:fixed;inset:0;z-index:300;background:#000;display:grid;place-items:center}
+.vfull video{width:100%;height:100%;object-fit:contain}
+.vfull .iconbtn{position:absolute;top:calc(12px + env(safe-area-inset-top));z-index:2;background:rgba(0,0,0,.5);color:#fff}
+.vfull #vfx{left:12px}.vfull #vfs{right:12px}
 .gstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
 .gstrip::-webkit-scrollbar{display:none}
 .gstrip button{flex:0 0 76%;aspect-ratio:4/3;border-radius:22px;overflow:hidden;scroll-snap-align:start;position:relative;border:1px solid var(--line2);padding:0;cursor:pointer;background:#000}
@@ -659,6 +670,8 @@ function vHome(v) {
     <div class="card">${top3.length >= 3 ? `<div class="podium">${[1, 0, 2].map((i) => { const x = top3[i]; return `<div class="p${i + 1}"><span class="av">${esc(x.name.split(' ').map((y) => y[0]).join(''))}</span><small>${esc(x.name)}</small><small class="muted">${x.pts} p</small><span class="st2" style="height:${[64, 44, 32][i]}px">${i + 1}</span></div>`; }).join('')}</div>` : ''}
       <div class="lbrow me"><span class="n">${b.me && b.me.rank ? b.me.rank : '–'}</span><b class="grow">Tu</b><b class="acc">${b.me ? b.me.pts : 0} puncte</b></div>
       <p class="muted small" style="margin:10px 0 0">Antrenament +10 · Check-in +5 · Provocarea zilei +5. Se resetează la început de lună.</p></div>
+    <div class="sec"><h2>Intră în sală</h2><small class="muted">video · 6 sec</small></div>
+    <button class="vtour" id="vTour" aria-label="Pornește turul video al sălii"><video src="img/sala-tur.mp4" poster="img/sala-tur.jpg" muted loop playsinline preload="metadata" ${matchMedia('(prefers-reduced-motion: reduce)').matches ? '' : 'autoplay'}></video><span class="vt-t"><small>Turul sălii</small><b>Așa arată Empire-ul</b><span class="vt-p">${IC('arrow', 16)} Vezi pe tot ecranul</span></span></button>
     ${!GAL.photos.length ? `<div class="sec"><h2>Galerie foto</h2><button id="galAll">Deschide</button></div><div class="gstrip">${GAL.sections.map((sc, i) => `<button data-gs="${sc.id}" style="background:radial-gradient(120% 100% at 30% 0%,color-mix(in srgb,var(--acc) ${22 - i * 3}%,transparent),transparent 70%),var(--card)"><span style="position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:8px;color:var(--acc)">${IC(['home', 'dumbbell', 'users', 'star', 'chart'][i], 34)}</span><span class="gcap"><small>${esc(sc.name)}</small>Pozele vin în curând</span></button>`).join('')}</div>` : ''}
     ${GAL.photos.length ? `<div class="sec"><h2>Sala noastră</h2><button id="galAll">Toate pozele</button></div><div class="gstrip">${GAL.photos.slice().sort((a, b) => (a.cat === 'sala' ? 0 : 1) - (b.cat === 'sala' ? 0 : 1)).slice(0, 12).map((x) => `<button data-gp="${x.id}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || 'Fitness Empire')}" loading="lazy"><span class="gcap"><small>${esc((GAL.sections.find((s) => s.id === x.cat) || {}).name || '')}</small>${esc(x.caption || '')}</span></button>`).join('')}</div>` : ''}
     ${H.announcements.length ? `<div class="sec"><h2>Noutăți de la sală</h2><button id="allAnn">Toate</button></div><div class="list">${H.announcements.slice(0, 2).map(annHtml).join('')}</div>` : ''}
@@ -681,6 +694,16 @@ function vHome(v) {
   if ($('#startW')) $('#startW').onclick = () => startWorkout(prog, H.nextDay);
   if ($('#allAnn')) $('#allAnn').onclick = openAnns;
   if ($('#galAll')) $('#galAll').onclick = () => openGallery();
+  if ($('#vTour')) $('#vTour').onclick = () => {
+    const small = $('#vTour video'); if (small) small.pause();
+    const el = document.createElement('div'); el.className = 'vfull'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Turul sălii');
+    el.innerHTML = `<button class="iconbtn" id="vfx" aria-label="Închide">${IC('back', 20)}</button><button class="iconbtn" id="vfs" aria-label="Pornește sunetul">🔇</button><video src="img/sala-tur.mp4" poster="img/sala-tur.jpg" autoplay loop playsinline muted></video>`;
+    document.body.appendChild(el); document.body.classList.add('noscroll');
+    const v = $('video', el), sb = $('#vfs', el); v.play().catch(() => {});
+    sb.onclick = () => { v.muted = !v.muted; sb.textContent = v.muted ? '🔇' : '🔊'; sb.setAttribute('aria-label', v.muted ? 'Pornește sunetul' : 'Oprește sunetul'); };
+    const close = () => { el.remove(); if (!$('.wo') && !$('#chat') && !$('#sheet')) document.body.classList.remove('noscroll'); if (small && !matchMedia('(prefers-reduced-motion: reduce)').matches) small.play().catch(() => {}); };
+    $('#vfx', el).onclick = close;
+  };
   $$('[data-gs]', v).forEach((b) => (b.onclick = () => openGallery(b.dataset.gs)));
   $$('[data-gp]', v).forEach((b) => (b.onclick = () => { const all = GAL.photos.slice().sort((a, b2) => (a.cat === 'sala' ? 0 : 1) - (b2.cat === 'sala' ? 0 : 1)).slice(0, 12); lightbox(all, all.findIndex((x) => x.id === b.dataset.gp)); }));
   bindInstall();
