@@ -9,7 +9,7 @@
 <link rel="icon" href="img/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="app.css?v=10">
+<link rel="stylesheet" href="app.css?v=11">
 <style>
 body{min-height:100vh}
 .lay{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
@@ -172,13 +172,13 @@ body{min-height:100vh}
     <main class="main" id="main"></main>
   </div>
 </div>
-<script src="diet.js?v=10"></script>
-<script src="core.js?v=10"></script>
-<script src="seed.js?v=10"></script>
-<script src="env.js?v=10"></script>
-<script src="common.js?v=10"></script>
-<script src="fig.js?v=10"></script>
-<script src="qr.js?v=10"></script>
+<script src="diet.js?v=11"></script>
+<script src="core.js?v=11"></script>
+<script src="seed.js?v=11"></script>
+<script src="env.js?v=11"></script>
+<script src="common.js?v=11"></script>
+<script src="fig.js?v=11"></script>
+<script src="qr.js?v=11"></script>
 <script>
 let page = 'dash', O = null, CFG = null;
 $$('.side [data-i]').forEach((b) => b.insertAdjacentHTML('afterbegin', IC(b.dataset.i, 20)));
@@ -386,7 +386,7 @@ async function pNotify() {
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${T.map((x, i) => `<button class="btn btn-sm" data-tpl="${i}">${esc(x[0])}</button>`).join('')}</div>
       <p class="err" id="ne"></p><button class="btn btn-acc" id="ns">🔔 Trimite</button></div>
       <div class="card"><h3>Trimise</h3>${d.sent.map((x) => `<div class="alert"><div class="grow"><b>${esc(x.title)}</b><br><small>${esc(x.body.slice(0, 90))}${x.body.length > 90 ? '…' : ''}</small><br><small>${new Date(x.at).toLocaleString('ro-RO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${x.count} membri${x.pushed ? ` · ${x.pushed} pe telefon` : ''}</small></div></div>`).join('') || '<p class="muted">Nimic trimis încă.</p>'}
-      <div class="tip" style="margin-top:14px">💡 Automat, fără să faci nimic: motivația zilei la ora ${S().dailyHour}:00, reamintiri înainte de expirarea abonamentului și „Ne e dor de tine” pentru cine lipsește 7 sau 14 zile. Le schimbi din Setări → Mesaje automate.</div></div></div>`;
+      <div class="tip" style="margin-top:14px">💡 Automat, fără să faci nimic: motivația zilei la ora ${S().dailyHour}:00, notificări despre abonament (cu 3 zile și cu o zi înainte, în ziua expirării și după ce a expirat) și „Ne e dor de tine” pentru cine lipsește 7 sau 14 zile. Le schimbi din Setări → Mesaje automate.</div></div></div>`;
   $('#tg').onchange = () => $('#pick').classList.toggle('hide', $('#tg').value !== 'ids');
   $$('[data-tpl]').forEach((b) => (b.onclick = () => { const x = T[+b.dataset.tpl]; $('#nt').value = x[0]; $('#nb').value = x[1]; }));
   $('#ns').onclick = async () => { $('#ne').textContent = ''; try { const r = await api('/api/admin/notify', { method: 'POST', body: { title: $('#nt').value, body: $('#nb').value, target: $('#tg').value, ids: [...$('#ids').selectedOptions].map((o) => o.value) } }); toast(`Trimis la ${r.count} membri ✅`); confetti(); pNotify(); } catch (e) { $('#ne').textContent = e.message; } };

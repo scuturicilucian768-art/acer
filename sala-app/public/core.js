@@ -737,14 +737,20 @@
       }
       for (const key of [7, 14]) if (sentNow[key]) { db.sent.unshift({ id: ctx.uid('sn'), title: `Automat: n-au mai venit de ${key} zile`, body: String((key === 7 ? st.idleText7 : st.idleText14) || IDLE_DEF[key]), target: 'auto', count: sentNow[key], pushed: 0, at: ctx.nowISO(), auto: true }); db.sent = db.sent.slice(0, 100); }
     }
-    // reamintiri de expirare: cu 3 zile înainte și în ziua expirării
+    // notificări de expirare: cu 3 zile înainte, cu o zi înainte, în ziua expirării și după ce a expirat
     if (hour >= 10) for (const m of db.members) {
       const s = subOf(db, m, t); if (!s.end) continue; m.expiryNotified = m.expiryNotified || {};
-      const key = s.daysLeft === 3 ? 'd3' : s.daysLeft === 0 ? 'd0' : null;
-      if (key && !m.expiryNotified[key + s.end]) {
-        m.expiryNotified[key + s.end] = true; dirty = true;
-        notify(db, ctx, [m], key === 'd3' ? 'Abonamentul expiră în 3 zile ⏳' : 'Abonamentul expiră azi', key === 'd3' ? `Abonamentul tău expiră pe ${s.end.split('-').reverse().join('.')}. Reînnoiește la recepție ca să nu pierzi seria!` : 'Treci pe la recepție să-l reînnoiești și continuă antrenamentele. 💪', 'abonament');
-      }
+      const first = String(m.name || '').split(' ')[0], end = s.end.split('-').reverse().join('.');
+      const key = s.daysLeft === 3 ? 'd3' : s.daysLeft === 1 ? 'd1' : s.daysLeft === 0 ? 'd0' : s.daysLeft < 0 && s.daysLeft >= -3 ? 'exp' : null;
+      if (!key || m.expiryNotified[key + s.end]) continue;
+      m.expiryNotified[key + s.end] = true; dirty = true;
+      const N = {
+        d3: ['Abonamentul expiră în 3 zile ⏳', `${first}, abonamentul tău expiră pe ${end}. Reînnoiește-l la recepție ca să nu-ți pierzi seria! 💪`],
+        d1: ['Abonamentul expiră mâine ⏳', `${first}, mâine e ultima zi de abonament. Treci pe la recepție să-l prelungești.`],
+        d0: ['Abonamentul expiră azi', `${first}, azi e ultima zi a abonamentului tău. Reînnoiește-l la recepție și continuă antrenamentele. 💪`],
+        exp: ['Abonamentul tău a expirat', `${first}, abonamentul tău a expirat pe ${end}. Te așteptăm la recepție să-l reînnoiești. Nu lăsa progresul să se piardă! 💪`],
+      }[key];
+      notify(db, ctx, [m], N[0], N[1], 'abonament');
     }
     return dirty;
   }
