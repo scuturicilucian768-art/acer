@@ -9,7 +9,7 @@
 <link rel="icon" href="img/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="app.css?v=9">
+<link rel="stylesheet" href="app.css?v=10">
 <style>
 body{min-height:100vh}
 .lay{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
@@ -172,13 +172,13 @@ body{min-height:100vh}
     <main class="main" id="main"></main>
   </div>
 </div>
-<script src="diet.js?v=9"></script>
-<script src="core.js?v=9"></script>
-<script src="seed.js?v=9"></script>
-<script src="env.js?v=9"></script>
-<script src="common.js?v=9"></script>
-<script src="fig.js?v=9"></script>
-<script src="qr.js?v=9"></script>
+<script src="diet.js?v=10"></script>
+<script src="core.js?v=10"></script>
+<script src="seed.js?v=10"></script>
+<script src="env.js?v=10"></script>
+<script src="common.js?v=10"></script>
+<script src="fig.js?v=10"></script>
+<script src="qr.js?v=10"></script>
 <script>
 let page = 'dash', O = null, CFG = null;
 $$('.side [data-i]').forEach((b) => b.insertAdjacentHTML('afterbegin', IC(b.dataset.i, 20)));
@@ -316,7 +316,6 @@ async function openMember(id, focus) {
     sub: () => `<div class="g3"><div class="kpi"><small>Tip</small><b style="font-size:1.2rem">${esc(s.plan ? s.plan.name : '–')}</b></div><div class="kpi"><small>Expiră</small><b style="font-size:1.2rem">${s.end ? fdate(s.end, true) : '–'}</b></div><div class="kpi"><small>${s.daysLeft != null && s.daysLeft < 0 ? 'Expirat de' : 'Zile rămase'}</small><b style="font-size:1.2rem;${s.daysLeft < 0 ? 'color:var(--red)' : ''}">${s.daysLeft == null ? '–' : s.daysLeft < 0 ? -s.daysLeft + (s.daysLeft === -1 ? ' zi' : ' zile') : s.daysLeft}</b></div></div>
       <div class="card" style="margin-top:12px;background:var(--bg)"><h3>🔄 Activează / prelungește abonamentul</h3><div class="g2" style="margin-top:10px"><div class="field"><label>Abonament</label><select class="input" id="pp">${CFG.plans.map((x) => `<option value="${x.id}" ${s.plan && s.plan.id === x.id ? 'selected' : ''}>${esc(x.name)} · ${x.days} zile</option>`).join('')}</select></div></div>
       <p class="muted" style="font-size:.84rem;margin:0 0 10px">${s.end && s.daysLeft >= 0 ? `Se adaugă după ${fdate(s.end, true)}, ca să nu piardă zilele rămase.` : 'Începe de azi.'}</p><p class="err" id="pe"></p><button class="btn btn-acc" id="ps">Activează abonamentul</button></div>
-      <h3 style="margin:16px 0 8px">Istoric abonamente</h3><table class="tbl"><tbody>${(m.subLog || []).slice().reverse().map((p) => `<tr><td>${fdate(p.date, true)}</td><td>${esc((CFG.plans.find((x) => x.id === p.planId) || {}).name || '')}</td><td style="text-align:right"><button class="btn btn-sm btn-red" data-dp="${p.id}">Șterge</button></td></tr>`).join('') || '<tr><td class="muted">Niciun abonament activat încă.</td></tr>'}</tbody></table>
       <details style="margin-top:14px"><summary class="muted" style="cursor:pointer">Modifică manual data expirării</summary><div class="row" style="margin-top:10px;gap:8px"><input class="input" type="date" id="se" value="${s.end || ''}" style="max-width:200px"><button class="btn btn-sm" id="ses">Salvează</button></div></details>`,
     act: () => `<div class="g3"><div class="kpi"><small>Vizite</small><b>${new Set([...(m.checkins || []), ...(m.workouts || []).map((w) => w.date)]).size}</b></div><div class="kpi"><small>Ultima vizită</small><b style="font-size:1.2rem">${m.lastActive ? fdate(m.lastActive) : '–'}</b></div><div class="kpi"><small>Rang · puncte</small><b style="font-size:1.2rem;display:flex;align-items:center;gap:8px">${GymFig.rankBadge(m.rank.idx, 24)} ${esc(m.rank.name)} · ${m.points.balance}</b></div></div>
       <div class="card" style="margin-top:12px;background:var(--bg)"><h3>Greutate ${lastW ? `· ${lastW.kg} kg` : ''}${m.targetWeight ? ` <span class="chip">🎯 ${m.targetWeight} kg</span>` : ''}</h3>${lineChart(ws.slice(-20).map((w) => ({ v: w.kg, l: fdate(w.date) })), { target: m.targetWeight, h: 180, empty: 'Membrul nu și-a notat încă greutatea.' })}</div>
@@ -350,7 +349,6 @@ async function openMember(id, focus) {
   function bindTab(k) {
     if (k === 'sub') {
       $('#ps', el).onclick = async () => { try { await api(`/api/admin/members/${id}/renew`, { method: 'POST', body: { planId: $('#pp', el).value } }); toast('Abonament activat ✅'); confetti(); reopen('sub'); refreshPage(); } catch (e) { $('#pe', el).textContent = e.message; } };
-      $$('[data-dp]', el).forEach((b) => (b.onclick = async () => { if (!(await ask('Ștergi rândul din istoric?', 'Data expirării nu se schimbă.', 'Șterge', { danger: true }))) return; await api(`/api/admin/members/${id}/renew/${b.dataset.dp}`, { method: 'DELETE', body: {} }); reopen('sub'); }));
       $('#ses', el).onclick = async () => { await api('/api/admin/members/' + id, { method: 'PUT', body: { subEnd: $('#se', el).value } }); toast('Salvat'); reopen('sub'); refreshPage(); };
     }
     if (k === 'diet') {
