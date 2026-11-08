@@ -9,7 +9,7 @@
 <link rel="icon" href="img/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="app.css?v=8">
+<link rel="stylesheet" href="app.css?v=9">
 <style>
 body{min-height:100vh}
 .lay{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
@@ -155,7 +155,6 @@ body{min-height:100vh}
       <button data-p="desk" data-i="qr">Recepție</button>
       <button data-p="members" data-i="users">Membri</button>
       <button data-p="chat" data-i="chat">Mesaje<em class="bd hide" id="chb"></em></button>
-      <button data-p="payments" data-i="wallet">Plăți și restanțe</button>
       <button data-p="reports" data-i="chart">Rapoarte</button>
       <button data-p="notify" data-i="bell">Notificări</button>
       <button data-p="daily" data-i="spark">Motivația zilei</button>
@@ -173,13 +172,13 @@ body{min-height:100vh}
     <main class="main" id="main"></main>
   </div>
 </div>
-<script src="diet.js?v=8"></script>
-<script src="core.js?v=8"></script>
-<script src="seed.js?v=8"></script>
-<script src="env.js?v=8"></script>
-<script src="common.js?v=8"></script>
-<script src="fig.js?v=8"></script>
-<script src="qr.js?v=8"></script>
+<script src="diet.js?v=9"></script>
+<script src="core.js?v=9"></script>
+<script src="seed.js?v=9"></script>
+<script src="env.js?v=9"></script>
+<script src="common.js?v=9"></script>
+<script src="fig.js?v=9"></script>
+<script src="qr.js?v=9"></script>
 <script>
 let page = 'dash', O = null, CFG = null;
 $$('.side [data-i]').forEach((b) => b.insertAdjacentHTML('afterbegin', IC(b.dataset.i, 20)));
@@ -219,13 +218,13 @@ function showLogin() {
     <div class="field"><label>Parola</label><input class="input" type="password" id="pw" autocomplete="current-password" required></div><p class="err" id="le"></p><button class="btn btn-acc btn-block">Intră</button>${window.GymDemo ? '<p class="tip" style="margin-top:14px">Demo: parola <b>admin</b></p>' : ''}</form></div>`;
   $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/api/admin/login', { method: 'POST', body: { password: $('#pw').value } }); boot(); } catch (er) { $('#le').textContent = er.message; } };
 }
-const TITLES = { gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', payments: 'Plăți și restanțe', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', pt: 'Antrenor personal', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
+const TITLES = { gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', pt: 'Antrenor personal', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
 function go(p) {
   page = TITLES[p] ? p : 'dash'; history.replaceState(null, '', '#' + page);
   $$('.side [data-p]').forEach((b) => b.classList.toggle('on', b.dataset.p === page)); $('#mtitle').textContent = TITLES[page]; $('#side').classList.remove('open');
   M().innerHTML = '<div class="skel" style="height:60px;margin-bottom:14px"></div><div class="skel" style="height:220px"></div>'; M().classList.remove('stagger'); clearInterval(window._poll); window._quiet = null; window._convReload = null; stopScan();
-  const fn = ({ gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, payments: pPayments, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, pt: pPT, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
-  fn().then(() => { M().classList.add('stagger'); countUp(M()); if (!window._quiet && ['dash', 'members', 'payments', 'pt', 'rewards'].includes(page)) window._quiet = async () => { await fn(); countUp(M()); }; }).catch((e) => { if (e.status === 401) return showLogin(); M().innerHTML = `<p class="err">${esc(e.message)}</p>`; });
+  const fn = ({ gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, pt: pPT, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
+  fn().then(() => { M().classList.add('stagger'); countUp(M()); if (!window._quiet && ['dash', 'members', 'pt', 'rewards'].includes(page)) window._quiet = async () => { await fn(); countUp(M()); }; }).catch((e) => { if (e.status === 401) return showLogin(); M().innerHTML = `<p class="err">${esc(e.message)}</p>`; });
   scrollTo(0, 0);
 }
 $$('.side [data-p]').forEach((b) => (b.onclick = () => go(b.dataset.p)));
@@ -239,22 +238,21 @@ async function pDash() {
   $('#ptb').textContent = O.bookings.filter((b) => b.status === 'pending').length || ''; $('#ptb').classList.toggle('hide', !O.bookings.some((b) => b.status === 'pending'));
   const al = (r, kind) => `<div class="alert">${avatarHtml(r.name, r.avatar)}<div class="grow"><b>${esc(r.name)}</b><br><small>${kind === 'exp' ? (r.state === 'expired' ? `expirat din ${fdate(r.end)}` : `expiră ${r.daysLeft === 0 ? 'azi' : `pe ${fdate(r.end)}`}`) + ` · ${esc(r.plan || '')}` : `ultima vizită ${idleTxt(r)}`}</small></div>
     <a class="btn btn-sm" href="${waTo(r.phone, kind === 'exp' ? `Bună, ${r.name.split(' ')[0]}! Abonamentul tău la ${S().name} ${r.state === 'expired' ? 'a expirat' : 'expiră ' + (r.daysLeft === 0 ? 'azi' : 'pe ' + fdate(r.end))}. Te așteptăm să-l reînnoiești! 💪` : `Bună, ${r.name.split(' ')[0]}! Nu te-am mai văzut de ceva vreme la sală. Totul e ok? Te așteptăm! 💪`)}" target="_blank" rel="noopener">${IC('chat', 16)}</a>
-    ${kind === 'exp' ? `<button class="btn btn-sm btn-acc" data-pay="${r.id}">Încasează</button>` : `<button class="btn btn-sm" data-open="${r.id}">Vezi</button>`}</div>`;
+    ${kind === 'exp' ? `<button class="btn btn-sm btn-acc" data-pay="${r.id}">Reînnoiește</button>` : `<button class="btn btn-sm" data-open="${r.id}">Vezi</button>`}</div>`;
   M().innerHTML = `<div class="ph"><div><h1>Bună ziua! 👋</h1><p>${esc(fday(todayStr()))} · ${s.visitsToday} ${s.visitsToday === 1 ? 'vizită' : 'vizite'} azi</p></div><div class="row" style="gap:8px"><button class="btn btn-acc" id="nm">+ Membru nou</button><button class="btn" id="nn">🔔 Trimite notificare</button></div></div>
     <div class="kpis">
       <div class="kpi hl"><span class="ki">${IC('users', 18)}</span><small>Membri activi</small><b data-count="${s.active}">0</b><span class="d">din ${s.total} înscriși</span></div>
-      <div class="kpi"><span class="ki">${IC('wallet', 18)}</span><small>Venit luna asta</small><b><span data-count="${s.revenueMonth}">0</span> lei</b><span class="d">${s.revenue[4] ? `luna trecută ${lei(s.revenue[4].total)}` : ''}</span></div>
       <div class="kpi"><span class="ki">${IC('plus', 18)}</span><small>Membri noi</small><b data-count="${s.newThisMonth}">0</b><span class="d">luna asta</span></div>
       <div class="kpi"><span class="ki">${IC('check', 18)}</span><small>Reînnoiri</small><b data-count="${s.renewals}">0</b><span class="d">luna asta</span></div>
       <div class="kpi"><span class="ki" style="color:var(--red)">${IC('logout', 18)}</span><small>Abandon</small><b style="color:${s.churnRate > 15 ? 'var(--red)' : 'inherit'}">${s.churnRate}%</b><span class="d">${s.churn} au expirat în ultimele 30 de zile</span></div>
     </div>
     <div class="cols">
-      <div class="card"><div class="row"><h3 class="grow">Venituri pe luni</h3></div>${barChart(s.revenue.map((x) => ({ v: x.total, l: MONTHS[+x.month.slice(5) - 1] })), { fmt: (v) => (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v), label: 'Venituri' })}</div>
+      <div class="card"><div class="row"><h3 class="grow">Vizite în ultimele 14 zile</h3></div>${barChart(s.visits14.map((x) => ({ v: x.n, l: String(+x.date.slice(8)) })), { label: 'Vizite' })}</div>
       <div class="card" style="display:grid;align-content:space-between;gap:12px"><div class="row" style="align-items:flex-start;gap:14px;flex-wrap:wrap"><div class="grow" style="min-width:180px"><h3>Check-in de azi</h3><p class="muted" style="font-size:.88rem;margin:4px 0 14px">Membrii scanează codul QR sau scriu codul în aplicație.</p><div class="code-big">${esc(O.checkinCode)}</div></div><div class="qrbox" style="padding:8px;margin:0">${QR.svg(ciUrl(), { size: 110 })}</div></div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-sm" id="nc">${IC('timer', 16)} Cod nou</button><button class="btn btn-sm btn-acc" id="fs">${IC('tv', 16)} Afișează pe ecran</button><button class="btn btn-sm" data-go="desk">${IC('qr', 16)} Recepție</button></div></div>
     </div>
     <div class="cols3">
       <div class="card"><h3>⏳ Expiră în 3 zile <span class="chip warn">${O.expiring.length}</span></h3>${O.expiring.map((r) => al(r, 'exp')).join('') || '<p class="muted">Nimeni. 👌</p>'}</div>
-      <div class="card"><h3>❌ Expirate, nereînnoite <span class="chip bad">${O.expired.length}</span></h3>${O.expired.slice(0, 8).map((r) => al(r, 'exp')).join('') || '<p class="muted">Nimeni. 👌</p>'}${O.expired.length > 8 ? `<button class="btn btn-sm btn-ghost" data-go="payments" style="margin-top:8px">Vezi toți (${O.expired.length})</button>` : ''}</div>
+      <div class="card"><h3>❌ Expirate, nereînnoite <span class="chip bad">${O.expired.length}</span></h3>${O.expired.slice(0, 8).map((r) => al(r, 'exp')).join('') || '<p class="muted">Nimeni. 👌</p>'}${O.expired.length > 8 ? `<button class="btn btn-sm btn-ghost" data-go="members" style="margin-top:8px">Vezi toți (${O.expired.length})</button>` : ''}</div>
       <div class="card"><h3>😴 N-au mai venit</h3><p class="muted" style="font-size:.82rem;margin:4px 0">Au abonament activ, dar lipsesc de 7+ zile</p>${O.idle7.map((r) => al(r, 'idle')).join('')}${O.idle14.slice(0, 6).map((r) => al(r, 'idle')).join('')}${!O.idle7.length && !O.idle14.length ? '<p class="muted">Toți vin regulat. 🔥</p>' : ''}${O.idle7.length + O.idle14.length ? `<button class="btn btn-sm btn-ghost" id="nIdle" style="margin-top:10px">🔔 Trimite-le tuturor un mesaj</button>` : ''}</div>
     </div>
     <div class="cols">
@@ -296,11 +294,10 @@ async function newMember() {
   const el = sheet(`<h2>Membru nou</h2><div class="g2" style="margin-top:14px"><div class="field"><label>Nume și prenume *</label><input class="input" id="n"></div><div class="field"><label>Telefon *</label><input class="input" id="p" type="tel" placeholder="07xx xxx xxx"></div>
     <div class="field"><label>Email</label><input class="input" id="e" type="email"></div><div class="field"><label>Obiectiv</label><select class="input" id="g">${['Slăbire', 'Slăbire și tonifiere', 'Masă musculară', 'Forță', 'Condiție fizică', 'Sănătate'].map((x) => `<option>${x}</option>`).join('')}</select></div>
     <div class="field"><label>Greutate (kg)</label><input class="input" id="w" inputmode="decimal"></div><div class="field"><label>Grupă (opțional)</label><input class="input" id="t" placeholder="ex: studenți, dimineața"></div></div>
-    <h3 style="margin:8px 0 10px">Abonament și plată</h3><div class="g3"><div class="field"><label>Tip</label><select class="input" id="pl"><option value="">Fără abonament acum</option>${plans.map((x) => `<option value="${x.id}">${esc(x.name)} – ${lei(x.price)}</option>`).join('')}</select></div><div class="field"><label>Sumă încasată</label><input class="input" id="a" inputmode="decimal" placeholder="automat"></div><div class="field"><label>Metodă</label><select class="input" id="pmeth"><option>numerar</option><option>card</option><option>transfer</option></select></div></div>
+    <h3 style="margin:8px 0 10px">Abonament</h3><div class="g2"><div class="field"><label>Tip</label><select class="input" id="pl"><option value="">Fără abonament acum</option>${plans.map((x) => `<option value="${x.id}">${esc(x.name)} · ${x.days} zile</option>`).join('')}</select></div></div>
     <div class="field"><label>Parola pentru aplicație</label><input class="input" id="pw" placeholder="goală = ultimele 4 cifre ale telefonului"></div><p class="err" id="er"></p><button class="btn btn-acc btn-block" id="sv">Adaugă membrul</button>`, { wide: true });
-  $('#pl', el).onchange = () => { const x = plans.find((y) => y.id === $('#pl', el).value); $('#a', el).placeholder = x ? String(x.price) : 'automat'; };
   $('#sv', el).onclick = async () => { try {
-    const r = await api('/api/admin/members', { method: 'POST', body: { name: $('#n', el).value, phone: $('#p', el).value, email: $('#e', el).value, goal: $('#g', el).value, weight: $('#w', el).value, tags: $('#t', el).value, planId: $('#pl', el).value, amount: $('#a', el).value, method: $('#pmeth', el).value, password: $('#pw', el).value } });
+    const r = await api('/api/admin/members', { method: 'POST', body: { name: $('#n', el).value, phone: $('#p', el).value, email: $('#e', el).value, goal: $('#g', el).value, weight: $('#w', el).value, tags: $('#t', el).value, planId: $('#pl', el).value, password: $('#pw', el).value } });
     const link = new URL('app.html', location.href).href;
     sheet(`<div style="text-align:center"><div style="font-size:3rem">🎉</div><h2 style="padding:0">${esc(r.member.name)} a fost adăugat</h2></div><div class="ok-box" style="margin:16px 0"><b>Datele de intrare în aplicație:</b><br>Telefon: <b>${esc(r.member.phone)}</b><br>Parola: <b style="font-size:1.2rem">${esc(r.password)}</b><br>Link: ${esc(link)}</div>
       <a class="btn btn-acc btn-block" href="${waTo(r.member.phone, `Bun venit la ${S().name}! 💪\n\nAplicația sălii: ${link}\nTelefon: ${r.member.phone}\nParola: ${r.password}\n\nAcolo îți vezi abonamentul, antrenamentele, progresul și motivația zilei. Adaug-o pe ecranul telefonului!`)}" target="_blank" rel="noopener">💬 Trimite-i datele pe WhatsApp</a>`);
@@ -317,9 +314,9 @@ async function openMember(id, focus) {
     <div id="mtab"></div>`, { wide: true });
   const T = {
     sub: () => `<div class="g3"><div class="kpi"><small>Tip</small><b style="font-size:1.2rem">${esc(s.plan ? s.plan.name : '–')}</b></div><div class="kpi"><small>Expiră</small><b style="font-size:1.2rem">${s.end ? fdate(s.end, true) : '–'}</b></div><div class="kpi"><small>${s.daysLeft != null && s.daysLeft < 0 ? 'Expirat de' : 'Zile rămase'}</small><b style="font-size:1.2rem;${s.daysLeft < 0 ? 'color:var(--red)' : ''}">${s.daysLeft == null ? '–' : s.daysLeft < 0 ? -s.daysLeft + (s.daysLeft === -1 ? ' zi' : ' zile') : s.daysLeft}</b></div></div>
-      <div class="card" style="margin-top:12px;background:var(--bg)"><h3>💳 Încasează / reînnoiește</h3><div class="g3" style="margin-top:10px"><div class="field"><label>Abonament</label><select class="input" id="pp">${CFG.plans.map((x) => `<option value="${x.id}" ${s.plan && s.plan.id === x.id ? 'selected' : ''}>${esc(x.name)} – ${lei(x.price)}</option>`).join('')}</select></div><div class="field"><label>Sumă</label><input class="input" id="pa" inputmode="decimal" placeholder="prețul abonamentului"></div><div class="field"><label>Metodă</label><select class="input" id="pm"><option>numerar</option><option>card</option><option>transfer</option></select></div></div>
-      <p class="muted" style="font-size:.84rem;margin:0 0 10px">${s.end && s.daysLeft >= 0 ? `Se adaugă după ${fdate(s.end, true)}, ca să nu piardă zilele rămase.` : 'Începe de azi.'}</p><p class="err" id="pe"></p><button class="btn btn-acc" id="ps">Înregistrează plata</button></div>
-      <h3 style="margin:16px 0 8px">Istoric plăți</h3><table class="tbl"><tbody>${(m.payments || []).slice().reverse().map((p) => `<tr><td>${fdate(p.date, true)}</td><td>${esc((CFG.plans.find((x) => x.id === p.planId) || {}).name || '')}</td><td><b>${lei(p.amount)}</b></td><td class="hm">${esc(p.method)}</td><td style="text-align:right"><button class="btn btn-sm btn-red" data-dp="${p.id}">Șterge</button></td></tr>`).join('') || '<tr><td class="muted">Nicio plată.</td></tr>'}</tbody></table>
+      <div class="card" style="margin-top:12px;background:var(--bg)"><h3>🔄 Activează / prelungește abonamentul</h3><div class="g2" style="margin-top:10px"><div class="field"><label>Abonament</label><select class="input" id="pp">${CFG.plans.map((x) => `<option value="${x.id}" ${s.plan && s.plan.id === x.id ? 'selected' : ''}>${esc(x.name)} · ${x.days} zile</option>`).join('')}</select></div></div>
+      <p class="muted" style="font-size:.84rem;margin:0 0 10px">${s.end && s.daysLeft >= 0 ? `Se adaugă după ${fdate(s.end, true)}, ca să nu piardă zilele rămase.` : 'Începe de azi.'}</p><p class="err" id="pe"></p><button class="btn btn-acc" id="ps">Activează abonamentul</button></div>
+      <h3 style="margin:16px 0 8px">Istoric abonamente</h3><table class="tbl"><tbody>${(m.subLog || []).slice().reverse().map((p) => `<tr><td>${fdate(p.date, true)}</td><td>${esc((CFG.plans.find((x) => x.id === p.planId) || {}).name || '')}</td><td style="text-align:right"><button class="btn btn-sm btn-red" data-dp="${p.id}">Șterge</button></td></tr>`).join('') || '<tr><td class="muted">Niciun abonament activat încă.</td></tr>'}</tbody></table>
       <details style="margin-top:14px"><summary class="muted" style="cursor:pointer">Modifică manual data expirării</summary><div class="row" style="margin-top:10px;gap:8px"><input class="input" type="date" id="se" value="${s.end || ''}" style="max-width:200px"><button class="btn btn-sm" id="ses">Salvează</button></div></details>`,
     act: () => `<div class="g3"><div class="kpi"><small>Vizite</small><b>${new Set([...(m.checkins || []), ...(m.workouts || []).map((w) => w.date)]).size}</b></div><div class="kpi"><small>Ultima vizită</small><b style="font-size:1.2rem">${m.lastActive ? fdate(m.lastActive) : '–'}</b></div><div class="kpi"><small>Rang · puncte</small><b style="font-size:1.2rem;display:flex;align-items:center;gap:8px">${GymFig.rankBadge(m.rank.idx, 24)} ${esc(m.rank.name)} · ${m.points.balance}</b></div></div>
       <div class="card" style="margin-top:12px;background:var(--bg)"><h3>Greutate ${lastW ? `· ${lastW.kg} kg` : ''}${m.targetWeight ? ` <span class="chip">🎯 ${m.targetWeight} kg</span>` : ''}</h3>${lineChart(ws.slice(-20).map((w) => ({ v: w.kg, l: fdate(w.date) })), { target: m.targetWeight, h: 180, empty: 'Membrul nu și-a notat încă greutatea.' })}</div>
@@ -352,8 +349,8 @@ async function openMember(id, focus) {
   const reopen = (k) => openMember(id).then(() => {}).catch(() => {}) && setTimeout(() => { const b = $(`.pill-tabs [data-t="${k}"]`); if (b) b.click(); }, 350);
   function bindTab(k) {
     if (k === 'sub') {
-      $('#ps', el).onclick = async () => { try { await api(`/api/admin/members/${id}/payment`, { method: 'POST', body: { planId: $('#pp', el).value, amount: $('#pa', el).value, method: $('#pm', el).value } }); toast('Plată înregistrată ✅'); confetti(); reopen('sub'); refreshPage(); } catch (e) { $('#pe', el).textContent = e.message; } };
-      $$('[data-dp]', el).forEach((b) => (b.onclick = async () => { if (!(await ask('Ștergi plata din evidență?', 'Data expirării nu se schimbă.', 'Șterge', { danger: true }))) return; await api(`/api/admin/members/${id}/payment/${b.dataset.dp}`, { method: 'DELETE', body: {} }); reopen('sub'); }));
+      $('#ps', el).onclick = async () => { try { await api(`/api/admin/members/${id}/renew`, { method: 'POST', body: { planId: $('#pp', el).value } }); toast('Abonament activat ✅'); confetti(); reopen('sub'); refreshPage(); } catch (e) { $('#pe', el).textContent = e.message; } };
+      $$('[data-dp]', el).forEach((b) => (b.onclick = async () => { if (!(await ask('Ștergi rândul din istoric?', 'Data expirării nu se schimbă.', 'Șterge', { danger: true }))) return; await api(`/api/admin/members/${id}/renew/${b.dataset.dp}`, { method: 'DELETE', body: {} }); reopen('sub'); }));
       $('#ses', el).onclick = async () => { await api('/api/admin/members/' + id, { method: 'PUT', body: { subEnd: $('#se', el).value } }); toast('Salvat'); reopen('sub'); refreshPage(); };
     }
     if (k === 'diet') {
@@ -371,27 +368,13 @@ async function openMember(id, focus) {
     }
   }
   $$('.pill-tabs button', el).forEach((b) => (b.onclick = () => show(b.dataset.t)));
-  show(['act', 'plan', 'diet', 'info'].includes(focus) ? focus : 'sub'); if (focus === 'pay') setTimeout(() => $('#pa', el) && $('#pa', el).focus(), 300);
+  show(['act', 'plan', 'diet', 'info'].includes(focus) ? focus : 'sub'); if (focus === 'pay') setTimeout(() => $('#ps', el) && $('#ps', el).focus(), 300);
   $('#ci', el).onclick = async () => { await api(`/api/admin/members/${id}/checkin`, { method: 'POST', body: {} }); toast('Check-in înregistrat ✅'); refreshPage(); };
   $('#cv', el).onclick = () => { closeSheet(); chatSel = id; go('chat'); };
   $('#msg', el).onclick = () => { const e2 = sheet(`<h2>Mesaj pentru ${esc(m.name.split(' ')[0])}</h2><div class="field" style="margin-top:12px"><label>Titlu</label><input class="input" id="t"></div><div class="field"><label>Mesaj</label><textarea class="input" id="b"></textarea></div><p class="muted" style="font-size:.84rem">${m.pushOn ? '🔔 Îl primește și ca notificare pe telefon.' : 'Îl vede în aplicație (nu are notificările pornite).'}</p><button class="btn btn-acc btn-block" id="s">Trimite</button>`); $('#s', e2).onclick = async () => { try { await api(`/api/admin/members/${id}/notify`, { method: 'POST', body: { title: $('#t', e2).value, body: $('#b', e2).value } }); closeSheet(); toast('Mesaj trimis ✅'); } catch (er) { toast(er.message, 'bad'); } }; };
 }
-const refreshPage = () => { if (page === 'members') pMembers(); if (page === 'dash') pDash(); if (page === 'payments') pPayments(); };
+const refreshPage = () => { if (page === 'members') pMembers(); if (page === 'dash') pDash(); };
 
-/* ───────── PLĂȚI ───────── */
-let payMonth = null;
-async function pPayments() {
-  payMonth = payMonth || todayStr().slice(0, 7);
-  const d = await api('/api/admin/payments?month=' + payMonth), [y, mo] = payMonth.split('-').map(Number);
-  M().innerHTML = `<div class="ph"><div><h1>Plăți și restanțe</h1><p>Încasările pe lună și cine are abonamentul expirat.</p></div><div class="row" style="gap:8px"><button class="btn btn-sm" id="xp2">${IC('download', 16)} Excel</button><button class="btn btn-sm" id="pv" aria-label="Luna trecută">${IC('back', 16)}</button><b>${MONTHS_L[mo - 1]} ${y}</b><button class="btn btn-sm" id="nx" aria-label="Luna viitoare">${IC('chev', 16)}</button></div></div>
-    <div class="kpis"><div class="kpi hl"><small>Total încasat</small><b>${lei(d.total)}</b><span class="d">${d.payments.length} plăți</span></div>${Object.entries(d.byMethod).map(([k, v]) => `<div class="kpi"><small>${esc(k)}</small><b>${lei(v)}</b></div>`).join('')}<div class="kpi"><small>Restanțe</small><b style="color:var(--red)">${d.unpaid.length}</b><span class="d">abonamente expirate</span></div></div>
-    <div class="cols"><div class="card" style="padding:0;overflow:auto"><table class="tbl"><thead><tr><th>Data</th><th>Membru</th><th class="hm">Abonament</th><th>Sumă</th><th class="hm">Metodă</th></tr></thead><tbody>${d.payments.map((p) => `<tr class="click" data-id="${p.memberId}"><td>${fdate(p.date)}</td><td><b>${esc(p.name)}</b></td><td class="hm">${esc(p.plan || '')}</td><td><b>${lei(p.amount)}</b></td><td class="hm">${esc(p.method)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted" style="padding:20px">Nicio plată în luna asta.</td></tr>'}</tbody></table></div>
-    <div class="card"><h3>Restanțe <span class="chip bad">${d.unpaid.length}</span></h3><p class="muted" style="font-size:.84rem;margin:4px 0 8px">Abonament expirat, nereînnoit</p>${d.unpaid.map((r) => `<div class="alert">${avatarHtml(r.name, r.avatar)}<div class="grow"><b>${esc(r.name)}</b><br><small>expirat de ${-r.daysLeft} ${-r.daysLeft === 1 ? 'zi' : 'zile'} · ${esc(r.plan)}</small></div><a class="btn btn-sm" href="${waTo(r.phone, `Bună, ${r.name.split(' ')[0]}! Abonamentul tău la ${S().name} a expirat pe ${fdate(r.end, true)}. Te așteptăm să-l reînnoiești! 💪`)}" target="_blank" rel="noopener">${IC('chat', 16)}</a><button class="btn btn-sm btn-acc" data-pay="${r.id}">Încasează</button></div>`).join('') || '<p class="muted">Nicio restanță. 👌</p>'}</div></div>`;
-  const shift = (k) => { const x = new Date(y, mo - 1 + k, 1); payMonth = `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}`; pPayments(); };
-  $('#pv').onclick = () => shift(-1); $('#nx').onclick = () => shift(1); $('#xp2').onclick = () => exportPayments(payMonth);
-  $$('tr[data-id]').forEach((tr) => (tr.onclick = () => openMember(tr.dataset.id)));
-  $$('[data-pay]').forEach((b) => (b.onclick = () => openMember(b.dataset.pay, 'pay')));
-}
 
 /* ───────── NOTIFICĂRI ───────── */
 async function pNotify() {
@@ -695,7 +678,6 @@ function dlCSV(name, rows) {
 }
 const STATE_TXT = { active: 'Activ', expiring: 'Expiră curând', expired: 'Expirat', none: 'Fără abonament' };
 async function exportMembers() { const { members } = await api('/api/admin/members'); dlCSV(`membri-${todayStr()}.csv`, [['Nume', 'Telefon', 'Abonament', 'Stare', 'Expiră', 'Ultima vizită', 'Vizite', 'Grupe'], ...members.map((r) => [r.name, r.phone, r.plan, STATE_TXT[r.state], r.end || '', r.lastActive || '', r.visits, r.tags.join(', ')])]); }
-async function exportPayments(mo) { const d = await api('/api/admin/payments?month=' + mo); dlCSV(`plati-${mo}.csv`, [['Data', 'Membru', 'Abonament', 'Sumă (lei)', 'Metodă'], ...d.payments.map((p) => [p.date, p.name, p.plan || '', p.amount, p.method]), [], ['Total', '', '', d.total, '']]); }
 
 /* ───────── RECEPȚIE ───────── */
 let camS = null;
@@ -713,7 +695,7 @@ async function pDesk() {
   drawToday(O);
   const doCI = async (id) => {
     const r = await api(`/api/admin/members/${id}/checkin`, { method: 'POST', body: {} }), m = r.member, st = m.subscription.state;
-    if (st === 'expired' || st === 'none') toast(`${esc(m.name)}: abonament ${st === 'none' ? 'inexistent' : 'expirat'}! Încasează înainte de intrare.`, 'bad');
+    if (st === 'expired' || st === 'none') toast(`${esc(m.name)}: abonament ${st === 'none' ? 'inexistent' : 'expirat'}! Reînnoiește-l înainte de intrare.`, 'bad');
     else toast(r.already ? `${esc(m.name)} are deja check-in azi` : `Bine ai venit, ${esc(m.name.split(' ')[0])}! Check-in făcut`);
     if (st !== 'expired' && st !== 'none' && !r.already) confetti();
     O = await api('/api/admin/overview'); drawToday(O); $('#dq').value = ''; $('#dres').innerHTML = '';
@@ -778,17 +760,17 @@ async function pReports() {
   O = await api('/api/admin/overview'); updBadges(); const r = O.reports, s = O.stats;
   const v30 = r.visits30.reduce((a, x) => a + x.n, 0), hmax = Math.max(1, ...r.heat.flat());
   const DN = ['Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm', 'Dum'];
-  M().innerHTML = `<div class="ph"><div><h1>Rapoarte</h1><p>Cum evoluează sala: membri, bani, prezență și orele aglomerate.</p></div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" id="xm">${IC('download', 18)} Membri (Excel)</button><button class="btn" id="xp">${IC('download', 18)} Plăți luna asta</button></div></div>
-    <div class="kpis"><div class="kpi hl"><small>Membri înscriși</small><b data-count="${s.total}">0</b><span class="d">${s.active} cu abonament activ</span></div><div class="kpi"><small>Vizite în 30 de zile</small><b data-count="${v30}">0</b><span class="d">~${Math.round(v30 / 30)} pe zi</span></div><div class="kpi"><small>Venit mediu pe membru</small><b><span data-count="${r.ltv}">0</span> lei</b><span class="d">de la înscriere până azi</span></div><div class="kpi"><small>Venit pe 6 luni</small><b><span data-count="${s.revenue.reduce((a, x) => a + x.total, 0)}">0</span> lei</b><span class="d">${s.revenue.reduce((a, x) => a + x.count, 0)} plăți</span></div></div>
+  M().innerHTML = `<div class="ph"><div><h1>Rapoarte</h1><p>Cum evoluează sala: membri, prezență și orele aglomerate.</p></div><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" id="xm">${IC('download', 18)} Membri (Excel)</button></div></div>
+    <div class="kpis"><div class="kpi hl"><small>Membri înscriși</small><b data-count="${s.total}">0</b><span class="d">${s.active} cu abonament activ</span></div><div class="kpi"><small>Vizite în 30 de zile</small><b data-count="${v30}">0</b><span class="d">~${Math.round(v30 / 30)} pe zi</span></div></div>
     <div class="cols"><div class="card"><h3>Creșterea numărului de membri</h3><p class="muted small" style="margin:2px 0 8px">Total înscriși la final de lună, ultimele 12 luni</p>${lineChart(r.growth.map((x) => ({ v: x.total, l: MONTHS[+x.month.slice(5) - 1] })), { h: 220, label: 'Membri', min: 0 })}</div>
       <div class="card"><h3>Abonamente active pe tip</h3><div style="margin-top:14px">${donut(r.mix.map((x) => ({ l: x.name, v: x.n })), { sub: 'activi', label: 'Abonamente' })}</div></div></div>
-    <div class="cols"><div class="card"><h3>Venituri pe luni</h3>${barChart(s.revenue.map((x) => ({ v: x.total, l: MONTHS[+x.month.slice(5) - 1] })), { fmt: (v) => (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v), label: 'Venituri' })}</div>
+    <div class="cols"><div class="card"><h3>Reînnoiri și abandon</h3><div class="g2" style="margin-top:14px"><div class="kpi"><small>Reînnoiri luna asta</small><b>${s.renewals}</b></div><div class="kpi"><small>Au expirat (30 de zile)</small><b>${s.churn}</b></div></div><p class="muted small" style="margin:10px 0 0">Abandon: ${s.churnRate}% din cei cu abonament.</p></div>
       <div class="card"><h3>Membri noi pe luni</h3>${barChart(r.growth.slice(-6).map((x) => ({ v: x.added, l: MONTHS[+x.month.slice(5) - 1] })), { label: 'Membri noi' })}</div></div>
     <div class="card" style="margin-top:14px"><div class="row" style="flex-wrap:wrap"><div class="grow"><h3>Orele aglomerate</h3><p class="muted small" style="margin:2px 0 12px">Check-in-uri din ultimele 8 săptămâni, pe zile și ore. Bun pentru programarea antrenorilor și a curățeniei.</p></div></div>
       <div style="overflow-x:auto"><div class="heat" style="min-width:560px"><span></span>${Array.from({ length: 17 }, (_, i) => `<span>${6 + i}</span>`).join('')}${r.heat.map((row, d) => `<span>${DN[d]}</span>${row.map((n, hh) => `<i title="${DN[d]} ${6 + hh}:00 · ${n} check-in" style="opacity:${n ? 0.12 + (n / hmax) * 0.88 : 0.05}"></i>`).join('')}`).join('')}</div></div></div>
     <div class="cols"><div class="card"><h3>Vizite în ultimele 30 de zile</h3>${barChart(r.visits30.map((x, i) => ({ v: x.n, l: i % 5 === 0 || i === 29 ? String(+x.date.slice(8)) : '' })), { label: 'Vizite', fmt: () => '' })}</div>
       <div class="card"><h3>Cei mai activi (30 de zile)</h3>${r.top.map((x, i) => `<div class="alert"><span class="av" style="${i === 0 ? 'background:linear-gradient(140deg,#FFD66B,#E9A100);color:#2a1a00' : ''}">${i + 1}</span><div class="grow"><b>${esc(x.name)}</b></div><b>${x.n} vizite</b></div>`).join('')}</div></div>`;
-  $('#xm').onclick = exportMembers; $('#xp').onclick = () => exportPayments(todayStr().slice(0, 7));
+  $('#xm').onclick = exportMembers;
 }
 
 if (window.GymDemo) window.GymDemoRefresh = () => { if ($('#sheet') || $('.fs') || $('#app').classList.contains('hide')) return; if (document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && !window._quiet) return; (window._quiet ? window._quiet() : go(page)); };

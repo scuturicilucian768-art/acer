@@ -167,8 +167,8 @@
       // unele expiră curând, altele au expirat, majoritatea sunt active
       const endOffset = [12, 2, 25, -4, 1, 200, 18, 40, -12, 9, 3, 27, -20, 15, 22, 6, -2, 30, 11, 45, 8, -30, 19, 26][i];
       const end = add(t, endOffset), start = add(end, -plan.days);
-      const payments = [];
-      for (let k = 0, d = start; k < 1 + (i % 4); k++, d = add(d, -plan.days)) payments.push({ id: ctx.uid('pa'), date: d, amount: plan.price, planId: plan.id, method: k % 2 ? 'card' : 'numerar', note: '' });
+      const subLog = [];
+      for (let k = 0, d = start; k < 1 + (i % 4); k++, d = add(d, -plan.days)) subLog.push({ id: ctx.uid('ab'), date: d, planId: plan.id });
       const female = /a$/.test(name.split(' ')[0]) || ['Elena', 'Maria'].includes(name.split(' ')[0]);
       const lastSeen = [1, 3, 0, 9, 2, 1, 12, 0, 16, 4, 8, 1, 22, 2, 0, 10, 5, 1, 3, 0, 2, 40, 13, 1][i];
       const w0 = female ? 68 + (i % 7) : 86 + (i % 9), checkins = [], workouts = [], weights = [], ciAt = {};
@@ -188,7 +188,7 @@
         id: ctx.uid('mb'), name, phone: '07' + String(40000000 + i * 1234567).slice(0, 8), email: '', pass: ctx.hash('1234'),
         birth: `${1990 + (i % 15)}-0${1 + (i % 9)}-1${i % 9}`, sex: female ? 'F' : 'M', height: female ? 165 + (i % 8) : 176 + (i % 10), goal: female ? 'Slăbire și tonifiere' : 'Masă musculară', targetWeight: female ? w0 - 6 : w0 + 4,
         level: 'mediu', notes: '', tags: [i % 5 === 0 ? 'studenți' : 'standard'], createdAt: started, programId: female ? 'pr_fat' : 'pr_mass', nutritionId: female ? 'nu_cut' : 'nu_bulk',
-        sub: { planId: plan.id, start, end }, payments, weights: weights.reverse(), measures: [], photos: [], workouts: workouts.reverse(), checkins: checkins.reverse(), ciAt, chat: [], water: {},
+        sub: { planId: plan.id, start, end }, subLog, weights: weights.reverse(), measures: [], photos: [], workouts: workouts.reverse(), checkins: checkins.reverse(), ciAt, chat: [], water: {},
         challenges: {}, meals: {}, push: [], notifs: [], redeemed: [], weekGoal: 3,
       });
     });
@@ -211,6 +211,8 @@
   function upgrade(db) {
     db.seedEx = db.seedEx || db.exercises.map((e) => e.id);
     let changed = false;
+    // fără evidență de bani: plățile vechi devin doar istoric de abonamente (fără sume)
+    for (const m of db.members || []) if (m.payments) { m.subLog = [...(m.subLog || []), ...m.payments.map((p) => ({ id: p.id, date: p.date, planId: p.planId }))]; delete m.payments; changed = true; }
     if (!db.seedGal) { db.seedGal = true; db.gallery = db.gallery || []; for (const g of GALLERY) if (!db.gallery.some((x) => x.id === g.id)) db.gallery.push({ ...g, order: g.order - 100 }); changed = true; }
     // numărul nou al sălii (și în bazele de date mai vechi)
     if (db.settings && db.settings.phone === '0785 769 200') { db.settings.phone = '0772 232 960'; db.settings.whatsapp = '40772232960'; changed = true; }

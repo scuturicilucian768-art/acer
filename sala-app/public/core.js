@@ -307,17 +307,14 @@
   }
   function stats(db, t) {
     const month = monthOf(t), rows = db.members.map((m) => memberRow(db, m, t));
-    const pays = db.members.flatMap((m) => (m.payments || []).map((p) => ({ ...p, memberId: m.id, name: m.name })));
-    const months = []; for (let i = 5; i >= 0; i--) { const d = new Date(t + 'T12:00:00Z'); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() - i); months.push(d.toISOString().slice(0, 7)); }
-    const revenue = months.map((mo) => ({ month: mo, total: pays.filter((p) => monthOf(p.date) === mo).reduce((a, p) => a + Number(p.amount || 0), 0), count: pays.filter((p) => monthOf(p.date) === mo).length }));
-    const renewals = db.members.filter((m) => (m.payments || []).some((p) => monthOf(p.date) === month) && (m.payments || []).some((p) => monthOf(p.date) < month)).length;
+    const renewals = db.members.filter((m) => (m.subLog || []).some((p) => monthOf(p.date) === month) && (m.subLog || []).some((p) => monthOf(p.date) < month)).length;
     const lost = rows.filter((r) => r.state === 'expired' && r.daysLeft >= -30).length;
     const activeStart = rows.filter((r) => r.state !== 'none').length || 1;
     const visitsToday = db.members.filter((m) => (m.checkins || []).includes(t)).length;
     return {
       total: rows.length, active: rows.filter((r) => r.state === 'active' || r.state === 'expiring').length, expiring: rows.filter((r) => r.state === 'expiring').length, expired: rows.filter((r) => r.state === 'expired').length,
       newThisMonth: rows.filter((r) => r.createdAt && monthOf(r.createdAt) === month).length, renewals, churn: lost, churnRate: Math.round((lost / activeStart) * 100),
-      revenue, revenueMonth: revenue[revenue.length - 1].total, visitsToday,
+      visitsToday,
       visits14: Array.from({ length: 14 }, (_, i) => { const d = add(t, i - 13); return { date: d, n: db.members.filter((m) => (m.checkins || []).includes(d)).length }; }),
     };
   }
@@ -340,16 +337,15 @@
     }
     return { count: members.length, pushed };
   }
-  function addPayment(db, m, t, ctx, body) {
+  function renewSub(db, m, t, ctx, body) {
     const plan = db.plans.find((p) => p.id === body.planId);
     if (!plan) return 'Alege tipul de abonament.';
-    const amount = num(body.amount === '' || body.amount == null ? plan.price : body.amount, 0, 1e6);
     const date = isDate(body.date) ? body.date : t;
     const cur = m.sub && m.sub.end && m.sub.end >= t ? m.sub.end : null;
     const start = cur ? add(cur, 1) : date;
     m.sub = { planId: plan.id, start: cur ? m.sub.start : start, end: add(start, plan.days - 1) };
-    m.payments = m.payments || [];
-    m.payments.push({ id: ctx.uid('pa'), date, amount, planId: plan.id, method: ['numerar', 'card', 'transfer'].includes(body.method) ? body.method : 'numerar', note: clean(body.note, 120) });
+    m.subLog = m.subLog || [];
+    m.subLog.push({ id: ctx.uid('ab'), date, planId: plan.id });
     m.expiryNotified = {};
     return null;
   }
@@ -377,8 +373,7 @@
     for (const m of db.members) for (const [d, x] of Object.entries(m.ciAt || {})) { if (d < from || d > t || !x) continue; const w = (new Date(d + 'T12:00:00Z').getUTCDay() + 6) % 7, h = Math.floor(hm(x) / 60) - 6; wd[w]++; if (h >= 0 && h < 17) heat[w][h]++; }
     const visits30 = Array.from({ length: 30 }, (_, i) => { const d = add(t, i - 29); return { date: d, n: db.members.filter((m) => (m.checkins || []).includes(d)).length }; });
     const top = db.members.map((m) => ({ id: m.id, name: m.name, n: (m.checkins || []).filter((d) => d >= add(t, -30)).length })).sort((a, b) => b.n - a.n).slice(0, 5);
-    const ltv = db.members.length ? Math.round(db.members.reduce((a, m) => a + (m.payments || []).reduce((x, p) => x + Number(p.amount || 0), 0), 0) / db.members.length) : 0;
-    return { growth, mix: Object.entries(mix).map(([name, n]) => ({ name, n })).sort((a, b) => b.n - a.n), heat, weekday: wd, visits30, top, ltv };
+    return { growth, mix: Object.entries(mix).map(([name, n]) => ({ name, n })).sort((a, b) => b.n - a.n), heat, weekday: wd, visits30, top };
   }
 
   const GALLERY_SECTIONS = [{ id: 'sala', name: 'Sala noastră' }, { id: 'aparate', name: 'Aparate' }, { id: 'echipa', name: 'Echipa' }, { id: 'evenimente', name: 'Evenimente' }, { id: 'transformari', name: 'Transformări' }];
@@ -559,11 +554,11 @@
     }
     if (p === A + '/members' && m === 'POST') {
       const k = phoneKey(body.phone); if (db.members.some((x) => phoneKey(x.phone) === k)) return no(409, 'Există deja un membru cu acest telefon.');
-      const mem = { id: ctx.uid('mb'), name: '', phone: '', email: '', pass: '', birth: '', sex: '', height: null, goal: '', targetWeight: null, level: 'începător', notes: '', tags: [], createdAt: t, programId: db.programs[0] ? db.programs[0].id : '', nutritionId: '', sub: {}, payments: [], weights: [], measures: [], photos: [], workouts: [], checkins: [], challenges: {}, meals: {}, push: [], notifs: [], redeemed: [], weekGoal: 3 };
+      const mem = { id: ctx.uid('mb'), name: '', phone: '', email: '', pass: '', birth: '', sex: '', height: null, goal: '', targetWeight: null, level: 'începător', notes: '', tags: [], createdAt: t, programId: db.programs[0] ? db.programs[0].id : '', nutritionId: '', sub: {}, subLog: [], weights: [], measures: [], photos: [], workouts: [], checkins: [], challenges: {}, meals: {}, push: [], notifs: [], redeemed: [], weekGoal: 3 };
       const e = memberInput(body, mem); if (e) return no(400, e);
       const pw = String(body.password || '').trim() || phoneKey(mem.phone).slice(-4);
       mem.pass = ctx.hash(pw); mem.tags = (Array.isArray(body.tags) ? body.tags : String(body.tags || '').split(',')).map((x) => clean(x, 30)).filter(Boolean);
-      if (body.planId) { const e2 = addPayment(db, mem, t, ctx, body); if (e2) return no(400, e2); }
+      if (body.planId) { const e2 = renewSub(db, mem, t, ctx, body); if (e2) return no(400, e2); }
       if (body.weight) { const kg = num(body.weight, 25, 300); if (kg) mem.weights.push({ date: t, kg }); }
       db.members.push(mem);
       notify(db, ctx, [mem], `Bine ai venit la ${db.settings.name}! 💪`, 'Aici îți vezi abonamentul, antrenamentele, progresul și provocarea zilei.', 'bun-venit');
@@ -585,8 +580,8 @@
         return ok({ member: memberFull(db, mem, t), password: pw });
       }
       if (!sub && m === 'DELETE') { db.members = db.members.filter((x) => x.id !== mem.id); db.bookings = db.bookings.filter((b) => b.memberId !== mem.id); return ok({ ok: true, files: (mem.photos || []).map((x) => x.file), avatarRemoved: mem.avatar || null }); }
-      if (sub === '/payment' && m === 'POST') { const e = addPayment(db, mem, t, ctx, body); if (e) return no(400, e); notify(db, ctx, [mem], 'Abonament activ ✅', `Abonamentul tău e valabil până pe ${mem.sub.end.split('-').reverse().join('.')}. Spor la antrenamente!`, 'abonament'); return ok({ member: memberFull(db, mem, t) }, 201); }
-      if ((r = /^\/payment\/(\w+)$/.exec(sub)) && m === 'DELETE') { mem.payments = (mem.payments || []).filter((x) => x.id !== r[1]); return ok({ member: memberFull(db, mem, t) }); }
+      if (sub === '/renew' && m === 'POST') { const e = renewSub(db, mem, t, ctx, body); if (e) return no(400, e); notify(db, ctx, [mem], 'Abonament activ ✅', `Abonamentul tău e valabil până pe ${mem.sub.end.split('-').reverse().join('.')}. Spor la antrenamente!`, 'abonament'); return ok({ member: memberFull(db, mem, t) }, 201); }
+      if ((r = /^\/renew\/(\w+)$/.exec(sub)) && m === 'DELETE') { mem.subLog = (mem.subLog || []).filter((x) => x.id !== r[1]); return ok({ member: memberFull(db, mem, t) }); }
       if (sub === '/checkin' && m === 'POST') { mem.checkins = mem.checkins || []; const already = mem.checkins.includes(t); if (!already) { mem.checkins.push(t); mem.ciAt = mem.ciAt || {}; mem.ciAt[t] = ctx.time ? ctx.time() : ''; } return ok({ member: memberFull(db, mem, t), already }); }
       if (sub === '/diet' && m === 'GET') { const pl = db.nutrition.find((x) => x.id === mem.nutritionId) || null; return ok({ plan: pl, food: mem.food || null, personal: !!(pl && pl.owner === mem.id) }); }
       if (sub === '/diet/auto' && m === 'POST') {
@@ -637,13 +632,6 @@
         if (ctx.push && (mem.push || []).length) ctx.push(mem, { title: `Mesaj de la ${db.settings.name}`, body: tx.slice(0, 160), url: '/app.html#chat', tag: 'chat' });
         return ok({ messages: mem.chat }, 201);
       }
-    }
-    if (p === A + '/payments' && m === 'GET') {
-      const mo = /^\d{4}-\d{2}$/.test(q.month || '') ? q.month : monthOf(t);
-      const list = db.members.flatMap((x) => (x.payments || []).map((pa) => ({ ...pa, memberId: x.id, name: x.name, plan: (db.plans.find((pl) => pl.id === pa.planId) || {}).name }))).filter((pa) => monthOf(pa.date) === mo).sort((a, b) => b.date.localeCompare(a.date));
-      const unpaid = db.members.map((x) => memberRow(db, x, t)).filter((x) => x.state === 'expired').sort((a, b) => b.daysLeft - a.daysLeft);
-      const byMethod = {}; list.forEach((pa) => (byMethod[pa.method] = (byMethod[pa.method] || 0) + Number(pa.amount)));
-      return ok({ month: mo, payments: list, total: list.reduce((a, x) => a + Number(x.amount), 0), byMethod, unpaid });
     }
     if (p === A + '/settings' && m === 'PUT') {
       const st = db.settings;
