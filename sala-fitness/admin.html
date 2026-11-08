@@ -174,7 +174,7 @@ body{min-height:100vh}
   </div>
 </div>
 <script src="diet.e2c419a4.js"></script>
-<script src="core.fecbde0a.js"></script>
+<script src="core.258a0748.js"></script>
 <script src="seed.d978784b.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
@@ -305,7 +305,7 @@ async function newMember() {
   } catch (e) { $('#er', el).textContent = e.message; } };
 }
 async function openMember(id, focus) {
-  const { member: m, bookings } = await api('/api/admin/members/' + id), s = m.subscription, progs = (await api('/api/admin/programs')).programs, nus = (await api('/api/admin/nutrition')).nutrition;
+  const { member: m, bookings } = await api('/api/admin/members/' + id), s = m.subscription, own = (await api('/api/admin/members/' + id + '/program').catch(() => ({}))).program || null, progs = (await api('/api/admin/programs')).programs.concat(own && own.owner ? [own] : []), nus = (await api('/api/admin/nutrition')).nutrition;
   let dt = await api(`/api/admin/members/${id}/diet`);
   const ws = m.weights || [], lastW = ws.slice(-1)[0];
   const el = sheet(`<div class="mtop">${avatarHtml(m.name, m.avatar)}<div class="grow"><h2 style="margin:0">${esc(m.name)}</h2><div class="muted">${esc(m.phone)}${m.email ? ' · ' + esc(m.email) : ''} · membru din ${fdate(m.createdAt, true)}</div><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${stateChip({ state: s.state, daysLeft: s.daysLeft })}${(m.tags || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}${m.pushOn ? '<span class="chip acc">🔔 notificări pornite</span>' : ''}${m.consent ? `<span class="chip ok">🔒 acord date sănătate · ${fdate(m.consent.at.slice(0, 10))}</span>` : '<span class="chip warn">⚠️ fără acord date sănătate</span>'}${m.coach && m.coach.pains.length ? `<span class="chip" style="${m.coach.warn ? 'background:rgba(255,194,61,.18);color:#FFC23D' : ''}">${m.coach.warn ? '⚠️' : '🩹'} dureri: ${esc(m.coach.painNames.join(', '))}</span>` : ''}</div></div></div>
@@ -325,9 +325,10 @@ async function openMember(id, focus) {
     plan: () => `${m.coach ? `<div class="card" style="background:var(--bg);margin-bottom:14px"><h3>🤖 Scopul definit cu Robo <small class="muted" style="font-weight:600">· ${fdate(m.coach.at.slice(0, 10), true)}</small></h3>
         <p style="margin:8px 0 6px"><b>${esc(m.coach.title)}</b>${m.coach.answers.why ? ` <span class="muted">· „${esc(m.coach.answers.why)}”</span>` : ''}</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip acc">${esc(m.coach.goalTxt)}</span>${m.coach.pains.length ? `<span class="chip">🩹 ${esc(m.coach.painNames.join(', '))} · ${({ usoara: 'ușoare', moderata: 'moderate', puternica: 'puternice' })[m.coach.painLevel] || ''}</span>` : '<span class="chip">fără dureri</span>'}<span class="chip">${m.coach.answers.days}×/săpt · ${m.coach.answers.minutes} min</span><span class="chip">${m.coach.answers.place === 'acasa' ? 'acasă' : 'la sală'}</span>${m.coach.answers.daily ? `<span class="chip">${({ birou: 'stă mult pe scaun', picioare: 'mult pe picioare', fizic: 'muncă fizică' })[m.coach.answers.daily]}</span>` : ''}</div>
-        ${m.coach.warn ? '<p style="margin:10px 0 0;color:#FFC23D;font-size:.88rem">⚠️ A raportat dureri puternice sau amorțeli. Robo i-a recomandat control medical și doar exerciții blânde. Verifică înainte să-i crești efortul.</p>' : ''}</div>` : '<p class="muted" style="font-size:.86rem;margin:0 0 14px">🤖 Membrul n-a vorbit încă cu Robo. Când o face, aici apar scopul, durerile și programul ales.</p>'}<div class="field"><label>Program de antrenament</label><select class="input" id="pr"><option value="">–</option>${progs.map((p) => `<option value="${p.id}" ${p.id === m.programId ? 'selected' : ''}>${esc(p.name)} (${esc(p.goal)})</option>`).join('')}</select></div>
+        ${m.coach.warn ? '<p style="margin:10px 0 0;color:#FFC23D;font-size:.88rem">⚠️ A raportat dureri puternice sau amorțeli. Robo i-a recomandat control medical și doar exerciții blânde. Verifică înainte să-i crești efortul.</p>' : ''}</div>` : '<p class="muted" style="font-size:.86rem;margin:0 0 14px">🤖 Membrul n-a vorbit încă cu Robo. Când o face, aici apar scopul, durerile și programul ales.</p>'}<div class="field"><label>Program de antrenament</label><select class="input" id="pr"><option value="">–</option>${progs.map((p) => `<option value="${p.id}" ${p.id === m.programId ? 'selected' : ''}>${p.owner ? (p.byGym ? '🏋️ ' : p.custom ? '✍️ ' : '🤖 ') : ''}${esc(p.name)}${p.owner ? (p.byGym ? ' (făcut de tine pentru el)' : p.custom ? ' (scris de el)' : ' (făcut cu Robo)') : p.goal ? ` (${esc(p.goal)})` : ''}</option>`).join('')}</select></div>
       <div class="field"><label>Plan alimentar</label><select class="input" id="nu"><option value="">–</option>${dt.personal ? `<option value="${dt.plan.id}" ${dt.plan.id === m.nutritionId ? 'selected' : ''}>⭐ ${esc(dt.plan.name)} (personală, ${dt.plan.kcal} kcal)</option>` : ''}${nus.map((p) => `<option value="${p.id}" ${p.id === m.nutritionId ? 'selected' : ''}>${esc(p.name)} (${p.kcal} kcal)</option>`).join('')}</select></div>
-      <button class="btn btn-acc" id="prs">Salvează</button><p class="muted" style="font-size:.84rem;margin-top:12px">Vrei un program făcut doar pentru el? Creează-l în „Antrenamente” și alege-l aici.</p>`,
+      <button class="btn btn-acc" id="prs">Salvează</button>
+      <div class="card" style="margin-top:16px;background:var(--bg);border-color:color-mix(in srgb,var(--acc) 35%,var(--line))"><h3>🏋️ Program personalizat</h3><p class="muted" style="font-size:.86rem;margin:6px 0 12px">${(progs.find((p) => p.id === m.programId) || {}).byGym ? `Are deja un program făcut de tine: <b>${esc((progs.find((p) => p.id === m.programId) || {}).name || '')}</b>. Îl poți modifica oricând.` : 'Fă-i un program doar pentru el: zile, exerciții din ghid sau scrise de tine, serii, kilograme și notițe. Îi apare imediat în aplicație.'}</p><button class="btn btn-acc" id="ppb">${(progs.find((p) => p.id === m.programId) || {}).byGym ? '✏️ Editează programul lui' : '✍️ Fă-i program personalizat'}</button></div>`,
     diet: () => {
       const pl = dt.plan, fd = dt.food, LK = (k) => (GymDiet.LIKES.find((x) => x[0] === k) || [k, k])[1], DT = (k) => (GymDiet.DIETS.find((x) => x[0] === k) || [k, k])[1], AL = (k) => (GymDiet.ALLERGIES.find((x) => x[0] === k) || [k, k])[1];
       return `<div class="card" style="background:var(--bg)"><h3>🍽️ Ce îi place să mănânce</h3>${fd ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><span class="chip acc">${({ slabire: 'Slăbire', mentinere: 'Menținere', masa: 'Masă musculară' })[fd.goal]}</span><span class="chip">${esc(DT(fd.diet))}</span><span class="chip">${fd.meals} mese/zi</span><span class="chip">gătit: ${({ zilnic: 'zilnic', rapid: 'simplu și rapid', drum: 'mănâncă pe drum' })[fd.cook]}</span><span class="chip">buget ${({ mic: 'economic', normal: 'normal', mare: 'mare' })[fd.budget]}</span></div>
@@ -357,6 +358,7 @@ async function openMember(id, focus) {
       $('#dPref', el).onclick = () => editFoodPrefs(id, dt.food, again);
       if ($('#dDel', el)) $('#dDel', el).onclick = async () => { if (!(await ask('Ștergi dieta personală?', 'Membrul rămâne fără plan alimentar până alegeți altul.', 'Șterge', { danger: true }))) return; await api(`/api/admin/members/${id}/diet`, { method: 'DELETE', body: {} }); toast('Ștearsă'); again(); };
     }
+    if (k === 'plan') $('#ppb', el).onclick = () => editMemberProgram(id, m, () => reopen('plan'));
     if (k === 'plan') $('#prs', el).onclick = async () => { await api('/api/admin/members/' + id, { method: 'PUT', body: { programId: $('#pr', el).value, nutritionId: $('#nu', el).value } }); toast('Salvat ✅'); };
     if (k === 'info') {
       $('#is', el).onclick = async () => { try { await api('/api/admin/members/' + id, { method: 'PUT', body: { name: $('#in', el).value, phone: $('#ip', el).value, email: $('#ie', el).value, tags: $('#it', el).value, goal: $('#ig', el).value, birth: $('#ib', el).value, notes: $('#ino', el).value } }); toast('Salvat ✅'); refreshPage(); } catch (e) { $('#ier', el).textContent = e.message; } };
@@ -526,6 +528,60 @@ function editNutrition(n) {
 }
 
 /* dieta unui membru: editor (mese, alimente, macro) */
+async function editMemberProgram(id, m, after) {
+  const [{ program: cur, mine }, { exercises: EXS }] = await Promise.all([api('/api/admin/members/' + id + '/program'), api('/api/admin/exercises')]);
+  const first = m.name.split(' ')[0];
+  const fromProg = (p) => ({ name: p.name, note: p.note || '', days: p.days.map((d) => ({ name: d.name, note: d.note || '', items: d.items.map((i) => ({ ex: i.ex, sets: i.sets, reps: i.reps, kg: i.kg || 0, kgTxt: i.kgTxt || '', rest: i.rest || 0, note: i.note || '' })) })) });
+  const N = mine ? fromProg(mine) : { name: `Programul lui ${first}`, note: '', days: [{ name: 'Ziua 1', note: '', items: [] }] };
+  let cur2 = 0, notifyM = true;
+  const exName = (x) => (/^free:/.test(x) ? x.slice(5) : (EXS.find((e) => e.id === x) || { name: x }).name);
+  const muscles = [...new Set(EXS.map((e) => e.muscle).filter(Boolean))];
+  const opts = (sel) => `<option value="">— alege exercițiul —</option><option value="__free" ${/^free:/.test(sel) ? 'selected' : ''}>✍️ Scriu eu exercițiul</option>${muscles.map((mu) => `<optgroup label="${esc(mu)}">${EXS.filter((e) => e.muscle === mu).map((e) => `<option value="${e.id}" ${e.id === sel ? 'selected' : ''}>${esc(e.name)}</option>`).join('')}</optgroup>`).join('')}`;
+  const el = sheet('', { wide: true });
+  const draw = () => {
+    const d = N.days[cur2];
+    el.innerHTML = `<h2>${mine ? 'Editează programul' : 'Program personalizat'} pentru ${esc(first)}</h2>
+      <p class="muted" style="margin:4px 0 14px">Îi apare imediat la Antrenament ca „Făcut de sală” și devine programul lui activ. Poți pune exerciții din ghid sau scrise de tine, cu orice notițe.</p>
+      ${cur && (!mine || cur.id !== mine.id) && !N.days.some((x) => x.items.length) ? `<button class="btn btn-ghost" id="pcp" style="margin-bottom:12px">📋 Pornește de la programul lui actual („${esc(cur.name)}”)</button>` : ''}
+      <div class="g2"><div class="field"><label>Numele programului</label><input class="input" id="pn" maxlength="60" value="${esc(N.name)}"></div><div class="field"><label>Notițe pentru el <span class="muted">(opțional)</span></label><input class="input" id="pnt" maxlength="1000" value="${esc(N.note)}" placeholder="ex: obiectiv, încălzire, atenție la genunchi…"></div></div>
+      <div class="pill-tabs" style="margin:6px 0 12px">${N.days.map((x, i) => `<button data-pd="${i}" class="${i === cur2 ? 'on' : ''}">Ziua ${i + 1} · ${x.items.length}</button>`).join('')}${N.days.length < 7 ? '<button id="pad">+ Zi</button>' : ''}</div>
+      <div class="row" style="gap:8px;margin-bottom:8px"><input class="input grow" id="pdn" maxlength="60" value="${esc(d.name)}" placeholder="Numele zilei, ex: Piept și triceps">${N.days.length > 1 ? '<button class="btn btn-sm" id="pdd" style="color:var(--red)">Șterge ziua</button>' : ''}</div>
+      <input class="input" id="pdnote" maxlength="400" value="${esc(d.note)}" placeholder="Notițe pentru ziua asta (opțional)" style="margin-bottom:12px">
+      <div class="list">${d.items.map((it, k) => `<div class="card" style="padding:12px;background:var(--bg)"><div class="row" style="gap:8px;flex-wrap:wrap"><b style="width:22px">${k + 1}.</b><select class="input grow" data-k="${k}" data-f="ex" style="min-width:200px">${opts(it.ex)}</select>${/^free:/.test(it.ex) ? `<input class="input grow" data-k="${k}" data-f="fname" value="${esc(exName(it.ex))}" maxlength="60" placeholder="Numele exercițiului" style="min-width:180px">` : ''}<button class="btn btn-sm" data-up="${k}" ${k ? '' : 'disabled'}>↑</button><button class="btn btn-sm" data-dn="${k}" ${k < d.items.length - 1 ? '' : 'disabled'}>↓</button><button class="btn btn-sm" data-rm="${k}" style="color:var(--red)">✕</button></div>
+        <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">${[['sets', 'Serii', 70], ['reps', 'Repetări', 100], ['kg', 'Kg', 90], ['rest', 'Pauză (s)', 90]].map(([f, l, w]) => `<label style="display:grid;gap:2px;font-size:.72rem;font-weight:700;color:var(--muted)">${l}<input class="input" data-k="${k}" data-f="${f}" value="${esc(f === 'kg' ? (it.kg || it.kgTxt || '') : it[f])}" style="width:${w}px;padding:8px"></label>`).join('')}<label style="display:grid;gap:2px;font-size:.72rem;font-weight:700;color:var(--muted);flex:1;min-width:180px">Notiță<input class="input" data-k="${k}" data-f="note" value="${esc(it.note)}" maxlength="200" placeholder="ex: priză largă, coboară lent" style="padding:8px"></label></div></div>`).join('') || '<p class="muted">Ziua e goală. Adaugă exercițiile de mai jos.</p>'}</div>
+      <button class="btn" id="pae" style="margin-top:10px">+ Adaugă exercițiu</button>
+      <label class="row" style="gap:8px;margin-top:16px;cursor:pointer"><input type="checkbox" id="pnot" ${notifyM ? 'checked' : ''}> Anunță-l pe telefon că i-ai făcut programul</label>
+      <p class="err" id="pe"></p>
+      <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-acc" id="psv">✅ Salvează și trimite-i-l</button>${mine ? '<button class="btn" id="pdl" style="color:var(--red)">Șterge programul personalizat</button>' : ''}</div>`;
+    $('#pn', el).oninput = (e) => (N.name = e.target.value);
+    $('#pnt', el).oninput = (e) => (N.note = e.target.value);
+    $('#pdn', el).oninput = (e) => (d.name = e.target.value);
+    $('#pdnote', el).oninput = (e) => (d.note = e.target.value);
+    $('#pnot', el).onchange = (e) => (notifyM = e.target.checked);
+    $$('[data-pd]', el).forEach((b) => (b.onclick = () => { cur2 = +b.dataset.pd; draw(); }));
+    if ($('#pad', el)) $('#pad', el).onclick = () => { N.days.push({ name: `Ziua ${N.days.length + 1}`, note: '', items: [] }); cur2 = N.days.length - 1; draw(); };
+    if ($('#pdd', el)) $('#pdd', el).onclick = (e) => { const b = e.currentTarget; if (d.items.length && !b.dataset.ok) { b.dataset.ok = 1; b.textContent = 'Sigur? Apasă din nou'; return; } N.days.splice(cur2, 1); cur2 = Math.max(0, cur2 - 1); draw(); };
+    if ($('#pcp', el)) $('#pcp', el).onclick = () => { const f = fromProg(cur); N.days = f.days; N.note = N.note || f.note; cur2 = 0; draw(); };
+    $$('[data-up]', el).forEach((b) => (b.onclick = () => { const k = +b.dataset.up; [d.items[k - 1], d.items[k]] = [d.items[k], d.items[k - 1]]; draw(); }));
+    $$('[data-dn]', el).forEach((b) => (b.onclick = () => { const k = +b.dataset.dn; [d.items[k + 1], d.items[k]] = [d.items[k], d.items[k + 1]]; draw(); }));
+    $$('[data-rm]', el).forEach((b) => (b.onclick = () => { d.items.splice(+b.dataset.rm, 1); draw(); }));
+    $$('[data-f]', el).forEach((i) => {
+      const it = d.items[+i.dataset.k], f = i.dataset.f;
+      if (f === 'ex') i.onchange = () => { it.ex = i.value === '__free' ? 'free:' : i.value; draw(); };
+      else i.oninput = () => { const v = i.value; if (f === 'fname') it.ex = 'free:' + v; else if (f === 'reps' || f === 'note') it[f] = v; else if (f === 'kg') { const x = Number(String(v).replace(',', '.')); if (!v.trim() || Number.isFinite(x)) { it.kg = x || 0; it.kgTxt = ''; } else { it.kg = 0; it.kgTxt = v; } } else it[f] = Number(String(v).replace(',', '.')) || 0; };
+    });
+    $('#pae', el).onclick = () => { if (d.items.length >= 20) { toast('Maxim 20 de exerciții pe zi.'); return; } d.items.push({ ex: '', sets: 3, reps: '10', kg: 0, kgTxt: '', rest: 90, note: '' }); draw(); const sel = $$('select[data-f="ex"]', el).pop(); if (sel) sel.focus(); };
+    $('#psv', el).onclick = async () => {
+      const er = $('#pe', el); er.textContent = '';
+      const empty = N.days.findIndex((x) => x.items.some((i) => !i.ex || i.ex === 'free:'));
+      if (empty >= 0) { cur2 = empty; draw(); $('#pe', el).textContent = `Ziua ${empty + 1}: alege exercițiul sau scrie-i numele la fiecare rând (sau șterge rândurile goale).`; return; }
+      try { await api('/api/admin/members/' + id + '/program', { method: 'PUT', body: { ...N, notify: notifyM } }); closeSheet(); toast(notifyM ? `Program salvat și trimis lui ${first} ✅` : 'Program salvat ✅'); if (after) after(); }
+      catch (x) { er.textContent = x.message; }
+    };
+    if ($('#pdl', el)) $('#pdl', el).onclick = async (e) => { const b = e.currentTarget; if (!b.dataset.ok) { b.dataset.ok = 1; b.textContent = `Sigur? ${first} primește înapoi un program general. Apasă din nou`; return; } await api('/api/admin/members/' + id + '/program', { method: 'DELETE', body: {} }); closeSheet(); toast('Program șters'); if (after) after(); };
+  };
+  draw();
+}
 function editMemberDiet(id, m, dt, after) {
   const src = dt.plan, N = src ? { name: dt.personal ? src.name : `Dieta lui ${m.name.split(' ')[0]}`, goal: src.goal || '', desc: src.desc || '', meals: JSON.parse(JSON.stringify(src.meals)) } : { name: `Dieta lui ${m.name.split(' ')[0]}`, goal: '', desc: '', meals: [{ name: 'Mic dejun', time: '08:00', items: '', kcal: 0, p: 0, c: 0, f: 0 }, { name: 'Prânz', time: '13:30', items: '', kcal: 0, p: 0, c: 0, f: 0 }, { name: 'Cină', time: '19:30', items: '', kcal: 0, p: 0, c: 0, f: 0 }] };
   let notifyM = true;

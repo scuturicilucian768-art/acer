@@ -350,6 +350,11 @@
     m.expiryNotified = {};
     return null;
   }
+  function customDays(db, body) {
+        const ids = new Set(db.exercises.map((e) => e.id));
+        const days = (Array.isArray(body.days) ? body.days : []).slice(0, 7).map((d, i) => ({ name: clean(d && d.name, 60) || `Ziua ${i + 1}`, note: text(d && d.note, 400), items: (Array.isArray(d && d.items) ? d.items : []).map((it) => (it && typeof it.ex === 'string' && it.ex.startsWith('free:') ? { ...it, ex: clean(it.ex.slice(5), 60) ? 'free:' + clean(it.ex.slice(5), 60) : '' } : it)).filter((it) => it && (ids.has(it.ex) || /^free:./.test(it.ex))).slice(0, 20).map((it) => ({ ex: it.ex, note: clean(it.note, 200), sets: Math.max(1, Math.min(20, Math.round(num(it.sets, 1, 20) || 3))), reps: clean(String(it.reps == null ? '10' : it.reps), 40) || '10', kg: num(it.kg, 0, 500) || 0, kgTxt: clean(it.kgTxt, 30), rest: Math.max(0, Math.min(600, Math.round(num(it.rest, 0, 600) || 90))) })) })).filter((d) => d.items.length || d.note);
+        return { days, pnote: text(body.note, 1000) };
+  }
   function memberInput(body, m) {
     if (body.name !== undefined) { const n = clean(body.name, 80); if (n.length < 2) return 'Scrie numele.'; m.name = n; }
     if (body.phone !== undefined) { const p = clean(body.phone, 20); if (phoneKey(p).length < 10) return 'Numărul de telefon nu e corect.'; m.phone = p; }
@@ -538,10 +543,8 @@
         return ok(homeFor(db, me, t, ctx));
       }
       if (p === '/api/me/custom' && m === 'POST') {
-        const ids = new Set(db.exercises.map((e) => e.id));
-        const days = (Array.isArray(body.days) ? body.days : []).slice(0, 7).map((d, i) => ({ name: clean(d && d.name, 60) || `Ziua ${i + 1}`, note: text(d && d.note, 400), items: (Array.isArray(d && d.items) ? d.items : []).map((it) => (it && typeof it.ex === 'string' && it.ex.startsWith('free:') ? { ...it, ex: clean(it.ex.slice(5), 60) ? 'free:' + clean(it.ex.slice(5), 60) : '' } : it)).filter((it) => it && (ids.has(it.ex) || /^free:./.test(it.ex))).slice(0, 20).map((it) => ({ ex: it.ex, note: clean(it.note, 200), sets: Math.max(1, Math.min(20, Math.round(num(it.sets, 1, 20) || 3))), reps: clean(String(it.reps == null ? '10' : it.reps), 40) || '10', kg: num(it.kg, 0, 500) || 0, kgTxt: clean(it.kgTxt, 30), rest: Math.max(0, Math.min(600, Math.round(num(it.rest, 0, 600) || 90))) })) })).filter((d) => d.items.length || d.note);
+        const { days, pnote } = customDays(db, body);
         if (!days.length) return no(400, 'Scrie cel puțin o zi: un exercițiu sau o notiță.');
-        const pnote = text(body.note, 1000);
         const id = 'pr_cu_' + me.id, prev = db.programs.find((x) => x.id === id);
         const prog = { id, owner: me.id, custom: true, name: clean(body.name, 60) || 'Programul meu', goal: '', level: '', daysPerWeek: days.length, desc: pnote || `${days.length} ${days.length === 1 ? 'zi' : 'zile'} de antrenament, scrise de tine.`, note: pnote, days, createdAt: prev ? prev.createdAt : t };
         db.programs = db.programs.filter((x) => x.id !== id); db.programs.push(prog); me.programId = id;
@@ -648,6 +651,16 @@
         if (body.notify !== false) notify(db, ctx, [mem], 'Dieta ta e gata 🥗', `Ți-am pregătit un plan alimentar personal, ~${pl.kcal} kcal pe zi. Îl găsești la Nutriție.`, 'dieta', '/app.html#food');
         return ok({ plan: pl });
       }
+      if (sub === '/program' && m === 'GET') { const cur = db.programs.find((x) => x.id === mem.programId) || null; return ok({ program: cur, mine: db.programs.find((x) => x.id === 'pr_ad_' + mem.id) || null }); }
+      if (sub === '/program' && m === 'PUT') {
+        const { days, pnote } = customDays(db, body); if (!days.length) return no(400, 'Adaugă cel puțin o zi cu un exercițiu sau o notiță.');
+        const pid = 'pr_ad_' + mem.id, prev = db.programs.find((x) => x.id === pid);
+        const prog = { id: pid, owner: mem.id, byGym: true, name: clean(body.name, 60) || 'Programul tău de la sală', goal: clean(body.goal, 60), level: clean(body.level, 20), daysPerWeek: days.length, desc: pnote || `${days.length} ${days.length === 1 ? 'zi' : 'zile'} de antrenament, făcute pentru tine de sală.`, note: pnote, days, createdAt: prev ? prev.createdAt : t, at: ctx.nowISO() };
+        db.programs = db.programs.filter((x) => x.id !== pid); db.programs.push(prog); mem.programId = pid;
+        if (body.notify !== false) notify(db, ctx, [mem], prev ? 'Sala ți-a actualizat programul 🏋️' : 'Ai un program nou de la sală 🏋️', `„${prog.name}”: ${days.length} ${days.length === 1 ? 'zi' : 'zile'} de antrenament, făcut special pentru tine. Îl găsești la Antrenament.`, 'program', '/app.html#train');
+        return ok({ program: prog });
+      }
+      if (sub === '/program' && m === 'DELETE') { const pid = 'pr_ad_' + mem.id; db.programs = db.programs.filter((x) => x.id !== pid); if (mem.programId === pid) { const pub = db.programs.find((x) => !x.owner); mem.programId = pub ? pub.id : ''; } return ok({ ok: true }); }
       if (sub === '/diet' && m === 'PUT') {
         const meals = mealsInput(body.meals); if (!meals.length) return no(400, 'Adaugă cel puțin o masă.');
         const pl = savePersonalDiet(db, mem, { name: clean(body.name, 80) || 'Dieta mea personală', goal: clean(body.goal, 60), desc: text(body.desc, 400), meals }, 'admin', ctx.nowISO());
@@ -757,7 +770,7 @@
     };
     if ((r = /^\/api\/admin\/(plans|announcements|services|rewards|exercises|programs|nutrition)(?:\/(\w+))?$/.exec(p))) {
       const [, key, id] = r, [pref, fill] = LISTS[key], list = db[key];
-      if (!id && m === 'GET') return ok({ [key]: key === 'nutrition' ? list.filter((y) => !y.owner) : list });
+      if (!id && m === 'GET') return ok({ [key]: key === 'nutrition' || key === 'programs' ? list.filter((y) => !y.owner) : list });
       if (!id && m === 'POST') { const x = { id: ctx.uid(pref) }; const e = fill(body, x); if (e) return no(400, e); list.push(x); if (key === 'announcements' && body.notify) notify(db, ctx, targetMembers(db, t, 'active'), x.title, x.body.slice(0, 180), 'anunt'); return ok({ item: x }, 201); }
       const x = list.find((y) => y.id === id); if (!x) return no(404, 'Nu există.');
       if (m === 'PUT') { const e = fill({ ...x, ...body }, x); return e ? no(400, e) : ok({ item: x }); }
