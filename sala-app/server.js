@@ -144,7 +144,7 @@ const server = http.createServer(async (req, res) => {
   try {
     if (p.startsWith('/api/')) {
       const session = readSession(req);
-      if ((p === '/api/login' || p === '/api/admin/login' || p === '/api/setup') && limited(req, p, 12, 15 * 6e4)) return send(res, 429, { error: 'Prea multe încercări. Mai încearcă peste 15 minute.' });
+      if ((p === '/api/login' || p === '/api/admin/login' || p === '/api/setup' || p === '/api/register') && limited(req, p, 12, 15 * 6e4)) return send(res, 429, { error: 'Prea multe încercări. Mai încearcă peste 15 minute.' });
       // poze de progres: private, doar pentru proprietar sau admin
       let r;
       if (p === '/api/me/photo' && req.method === 'POST') {

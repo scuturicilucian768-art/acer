@@ -266,7 +266,7 @@
   const pubSettings = (s) => { const { checkinCode, checkinDate, dailySent, ...r } = s; return r; };
   function memberRow(db, m, t) {
     const s = subOf(db, m, t), la = lastActive(m);
-    return { id: m.id, name: m.name, avatar: m.avatar || '', phone: m.phone, tags: m.tags || [], plan: s.plan ? s.plan.name : '', state: s.state, end: s.end, daysLeft: s.daysLeft, lastActive: la, idle: la ? diff(t, la) : null, createdAt: m.createdAt, visits: trainDays(m).size, rk: rankOf(pointsOf(db, m, t).earned).idx, pushOn: (m.push || []).length > 0, ciToday: (m.ciAt || {})[t] || null };
+    return { id: m.id, name: m.name, avatar: m.avatar || '', phone: m.phone, tags: m.tags || [], plan: s.plan ? s.plan.name : '', state: s.state, end: s.end, daysLeft: s.daysLeft, lastActive: la, idle: la ? diff(t, la) : null, createdAt: m.createdAt, visits: trainDays(m).size, rk: rankOf(pointsOf(db, m, t).earned).idx, pushOn: (m.push || []).length > 0, ciToday: (m.ciAt || {})[t] || null, isNew: !!m.isNew, selfSignup: !!m.selfSignup };
   }
   /* ---------- rangurile Empire (după punctele câștigate în total) ---------- */
   const RANKS = [
@@ -389,6 +389,16 @@
       const k = phoneKey(body.phone), mem = db.members.find((x) => phoneKey(x.phone) === k);
       if (!mem || !ctx.check(String(body.password || ''), mem.pass)) return no(401, 'Telefonul sau parola nu sunt corecte. Parola ți-o dă recepția sălii.');
       return ok({ ok: true }, 200, { session: { role: 'member', id: mem.id } });
+    }
+    if (p === '/api/register' && m === 'POST') {
+      if (db.settings.signup === false) return no(403, 'Conturile se fac la recepția sălii.');
+      const k = phoneKey(body.phone); if (db.members.some((x) => phoneKey(x.phone) === k)) return no(409, 'Există deja un cont cu acest telefon. Intră cu parola sau cere-o la recepție.');
+      const pw = String(body.password || ''); if (pw.length < 4) return no(400, 'Parola trebuie să aibă minim 4 caractere.');
+      const mem = { id: ctx.uid('mb'), name: '', phone: '', email: '', pass: '', birth: '', sex: '', height: null, goal: '', targetWeight: null, level: 'începător', notes: '', tags: [], createdAt: t, programId: db.programs.find((x) => !x.owner) ? db.programs.find((x) => !x.owner).id : '', nutritionId: '', sub: {}, subLog: [], weights: [], measures: [], photos: [], workouts: [], checkins: [], challenges: {}, meals: {}, push: [], notifs: [], redeemed: [], weekGoal: 3, selfSignup: true, isNew: true };
+      const e = memberInput({ name: body.name, phone: body.phone }, mem); if (e) return no(400, e);
+      mem.pass = ctx.hash(pw); db.members.push(mem);
+      notify(db, ctx, [mem], `Bine ai venit la ${db.settings.name}! 💪`, 'Contul tău e gata. Abonamentul ți-l activează recepția când treci pe la sală.', 'bun-venit');
+      return ok({ ok: true }, 201, { session: { role: 'member', id: mem.id } });
     }
     // prima pornire: proprietarul sălii își alege parola și datele sălii
     if (p === '/api/setup' && m === 'POST') {
@@ -585,6 +595,7 @@
         idle7: rows.filter((x) => (x.state === 'active' || x.state === 'expiring') && x.idle !== null && x.idle >= 7 && x.idle <= 14).sort((a, b) => b.idle - a.idle),
         idle14: rows.filter((x) => (x.state === 'active' || x.state === 'expiring') && (x.idle === null || x.idle > 14)).sort((a, b) => (b.idle || 999) - (a.idle || 999)),
         todayVisits: rows.filter((x) => x.ciToday || x.lastActive === t).sort((a, b) => String(b.ciToday || '').localeCompare(String(a.ciToday || ''))),
+        newSignups: rows.filter((x) => x.isNew).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))),
         chatUnread: db.members.reduce((a, x) => a + (x.chat || []).filter((y) => y.from === 'm' && !y.read).length, 0),
         reports: reports(db, t),
         bookings: db.bookings.filter((b) => b.date >= t && b.status !== 'anulat').sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).slice(0, 20).map((b) => ({ ...b, member: (db.members.find((x) => x.id === b.memberId) || {}).name, service: (db.services.find((x) => x.id === b.serviceId) || {}).name })),
@@ -594,7 +605,7 @@
     }
     if (p === A + '/members' && m === 'GET') {
       const qq = clean(q.q, 60).toLowerCase(), rows = db.members.map((x) => memberRow(db, x, t)).filter((x) => !qq || x.name.toLowerCase().includes(qq) || phoneKey(x.phone).includes(qq.replace(/\D/g, '') || '§'));
-      const f = q.filter; const fl = f === 'active' ? rows.filter((x) => x.state === 'active' || x.state === 'expiring') : f === 'expiring' ? rows.filter((x) => x.state === 'expiring') : f === 'expired' ? rows.filter((x) => x.state === 'expired' || x.state === 'none') : f === 'idle' ? rows.filter((x) => x.idle === null || x.idle >= 7) : rows;
+      const f = q.filter; const fl = f === 'active' ? rows.filter((x) => x.state === 'active' || x.state === 'expiring') : f === 'expiring' ? rows.filter((x) => x.state === 'expiring') : f === 'expired' ? rows.filter((x) => x.state === 'expired' || x.state === 'none') : f === 'idle' ? rows.filter((x) => x.idle === null || x.idle >= 7) : f === 'new' ? rows.filter((x) => x.isNew || (x.selfSignup && x.state === 'none')) : rows;
       return ok({ members: fl.sort((a, b) => a.name.localeCompare(b.name, 'ro')), tags: [...new Set(db.members.flatMap((x) => x.tags || []))] });
     }
     if (p === A + '/members' && m === 'POST') {
@@ -612,7 +623,7 @@
     if ((r = /^\/api\/admin\/members\/(\w+)(\/.*)?$/.exec(p))) {
       const mem = db.members.find((x) => x.id === r[1]); if (!mem) return no(404, 'Membrul nu există.');
       const sub = r[2] || '';
-      if (!sub && m === 'GET') return ok({ member: memberFull(db, mem, t), bookings: db.bookings.filter((b) => b.memberId === mem.id) });
+      if (!sub && m === 'GET') { if (mem.isNew) delete mem.isNew; } if (!sub && m === 'GET') return ok({ member: memberFull(db, mem, t), bookings: db.bookings.filter((b) => b.memberId === mem.id) });
       if (!sub && m === 'PUT') {
         if (body.phone && phoneKey(body.phone) !== phoneKey(mem.phone) && db.members.some((x) => phoneKey(x.phone) === phoneKey(body.phone))) return no(409, 'Telefonul e folosit de alt membru.');
         const e = memberInput(body, mem); if (e) return no(400, e);
@@ -686,6 +697,7 @@
       if (body.accent && /^#[0-9a-f]{6}$/i.test(body.accent)) st.accent = body.accent;
       if (body.dailyHour !== undefined) st.dailyHour = num(body.dailyHour, 0, 23) || 0;
       if (body.autoIdle !== undefined) st.autoIdle = body.autoIdle === true || body.autoIdle === 'true';
+      if (body.signup !== undefined) st.signup = body.signup === true || body.signup === 'true';
       if (body.idleHour !== undefined) st.idleHour = num(body.idleHour, 6, 22) || 17;
       if (body.idleText7 !== undefined) st.idleText7 = text(body.idleText7, 400);
       if (body.idleText14 !== undefined) st.idleText14 = text(body.idleText14, 400);
