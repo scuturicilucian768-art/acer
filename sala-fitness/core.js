@@ -219,7 +219,7 @@
   const roboLib = () => (typeof GymRobo !== 'undefined' ? GymRobo : require('./robo.js'));
   function roboCtx(db, m, t, ctx) {
     const h = homeFor(db, m, t, ctx), w = (m.weights || []).slice(-1)[0];
-    const exName = (id) => (db.exercises.find((e) => e.id === id) || { name: id }).name;
+    const exName = (id) => (db.exercises.find((e) => e.id === id) || { name: String(id).replace(/^free:/, '') }).name;
     return { me: h.me, first: String(m.name || '').split(' ')[0], S: db.settings, plans: db.plans.filter((x) => x.active), services: db.services, exercises: db.exercises, exName, program: h.program, nextDay: h.nextDay, crowd: h.crowd, board: h.board, kcal: h.kcal, kg: w ? w.kg : null, coach: m.coach || null, fdate: (d) => String(d).split('-').reverse().join('.'), seed: (m.robo || []).length };
   }
   // text scurt cu datele sălii și ale membrului, pentru asistentul AI (dacă serverul are cheie)
@@ -495,7 +495,7 @@
       }
       if (p === '/api/me/workout' && m === 'POST') {
         const prog = db.programs.find((x) => x.id === body.programId);
-        const sets = (Array.isArray(body.sets) ? body.sets : []).slice(0, 200).map((x) => ({ ex: clean(x.ex, 40), set: num(x.set, 1, 20), reps: num(x.reps, 0, 500), kg: num(x.kg, 0, 1000) })).filter((x) => x.ex);
+        const sets = (Array.isArray(body.sets) ? body.sets : []).slice(0, 200).map((x) => ({ ex: clean(x.ex, 70), set: num(x.set, 1, 20), reps: num(x.reps, 0, 500), kg: num(x.kg, 0, 1000) })).filter((x) => x.ex);
         me.workouts = me.workouts || [];
         me.workouts.push({ id: ctx.uid('wo'), date: isDate(body.date) ? body.date : t, programId: prog ? prog.id : '', dayIdx: num(body.dayIdx, 0, 20) || 0, title: clean(body.title, 80), duration: num(body.duration, 0, 600) || 0, sets, note: clean(body.note, 300) });
         me.workouts.sort((a, b) => a.date.localeCompare(b.date));
@@ -529,10 +529,11 @@
       }
       if (p === '/api/me/custom' && m === 'POST') {
         const ids = new Set(db.exercises.map((e) => e.id));
-        const days = (Array.isArray(body.days) ? body.days : []).slice(0, 7).map((d, i) => ({ name: clean(d && d.name, 60) || `Ziua ${i + 1}`, items: (Array.isArray(d && d.items) ? d.items : []).filter((it) => it && ids.has(it.ex)).slice(0, 15).map((it) => ({ ex: it.ex, sets: Math.max(1, Math.min(10, Math.round(num(it.sets, 1, 10) || 3))), reps: clean(String(it.reps == null ? '10' : it.reps), 20) || '10', kg: num(it.kg, 0, 500) || 0, rest: Math.max(0, Math.min(600, Math.round(num(it.rest, 0, 600) || 90))) })) })).filter((d) => d.items.length);
-        if (!days.length) return no(400, 'Adaugă cel puțin un exercițiu într-o zi.');
+        const days = (Array.isArray(body.days) ? body.days : []).slice(0, 7).map((d, i) => ({ name: clean(d && d.name, 60) || `Ziua ${i + 1}`, note: text(d && d.note, 400), items: (Array.isArray(d && d.items) ? d.items : []).map((it) => (it && typeof it.ex === 'string' && it.ex.startsWith('free:') ? { ...it, ex: clean(it.ex.slice(5), 60) ? 'free:' + clean(it.ex.slice(5), 60) : '' } : it)).filter((it) => it && (ids.has(it.ex) || /^free:./.test(it.ex))).slice(0, 20).map((it) => ({ ex: it.ex, note: clean(it.note, 200), sets: Math.max(1, Math.min(20, Math.round(num(it.sets, 1, 20) || 3))), reps: clean(String(it.reps == null ? '10' : it.reps), 40) || '10', kg: num(it.kg, 0, 500) || 0, kgTxt: clean(it.kgTxt, 30), rest: Math.max(0, Math.min(600, Math.round(num(it.rest, 0, 600) || 90))) })) })).filter((d) => d.items.length || d.note);
+        if (!days.length) return no(400, 'Scrie cel puțin o zi: un exercițiu sau o notiță.');
+        const pnote = text(body.note, 1000);
         const id = 'pr_cu_' + me.id, prev = db.programs.find((x) => x.id === id);
-        const prog = { id, owner: me.id, custom: true, name: clean(body.name, 60) || 'Programul meu', goal: '', level: '', daysPerWeek: days.length, desc: `${days.length} ${days.length === 1 ? 'zi' : 'zile'} de antrenament, scrise de tine.`, days, createdAt: prev ? prev.createdAt : t };
+        const prog = { id, owner: me.id, custom: true, name: clean(body.name, 60) || 'Programul meu', goal: '', level: '', daysPerWeek: days.length, desc: pnote || `${days.length} ${days.length === 1 ? 'zi' : 'zile'} de antrenament, scrise de tine.`, note: pnote, days, createdAt: prev ? prev.createdAt : t };
         db.programs = db.programs.filter((x) => x.id !== id); db.programs.push(prog); me.programId = id;
         return ok({ ...homeFor(db, me, t, ctx), saved: id });
       }
