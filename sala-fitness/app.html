@@ -43,6 +43,13 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .tabs button.on .ic{transform:translateY(-1px) scale(1.12)}
 @media(max-width:360px){.tabs button{font-size:.56rem;letter-spacing:-.01em;padding:8px 0 6px}}
 .hello{padding:14px 0 10px}
+.phero{position:relative;margin:10px 0 14px;border-radius:24px;overflow:hidden;aspect-ratio:4/3;max-height:300px;width:100%;border:1px solid var(--line)}
+.phero img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:block}
+.phero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 52%,rgba(10,10,14,.92))}
+.phero-t{position:absolute;left:16px;right:16px;bottom:12px;z-index:1}
+.phero-t small{font-size:.72rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--acc)}
+.phero-t h1{font-size:1.6rem;line-height:1.05;margin:2px 0 0;color:#fff}
+.phero-t p{margin:4px 0 0;font-size:.86rem;color:rgba(255,255,255,.8)}
 .hello small{color:var(--muted);font-weight:600;text-transform:capitalize}
 .hello h1{font-size:2.05rem;line-height:1.04;margin-top:4px;text-wrap:balance}
 /* card de membru 3D */
@@ -1329,7 +1336,7 @@ function vProgress(v) {
   const mon = CoreAdd(H.today, -((new Date(H.today + 'T12:00:00').getDay() + 6) % 7));
   const weeks = Array.from({ length: 8 }, (_, i) => { const a = CoreAdd(mon, -7 * (7 - i)), b = CoreAdd(a, 6); return { l: fdate(a).replace(/\.$/, ''), v: Math.round(allW.filter((w) => w.date >= a && w.date <= b).reduce((x, w) => x + (w.sets || []).reduce((y, s) => y + (s.kg || 0) * (s.reps || 0), 0), 0) / 100) / 10 }; });
   const totalVol = allW.reduce((x, w) => x + (w.sets || []).reduce((y, s) => y + (s.kg || 0) * (s.reps || 0), 0), 0);
-  v.innerHTML = `<div class="hello"><small>Progres</small><h1>Evoluția ta</h1></div>
+  v.innerHTML = `<div class="phero"><img src="img/inima.jpg" alt="Inima cu halteră din mușchi, pe peretele sălii"><div class="phero-t"><small>Progres</small><h1>Evoluția ta</h1><p>Fiecare antrenament e o bătaie de inimă în plus.</p></div></div>
     <div class="kp"><div class="st"><b data-count="${new Set([...(me.checkins || []), ...allW.map((w) => w.date)]).size}">0</b><small>zile la sală</small></div><div class="st"><b data-count="${me.maxStreak}">0</b><small>record zile la rând</small></div><div class="st"><b data-count="${Math.round(totalVol / 1000)}">0</b><small>tone ridicate</small></div></div>
     <div class="card" style="margin-top:12px"><div class="row"><div class="grow"><small class="muted" style="font-weight:700">GREUTATE</small><div style="font-family:var(--fd);font-size:2.2rem;font-weight:900;line-height:1.1">${cur != null ? cur + ' <small style="font-size:1rem;color:var(--muted)">kg</small>' : '–'}</div>${ws.length > 1 ? `<span class="chip ${delta <= 0 ? 'ok' : 'warn'}">${delta > 0 ? '+' : ''}${delta} kg de la început</span>` : ''}${me.targetWeight ? ` <span class="chip">${IC('target', 13)} ${me.targetWeight} kg</span>` : ''}</div><button class="btn btn-acc btn-sm" id="aw">${IC('plus', 16)} Adaugă</button></div>
       <div style="margin-top:12px">${lineChart(ws.slice(-20).map((w) => ({ v: w.kg, l: fdate(w.date) })), { target: me.targetWeight || null, empty: 'Cântărește-te și notează greutatea ca să vezi graficul.' })}</div></div>
