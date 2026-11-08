@@ -57,6 +57,7 @@ body{min-height:100vh}
 .ed-item{display:grid;grid-template-columns:2fr 70px 90px 80px 80px 36px;gap:6px;align-items:center;margin-bottom:6px}
 .ed-meal{display:grid;grid-template-columns:1fr 80px 2fr 70px 60px 60px 60px 36px;gap:6px;align-items:center;margin-bottom:6px}
 .ed-item .input,.ed-meal .input{padding:9px 10px;font-size:.88rem}
+.pp{display:inline-flex;align-items:center;gap:4px;margin:0 8px 4px 0;padding:3px 4px 3px 10px;border-radius:999px;background:var(--card2);font-weight:600}.lnk{border:0;background:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:2px 6px;border-radius:999px}.lnk:hover{color:var(--red);background:rgba(229,72,77,.12)}
 .pill-tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px;width:max-content;max-width:100%;overflow:auto;margin-bottom:16px}
 .pill-tabs button{border:0;background:none;padding:9px 14px;border-radius:10px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
 @media(max-width:700px){.pill-tabs{flex-wrap:wrap;width:auto}}
@@ -157,6 +158,7 @@ body{min-height:100vh}
       <button data-p="desk" data-i="qr">Recepție</button>
       <button data-p="members" data-i="users">Membri</button>
       <em class="bd hide" id="chb" style="display:none"></em>
+      <button data-p="slots" data-i="calendar">Programări</button>
       <button data-p="reports" data-i="chart">Rapoarte</button>
       <button data-p="notify" data-i="bell">Notificări</button>
       <button data-p="daily" data-i="spark">Motivația zilei</button>
@@ -174,7 +176,7 @@ body{min-height:100vh}
   </div>
 </div>
 <script src="diet.e2c419a4.js"></script>
-<script src="core.41035031.js"></script>
+<script src="core.5082d2f4.js"></script>
 <script src="seed.d978784b.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
@@ -219,12 +221,12 @@ function showLogin() {
     <div class="field"><label>Parola</label><input class="input" type="password" id="pw" autocomplete="current-password" required></div><p class="err" id="le"></p><button class="btn btn-acc btn-block">Intră</button>${window.GymDemo ? '<p class="tip" style="margin-top:14px">Demo: parola <b>admin</b></p>' : ''}</form></div>`;
   $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/api/admin/login', { method: 'POST', body: { password: $('#pw').value } }); boot(); } catch (er) { $('#le').textContent = er.message; } };
 }
-const TITLES = { gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
+const TITLES = { slots: 'Programări', gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
 function go(p) {
   page = TITLES[p] ? p : 'dash'; history.replaceState(null, '', '#' + page);
   $$('.side [data-p]').forEach((b) => b.classList.toggle('on', b.dataset.p === page)); $('#mtitle').textContent = TITLES[page]; $('#side').classList.remove('open');
   M().innerHTML = '<div class="skel" style="height:60px;margin-bottom:14px"></div><div class="skel" style="height:220px"></div>'; M().classList.remove('stagger'); clearInterval(window._poll); window._quiet = null; window._convReload = null; stopScan();
-  const fn = ({ gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
+  const fn = ({ slots: pSlots, gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
   fn().then(() => { M().classList.add('stagger'); countUp(M()); if (!window._quiet && ['dash', 'members', 'pt', 'rewards'].includes(page)) window._quiet = async () => { await fn(); countUp(M()); }; }).catch((e) => { if (e.status === 401) return showLogin(); M().innerHTML = `<p class="err">${esc(e.message)}</p>`; });
   scrollTo(0, 0);
 }
@@ -260,6 +262,7 @@ async function pDash() {
       <div class="card"><h3>Azi</h3>
         <div class="alert"><span class="av">${IC('users', 18)}</span><div class="grow"><b>${O.todayVisits.length} ${O.todayVisits.length === 1 ? 'membru a venit' : 'membri au venit'} azi</b><br><small>${O.todayVisits.slice(0, 4).map((x) => esc(x.name.split(' ')[0]) + (x.ciToday ? ' ' + x.ciToday : '')).join(' · ') || 'încă nimeni'}</small></div><button class="btn btn-sm" data-go="desk">Vezi</button></div>
         <div class="alert"><span class="av">${IC('spark', 18)}</span><div class="grow"><b>Motivația zilei</b><br><small>„${esc(O.daily.quote)}”</small></div></div>
+        ${O.slotsToday !== undefined ? `<div class="alert"><span class="av">${IC('calendar', 18)}</span><div class="grow"><b>${O.slotsToday} ${O.slotsToday === 1 ? 'programare' : 'programări'} azi</b><br><small>cine vine și la ce oră</small></div><button class="btn btn-sm" data-go="slots">Vezi</button></div>` : ''}
         ${O.newSignups && O.newSignups.length ? `<div class="alert" style="border-color:color-mix(in srgb,var(--acc) 45%,transparent)"><span class="av" style="background:var(--acc);color:var(--acc-ink)">${IC('user', 18)}</span><div class="grow"><b>${O.newSignups.length} ${O.newSignups.length === 1 ? 'cont nou creat' : 'conturi noi create'} din aplicație</b><br><small>${O.newSignups.slice(0, 3).map((x) => esc(x.name)).join(' · ')}${O.newSignups.length > 3 ? ' …' : ''} · activează-le abonamentul când plătesc</small></div><button class="btn btn-sm btn-acc" id="nsGo">Vezi</button></div>` : ''}
         <div class="alert"><span class="av">${IC('gift', 18)}</span><div class="grow"><b>${O.redemptions.length} premii de acordat</b><br><small>${O.redemptions.slice(0, 2).map((x) => esc(x.member + ': ' + x.name)).join(' · ') || 'niciunul'}</small></div><button class="btn btn-sm" data-go="rewards">Vezi</button></div>
         <div class="alert"><span class="av">${IC('calendar', 18)}</span><div class="grow"><b>${O.dailyScheduled} zile de motivație programate</b><br><small>${O.dailyScheduled < 7 ? 'Programează următoarele 30 de zile' : 'Totul e pregătit'}</small></div><button class="btn btn-sm" data-go="daily">Vezi</button></div>
@@ -754,6 +757,43 @@ async function pDesk() {
 /* ───────── MESAJE ───────── */
 let chatSel = null;
 const QUICK = ['Bună! Mulțumim pentru mesaj, revenim imediat.', 'Sigur, te așteptăm!', 'Programul de azi este 06:00 – 22:00.', 'Abonamentul se poate plăti cash sau cu cardul la recepție.'];
+/* ───────── PROGRAMĂRI ───────── */
+let slFrom = null, slDay = 0;
+async function pSlots() {
+  const D = await api('/api/admin/slots' + (slFrom ? '?from=' + slFrom : '')), c = D.cfg; slFrom = slFrom || D.today;
+  const day = D.days[slDay] || D.days[0], DN = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+  const totB = day.slots.reduce((a, s) => a + s.booked, 0), totC = day.slots.filter((s) => !s.closed).reduce((a, s) => a + s.cap, 0);
+  M().innerHTML = `<div class="ph"><div><h1>Programări</h1><p>Membrii își rezervă ora din aplicație și văd câte locuri mai sunt. Tu stabilești câți oameni intră maxim într-o oră.</p></div><div class="row" style="gap:8px"><label class="row" style="gap:8px;cursor:pointer"><input type="checkbox" id="son" ${c.on ? 'checked' : ''} style="width:20px;height:20px"><b>${c.on ? 'Pornite' : 'Oprite'}</b></label></div></div>
+    <div class="cols">
+      <div class="card"><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-sm" id="spv">←</button><div class="pill-tabs" style="margin:0;flex:1">${D.days.map((x, i) => `<button data-sdi="${i}" class="${i === slDay ? 'on' : ''}">${x.dow.slice(0, 3)} ${+x.date.slice(8)}.${x.date.slice(5, 7)}</button>`).join('')}</div><button class="btn btn-sm" id="snx">→</button></div>
+        <h3 style="margin:14px 0 4px">${esc(day.dow)}, ${day.date.split('-').reverse().join('.')}</h3><p class="muted small" style="margin:0 0 12px">${day.slots.length ? `${totB} rezervări din ${totC} locuri` : 'Sala nu are programări în ziua asta (vezi programul din dreapta).'}</p>
+        <div class="list">${day.slots.map((s) => `<div class="alert" style="align-items:flex-start;${s.closed ? 'opacity:.55' : ''}"><div style="min-width:64px"><b style="font-size:1.1rem">${s.time}</b><br><small class="muted">– ${s.end}</small></div>
+          <div class="grow"><div class="row" style="gap:8px;flex-wrap:wrap"><span class="chip ${s.closed ? '' : s.free <= 0 ? 'bad' : s.free <= Math.ceil(s.cap / 4) ? 'warn' : 'ok'}">${s.closed ? 'Închis' : `${s.booked} / ${s.cap} ocupate`}</span>${s.ov ? '<span class="chip">limită specială</span>' : ''}</div>
+          <div style="margin-top:6px;font-size:.88rem">${s.people.length ? s.people.map((x) => `<span class="pp">${esc(x.name)}${x.by === 'sala' ? ' <small class="muted">(de tine)</small>' : ''} <button class="lnk" data-del="${x.id}" title="Anulează rezervarea">✕</button></span>`).join('') : '<span class="muted">Nimeni încă.</span>'}</div></div>
+          <div class="row" style="gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-sm" data-cap="${s.time}" data-v="${s.cap}">Locuri</button><button class="btn btn-sm" data-add="${s.time}" ${s.closed ? 'disabled' : ''}>+ Membru</button><button class="btn btn-sm" data-cl="${s.time}" data-v="${s.closed ? 0 : 1}">${s.closed ? 'Deschide' : 'Închide'}</button></div></div>`).join('')}</div></div>
+      <div><div class="card"><h3>Setări programări</h3>
+        <div class="g2" style="margin-top:12px"><div class="field"><label>Locuri maxime într-o oră</label><input class="input" id="scap" type="number" min="1" max="500" value="${c.cap}"></div><div class="field"><label>Durata unei ore (minute)</label><select class="input" id="sdur">${[30, 45, 60, 90, 120].map((x) => `<option ${x === c.dur ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+        <div class="field"><label>Titlu în aplicație</label><input class="input" id="stit" maxlength="60" value="${esc(c.title)}"></div><div class="field"><label>Antrenor (opțional)</label><input class="input" id="scoa" maxlength="60" value="${esc(c.coach)}" placeholder="ex: cu antrenorul Silviu"></div>
+        <div class="field"><label>Pot rezerva cu câte zile înainte</label><input class="input" id="sah" type="number" min="1" max="30" value="${c.ahead}"></div><div class="field"><label>Pot anula cu minim (ore înainte)</label><input class="input" id="scx" type="number" min="0" max="48" value="${c.cancelH}"></div>
+        <div class="field"><label>Rezervări pe zi pentru un membru</label><input class="input" id="spd" type="number" min="1" max="5" value="${c.perDay}"></div><div class="field"><label>&nbsp;</label><label class="row" style="gap:8px;cursor:pointer"><input type="checkbox" id="sns" ${c.needSub ? 'checked' : ''}> Doar cu abonament activ</label></div></div>
+        <h3 style="margin:10px 0">Programul pe zile</h3>${[1, 2, 3, 4, 5, 6, 0].map((d) => { const h = c.hours[d]; return `<div class="row shr" data-d="${d}" style="gap:8px;margin-bottom:8px"><label class="row" style="gap:6px;width:110px;cursor:pointer"><input type="checkbox" ${h.on ? 'checked' : ''}> ${DN[d]}</label><input class="input" inputmode="numeric" maxlength="5" placeholder="08:00" value="${h.from}" style="width:84px;text-align:center"><span class="muted">–</span><input class="input" inputmode="numeric" maxlength="5" placeholder="21:00" value="${h.to}" style="width:84px;text-align:center"></div>`; }).join('')}
+        <p class="err" id="se"></p><button class="btn btn-acc" id="ssv">Salvează setările</button>
+        <p class="muted small" style="margin-top:10px">Schimbarea programului nu anulează rezervările deja făcute. Pentru o oră anume poți schimba numărul de locuri sau o poți închide din lista din stânga.</p></div></div>
+    </div>`;
+  $('#son').onchange = async (e) => { await api('/api/admin/slots/config', { method: 'PUT', body: { on: e.target.checked } }); toast(e.target.checked ? 'Programările sunt pornite' : 'Programările sunt oprite'); pSlots(); };
+  $$('[data-sdi]').forEach((b) => (b.onclick = () => { slDay = +b.dataset.sdi; pSlots(); }));
+  $('#spv').onclick = () => { const d = new Date(slFrom + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 7); slFrom = d.toISOString().slice(0, 10); pSlots(); };
+  $('#snx').onclick = () => { const d = new Date(slFrom + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + 7); slFrom = d.toISOString().slice(0, 10); pSlots(); };
+  $$('[data-cap]').forEach((b) => (b.onclick = () => { const el = sheet(`<h2>Locuri la ${b.dataset.cap}</h2><p class="muted">${esc(day.dow)}, ${day.date.split('-').reverse().join('.')}. Normal sunt ${c.cap} locuri pe oră.</p><div class="field" style="margin-top:12px"><label>Câte persoane maxim la ora asta</label><input class="input" id="nc" type="number" min="0" max="500" value="${b.dataset.v}"></div><div class="row" style="gap:8px"><button class="btn btn-acc" id="ok">Salvează</button><button class="btn" id="rs">Revino la ${c.cap}</button></div>`); $('#ok', el).onclick = async () => { await api('/api/admin/slots/slot', { method: 'PUT', body: { date: day.date, time: b.dataset.cap, cap: $('#nc', el).value } }); closeSheet(); toast('Salvat ✅'); pSlots(); }; $('#rs', el).onclick = async () => { await api('/api/admin/slots/slot', { method: 'PUT', body: { date: day.date, time: b.dataset.cap, cap: null } }); closeSheet(); pSlots(); }; }));
+  $$('[data-cl]').forEach((b) => (b.onclick = async () => { const close = b.dataset.v === '1', s = day.slots.find((x) => x.time === b.dataset.cl); if (close && s.booked && !(await ask(`Închizi ora ${s.time}?`, `${s.booked} ${s.booked === 1 ? 'membru are' : 'membri au'} rezervare. Le anulăm rezervările și primesc notificare.`, 'Închide ora', { danger: true }))) return; await api('/api/admin/slots/slot', { method: 'PUT', body: { date: day.date, time: b.dataset.cl, closed: close } }); toast(close ? 'Ora a fost închisă' : 'Ora a fost redeschisă'); pSlots(); }));
+  $$('[data-del]').forEach((b) => (b.onclick = async () => { if (!(await ask('Anulezi rezervarea?', 'Membrul primește notificare că ora a fost anulată.', 'Anulează rezervarea', { danger: true }))) return; await api('/api/admin/slots/' + b.dataset.del, { method: 'DELETE', body: {} }); toast('Rezervare anulată'); pSlots(); }));
+  $$('[data-add]').forEach((b) => (b.onclick = async () => {
+    const { members } = await api('/api/admin/members'), el = sheet(`<h2>Programează un membru la ${b.dataset.add}</h2><div class="field" style="margin-top:12px"><label>Caută membrul</label><input class="input" id="ms" placeholder="Nume sau telefon…" autocomplete="off"></div><div class="list" id="mr" style="max-height:50vh;overflow:auto"></div>`);
+    const draw = () => { const q = $('#ms', el).value.toLowerCase(); $('#mr', el).innerHTML = members.filter((x) => !q || x.name.toLowerCase().includes(q) || x.phone.replace(/\D/g, '').includes(q.replace(/\D/g, '') || '§')).slice(0, 30).map((x) => `<button class="alert" data-m="${x.id}" style="width:100%;text-align:left;cursor:pointer"><div class="grow"><b>${esc(x.name)}</b><br><small class="muted">${esc(x.phone)}</small></div></button>`).join('') || '<p class="muted">Niciun membru găsit.</p>'; $$('[data-m]', el).forEach((y) => (y.onclick = async () => { try { await api('/api/admin/slots/book', { method: 'POST', body: { memberId: y.dataset.m, date: day.date, time: b.dataset.add } }); closeSheet(); toast('Programat ✅ (a primit notificare)'); pSlots(); } catch (e) { toast(e.message); } })); };
+    $('#ms', el).oninput = draw; draw(); $('#ms', el).focus();
+  }));
+  $('#ssv').onclick = async () => { $('#se').textContent = ''; const fix = (v) => { const m = /^(\d{1,2})[:.,h ]?(\d{2})?$/.exec(String(v).trim()); return m ? String(+m[1]).padStart(2, '0') + ':' + (m[2] || '00') : v; }; const hours = $$('.shr').map((r) => { const [cb, a, b2] = $$('input', r); return { d: +r.dataset.d, on: cb.checked, from: fix(a.value), to: fix(b2.value) }; }); try { await api('/api/admin/slots/config', { method: 'PUT', body: { cap: $('#scap').value, dur: $('#sdur').value, title: $('#stit').value, coach: $('#scoa').value, ahead: $('#sah').value, cancelH: $('#scx').value, perDay: $('#spd').value, needSub: $('#sns').checked, hours } }); toast('Setările programărilor au fost salvate ✅'); pSlots(); } catch (e) { $('#se').textContent = e.message; } };
+}
 async function pChat() {
   M().innerHTML = `<div class="ph"><div><h1>Mesaje</h1><p>Conversațiile cu membrii din aplicație. Când răspunzi, membrul primește notificare pe telefon.</p></div><button class="btn btn-acc" id="nw">${IC('plus', 18)} Conversație nouă</button></div><div class="inbox ${chatSel ? 'open' : ''}" id="ib"><div class="thr" id="thr"></div><div class="conv" id="conv"><div class="muted" style="margin:auto;text-align:center;padding:40px">${IC('chat', 40)}<p>Alege o conversație</p></div></div></div>`;
   const drawThreads = async () => {

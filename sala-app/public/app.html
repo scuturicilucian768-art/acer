@@ -348,6 +348,21 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .freeadd{display:grid;gap:2px;padding:14px;border-radius:18px;border:1px dashed color-mix(in srgb,var(--acc) 45%,var(--line2));background:color-mix(in srgb,var(--acc) 6%,var(--card))}
 .dnote{margin-top:10px;padding:10px 12px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:.9rem;line-height:1.45}
 .orline{display:flex;align-items:center;gap:10px;margin:16px 0 12px;color:var(--faint);font-size:.8rem;font-weight:700}.orline::before,.orline::after{content:"";flex:1;height:1px;background:var(--line2)}
+.slotcard{display:flex;align-items:center;gap:12px;width:100%;margin-top:14px;padding:14px;border-radius:20px;border:1px solid color-mix(in srgb,var(--acc) 40%,var(--line2));background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 12%,var(--card)),var(--card));color:inherit;text-align:left;cursor:pointer}
+.slotcard small{display:block;font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+.slotcard b{display:block;font-size:1rem;margin:2px 0}
+.si{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border-radius:14px;background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc)}.si.sm{width:36px;height:36px;flex-basis:36px;border-radius:12px}
+.sdays{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.sdays::-webkit-scrollbar{display:none}
+.sdays button{flex:0 0 56px;display:grid;justify-items:center;gap:1px;padding:9px 0 8px;border-radius:16px;border:1px solid var(--line2);background:var(--card);color:var(--ink);cursor:pointer}
+.sdays button small{font-size:.66rem;font-weight:800;color:var(--faint);text-transform:uppercase}.sdays button b{font-size:1.2rem}
+.sdays button i{width:6px;height:6px;border-radius:50%;background:var(--acc)}.sdays button i.full{background:var(--red)}.sdays button i.off{background:transparent}
+.sdays button.on{background:color-mix(in srgb,var(--acc) 18%,var(--card));border-color:color-mix(in srgb,var(--acc) 60%,transparent)}
+.slot{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;background:var(--card);border:1px solid var(--line)}
+.slot .stm{display:grid;min-width:52px}.slot .stm b{font-size:1.1rem}.slot .stm small{color:var(--faint);font-size:.72rem;font-weight:700}
+.slot .sl{font-size:.88rem;color:var(--muted)}.slot .sl b{color:var(--ink)}
+.slot.full .sl{color:var(--red);font-weight:800}.slot.few .sl b{color:var(--amber)}.slot.past,.slot.closed{opacity:.45}
+.slot.mine{border-color:color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 8%,var(--card))}.slot.mine .sl{color:var(--acc);font-weight:800}
+.empty-s{padding:26px 16px;text-align:center;border:1px dashed var(--line2);border-radius:18px;color:var(--muted)}
 .gstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
 .gstrip::-webkit-scrollbar{display:none}
 .gstrip button{flex:0 0 76%;aspect-ratio:4/3;border-radius:22px;overflow:hidden;scroll-snap-align:start;position:relative;border:1px solid var(--line2);padding:0;cursor:pointer;background:#000}
@@ -712,6 +727,7 @@ function vHome(v) {
     <div class="card crowd lv${c.level}" style="margin-top:10px"><div class="row"><span class="dot"></span><div class="grow"><small>ACUM LA SALĂ</small><span class="lvl">${LV[c.level]}</span></div><div style="text-align:right"><b style="font-family:var(--fd);font-size:1.6rem" data-count="${c.now}">0</b><br><small style="letter-spacing:0">${c.now === 1 ? 'persoană' : 'persoane'}</small></div></div>
       <div class="hb" aria-hidden="true">${c.hours.map((x) => `<i class="${x.h === curH ? 'on' : ''}" style="height:${Math.max(6, ((x.h === curH ? Math.max(x.n, c.now) : x.n) / mx) * 100)}%">${x.h % 3 === 0 ? `<em>${x.h}</em>` : ''}</i>`).join('')}</div>
       <p class="muted small" style="margin:24px 0 0">${peak.n > 0 ? `De obicei, ${DAYS[c.weekday]} e cel mai aglomerat în jur de ora ${peak.h}:00.` : 'Vino când îți convine.'}</p></div>
+    ${slotCard()}
     <div class="sec"><h2>Motivația zilei</h2></div>
     <div class="quote"><div class="q">„${esc(d.quote)}”</div><div class="a">— ${esc(d.author || 'Anonim')}</div>
       <button class="chal ${d.done ? 'done' : ''}" id="chal"><span class="box">${IC('check', 20)}</span><span class="grow"><small>Provocarea zilei · +5 puncte</small><b>${esc(d.challenge)}</b></span></button></div>
@@ -736,6 +752,7 @@ function vHome(v) {
   const mc = $('#mc');
   mc.onclick = (e) => { if (e.target.closest('#subD')) return openSub(); mc.classList.toggle('flip'); };
   mc.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mc.classList.toggle('flip'); } };
+  if ($('#slotGo')) $('#slotGo').onclick = () => openSlots();
   $('#chal').onclick = async () => { const done = !H.daily.done; await act('/api/me/challenge', { done }); if (done) { confetti(); toast('Bravo! +5 puncte'); } render(); };
   $('#qaC').onclick = () => (H.checkedInToday ? toast(`Check-in făcut azi${H.checkinTime ? ' la ' + H.checkinTime : ''}. Spor!`) : openCheckin());
   $('#hero').onclick = (e) => { if (e.target.closest('#hRk')) return openRanks(); openStudio(e.target.closest('#hEd') ? 'card' : 'fig'); };
@@ -1243,6 +1260,40 @@ function openFoodQuiz() {
   const close = () => { el.remove(); document.body.classList.remove('noscroll'); render(); };
   $('#rx', el).onclick = close; $('#rbk', el).onclick = back;
   ask();
+}
+
+/* ───────── PROGRAMĂRI (locuri limitate pe oră) ───────── */
+const fdShort = (d) => { const x = new Date(d + 'T12:00:00Z'); return ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm'][x.getUTCDay()] + ' ' + x.getUTCDate() + '.' + String(x.getUTCMonth() + 1).padStart(2, '0'); };
+function slotCard() {
+  const c = H.booking; if (!c || !c.on) return '';
+  const nx = (H.slotBk || [])[0];
+  return `<button class="slotcard" id="slotGo"><span class="si">${IC('calendar', 22)}</span><span class="grow"><small>${esc(c.title || 'Programări')}${c.coach ? ' · ' + esc(c.coach) : ''}</small>${nx ? `<b>Ai rezervare: ${fdShort(nx.date)}, ora ${esc(nx.time)}</b><span class="muted small">${(H.slotBk || []).length > 1 ? `+ încă ${(H.slotBk || []).length - 1} · ` : ''}Atinge ca să vezi sau să anulezi</span>` : `<b>Rezervă-ți ora la sală</b><span class="muted small">Vezi câte locuri mai sunt la fiecare oră</span>`}</span>${IC('chev', 18)}</button>`;
+}
+async function openSlots(pickDate) {
+  let D; try { D = await api('/api/me/slots'); } catch (e) { toast(e.status === 404 ? 'Aplicația s-a actualizat. Reîncarcă pagina.' : e.message); return; }
+  let cur = Math.max(0, D.days.findIndex((x) => x.date === pickDate));
+  const el = document.createElement('div'); el.className = 'gal-ov slots'; el.id = 'slots'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Programări');
+  document.body.appendChild(el); document.body.classList.add('noscroll');
+  const close = () => { el.remove(); if (!$('.wo') && !$('#chat') && !$('#sheet')) document.body.classList.remove('noscroll'); render(); };
+  const draw = () => {
+    const c = D.cfg, day = D.days[cur], sub = H.me.subscription, noSub = c.needSub && !['active', 'expiring'].includes(sub && sub.state);
+    el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="sx" aria-label="Înapoi">${IC('back', 20)}</button><div class="grow"><b>${esc(c.title || 'Programări')}</b><div class="muted small">${c.coach ? esc(c.coach) + ' · ' : ''}${c.dur} min · max ${c.cap} ${c.cap === 1 ? 'persoană' : 'persoane'} pe oră</div></div></div>
+      <div class="wrap" style="padding-top:12px;padding-bottom:40px">
+        ${D.mine.length ? `<div class="sec" style="margin-top:0"><h2>Rezervările mele</h2></div><div class="list">${D.mine.map((b) => `<div class="card row" style="padding:12px 14px;gap:12px"><span class="si sm">${IC('check', 18)}</span><div class="grow"><b>${fdShort(b.date)} · ${esc(b.time)}</b><div class="muted small">${b.by === 'sala' ? 'Programat de sală' : 'Rezervat de tine'}</div></div><button class="btn btn-sm btn-ghost" data-cx="${b.id}">Anulează</button></div>`).join('')}</div>` : ''}
+        ${noSub ? `<div class="banner" style="margin-top:12px"><span class="bi" style="color:var(--amber)">${IC('card', 20)}</span><div class="grow"><b>Ai nevoie de abonament activ</b><div class="muted" style="font-size:.84rem">Vezi locurile libere, dar ca să rezervi treci întâi pe la recepție.</div></div></div>` : ''}
+        <div class="sec"><h2>Alege ziua</h2></div>
+        <div class="sdays">${D.days.map((x, i) => { const fr = x.slots.filter((s) => !s.past && !s.closed).reduce((a, s) => a + s.free, 0); return `<button class="${i === cur ? 'on' : ''}" data-sd="${i}"><small>${esc(x.dow.slice(0, 3))}</small><b>${+x.date.slice(8)}</b><i class="${!x.slots.length ? 'off' : fr ? '' : 'full'}"></i></button>`; }).join('')}</div>
+        <div class="sec"><h2>${esc(day.dow)}, ${day.date.split('-').reverse().slice(0, 2).join('.')}</h2><small class="muted">${day.slots.length ? 'locuri libere pe oră' : ''}</small></div>
+        <div class="list">${day.slots.length ? day.slots.map((s) => { const pct = s.cap ? Math.min(1, s.booked / s.cap) : 1, st = s.mine ? 'mine' : s.closed ? 'closed' : s.past ? 'past' : s.free <= 0 ? 'full' : s.free <= Math.max(1, Math.ceil(s.cap * 0.25)) ? 'few' : 'ok';
+            return `<div class="slot ${st}"><div class="stm"><b>${esc(s.time)}</b><small>– ${esc(s.end)}</small></div><div class="grow"><div class="sl">${s.mine ? '✅ Ești programat' : s.closed ? 'Închis de sală' : s.past ? 'A trecut' : s.free <= 0 ? 'Plin' : `<b>${s.free}</b> ${s.free === 1 ? 'loc liber' : 'locuri libere'} din ${s.cap}`}</div><div class="bar-p" style="height:6px;margin-top:6px"><i style="width:${pct * 100}%;background:${st === 'full' ? 'var(--red)' : st === 'few' ? 'var(--amber)' : 'var(--acc)'}"></i></div></div>${s.mine ? `<button class="btn btn-sm btn-ghost" data-cx="${s.mine}">Anulează</button>` : !s.past && !s.closed && s.free > 0 && !noSub ? `<button class="btn btn-sm btn-acc" data-bk="${esc(s.time)}">Rezervă</button>` : ''}</div>`; }).join('') : '<div class="empty-s">Sala nu are programări în ziua asta.</div>'}</div>
+        <p class="muted small" style="margin-top:14px">${IC('info', 14)} ${c.cancelH ? `Poți anula până cu ${c.cancelH} ${c.cancelH === 1 ? 'oră' : 'ore'} înainte, ca să eliberezi locul pentru altcineva.` : 'Poți anula oricând înainte să înceapă ora.'} ${c.perDay === 1 ? 'O rezervare pe zi.' : `Maxim ${c.perDay} rezervări pe zi.`} Primești o notificare cu o oră înainte.</p>
+      </div>`;
+    $('#sx', el).onclick = close;
+    $$('[data-sd]', el).forEach((b) => (b.onclick = () => { cur = +b.dataset.sd; draw(); }));
+    $$('[data-bk]', el).forEach((b) => (b.onclick = async () => { b.disabled = true; try { H = await api('/api/me/slots', { method: 'POST', body: { date: day.date, time: b.dataset.bk } }); D = await api('/api/me/slots'); confetti(); toast(`Gata! Te așteptăm ${fdShort(day.date)} la ${b.dataset.bk} 💪`); draw(); } catch (e) { toast(e.message); D = await api('/api/me/slots').catch(() => D); draw(); } }));
+    $$('[data-cx]', el).forEach((b) => (b.onclick = async () => { if (!b.dataset.ok) { b.dataset.ok = 1; b.textContent = 'Sigur?'; return; } b.disabled = true; try { H = await api('/api/me/slots/' + b.dataset.cx, { method: 'DELETE', body: {} }); D = await api('/api/me/slots'); toast('Rezervarea a fost anulată'); draw(); } catch (e) { toast(e.message); b.disabled = false; } }));
+  };
+  draw();
 }
 
 /* ───────── ANTRENAMENT ───────── */
