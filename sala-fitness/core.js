@@ -166,7 +166,7 @@
   }
 
   const CONSENT_V = 1;
-  const HEALTH_PATHS = ['/api/me/weight', '/api/me/measure', '/api/me/photo', '/api/me/coach', '/api/me/food', '/api/me/generate'];
+  const HEALTH_PATHS = ['/api/me/weight', '/api/me/measure', '/api/me/photo', '/api/me/coach', '/api/me/food', '/api/me/generate', '/api/me/food/kcal', '/api/me/food/swap'];
   /* ---------- Robo: definește scopul fiecărui membru ---------- */
   const GOAL_TXT = { slabire: 'Slăbire', tonifiere: 'Tonifiere', masa: 'Masă musculară', forta: 'Forță', sanatate: 'Sănătate și energie', recuperare: 'Fără dureri' };
   const GOAL_TITLE = { slabire: 'Mai ușor și mai plin de energie', tonifiere: 'Un corp ferm și definit', masa: 'Mai mult mușchi, pas cu pas', forta: 'Mai puternic la fiecare antrenament', sanatate: 'Sănătos și plin de energie', recuperare: 'Spate și articulații fără dureri' };
@@ -246,7 +246,7 @@
     return {
       goal: ['slabire', 'mentinere', 'masa'].includes(b.goal) ? b.goal : 'mentinere', diet: D.DIETS.some((x) => x[0] === b.diet) ? b.diet : 'omnivor',
       likes: list(b.likes, likeKeys), dislikes: list(b.dislikes, likeKeys), allergies: list(b.allergies, D.ALLERGIES.map((x) => x[0])),
-      meals: [3, 4, 5].includes(+b.meals) ? +b.meals : 4, cook: ['zilnic', 'rapid', 'drum'].includes(b.cook) ? b.cook : 'rapid', budget: ['mic', 'normal', 'mare'].includes(b.budget) ? b.budget : 'normal', note: clean(b.note, 200),
+      meals: [3, 4, 5].includes(+b.meals) ? +b.meals : 4, kcal: dietLib().KCALS.includes(+b.kcal) ? +b.kcal : 0, cook: ['zilnic', 'rapid', 'drum'].includes(b.cook) ? b.cook : 'rapid', budget: ['mic', 'normal', 'mare'].includes(b.budget) ? b.budget : 'normal', note: clean(b.note, 200),
     };
   }
   function dietInfo(m, t) {
@@ -451,6 +451,23 @@
         me.robo.push({ id: ctx.uid('rb'), from: 'u', text: tx, at: ctx.nowISO() }, { id: ctx.uid('rb'), from: 'r', text: reply.text, actions: (reply.actions || []).slice(0, 4), chips: (reply.chips || []).slice(0, 4), at: ctx.nowISO() });
         if (me.robo.length > 80) me.robo.splice(0, me.robo.length - 80);
         return ok({ messages: me.robo });
+      }
+      if (p === '/api/me/food/kcal' && m === 'POST') {
+        if (!dietLib().KCALS.includes(+body.kcal)) return no(400, 'Alege între 1400 și 3000 de calorii.');
+        const cur = db.nutrition.find((x) => x.id === me.nutritionId), base = me.food || { goal: +body.kcal <= 1800 ? 'slabire' : +body.kcal >= 2800 ? 'masa' : 'mentinere', meals: cur && [3, 4, 5].includes(cur.meals.length) ? cur.meals.length : 4 };
+        const P = foodInput({ ...base, kcal: +body.kcal }); me.food = { ...P, at: ctx.nowISO() };
+        const plan = dietLib().generate(P, dietInfo(me, t)); savePersonalDiet(db, me, plan, 'auto', ctx.nowISO());
+        return ok({ ...homeFor(db, me, t, ctx), diet: true });
+      }
+      if (p === '/api/me/food/swap' && m === 'POST') {
+        const cur = db.nutrition.find((x) => x.id === me.nutritionId), i = num(body.i, 0, 9);
+        if (!cur || !cur.meals || !cur.meals[i]) return no(400, 'Nu am găsit masa.');
+        const plan = { ...cur, meals: cur.meals.map((x) => ({ ...x })) };
+        const nm = dietLib().swapMeal(plan, i, me.food || {}); if (!nm) return no(400, 'Nu am găsit altă variantă potrivită pentru tine.');
+        plan.meals[i] = nm; const own = cur.owner === me.id;
+        savePersonalDiet(db, me, { ...plan, name: own ? cur.name : cur.name + ' (al meu)', desc: cur.desc }, own ? cur.by || 'auto' : 'auto', own ? cur.at || ctx.nowISO() : ctx.nowISO());
+        if (me.meals && me.meals[t]) { const d = me.meals[t]; if (Array.isArray(d)) me.meals[t] = d.filter((x) => +x !== i); }
+        return ok({ ...homeFor(db, me, t, ctx), swapped: i });
       }
       if (p === '/api/me/food' && m === 'POST') {
         const P = foodInput(body); me.food = { ...P, at: ctx.nowISO() };

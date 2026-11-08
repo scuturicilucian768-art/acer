@@ -48,6 +48,7 @@
     4: [['Mic dejun', '08:00', 'bf', 0.25], ['Prânz', '13:00', 'main', 0.35], ['Gustare', '16:30', 'snack', 0.15], ['Cină', '20:00', 'main', 0.25]],
     5: [['Mic dejun', '07:30', 'bf', 0.22], ['Gustare', '10:30', 'snack', 0.12], ['Prânz', '13:30', 'main', 0.3], ['Înainte de sală', '17:00', 'snack', 0.12], ['Cină', '20:30', 'main', 0.24]],
   };
+  const KCALS = [1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000];
   const r5 = (x) => Math.max(0, Math.round(x / 5) * 5), r10 = (x) => Math.max(0, Math.round(x / 10) * 10);
 
   function allowed(k, P) {
@@ -64,7 +65,7 @@
   function choose(keys, P, used, slot) {
     const ok = keys.filter((k) => F[k] && allowed(k, P));
     if (!ok.length) return null;
-    const sc = (k) => ((P.likes || []).includes(F[k].like) ? 3 : 0) + (used.has(k) ? -4 : 0) + (P.cook === 'drum' && (F[k].at || []).includes('quick') ? 1 : 0) + (P.budget === 'mic' ? (2 - F[k].$) * 0.5 : 0) - keys.indexOf(k) * 0.05;
+    const sc = (k) => ((P.likes || []).includes(F[k].like) ? 3 : 0) + (used.has(k) ? -4 : 0) + (P._avoid && P._avoid.includes(k) ? -9 : 0) + (P.cook === 'drum' && (F[k].at || []).includes('quick') ? 1 : 0) + (P.budget === 'mic' ? (2 - F[k].$) * 0.5 : 0) - keys.indexOf(k) * 0.05;
     return ok.sort((a, b) => sc(b) - sc(a))[0];
   }
   const qty = (k, g) => { const x = F[k]; if (x.u) { const n = Math.max(1, Math.round(g / x.u[0])); return { g: n * x.u[0], txt: `${n} ${n === 1 ? x.u[1] : x.u[2]}${x.u[3] ? ' ' + x.u[3] : ''}` }; } const gg = r10(g); return { g: gg, txt: `${gg} g` }; };
@@ -92,6 +93,7 @@
       if (has('ovaz')) opts.push(['ovaz', (P.likes || []).includes('ovaz') ? 3 : 1]);
       if (has('vaci') || has('iaurt')) opts.push(['vaci', (P.likes || []).includes('lactate') ? 2.5 : 0.8]);
       if (has('tofu')) opts.push(['tofu', (P.likes || []).includes('tofu') ? 2 : 0.3]);
+      const av = P._avoid || []; opts.forEach((o) => { if (av.includes(o[0]) || (o[0] === 'vaci' && av.includes('iaurt'))) o[1] -= 9; });
       opts.sort((a, b) => b[1] - a[1]);
       const pick = (opts[0] || ['ovaz'])[0];
       if (pick === 'oua') {
@@ -145,16 +147,23 @@
   /* ținta de calorii: din profil (dacă îl avem) sau după sex și obiectiv */
   function target(P, info) {
     let kcal = info.kcal;
+    const fixed = KCALS.includes(+P.kcal) ? +P.kcal : 0;
     const goal = P.goal || 'mentinere', F2 = info.sex === 'F';
     if (!kcal) kcal = { slabire: F2 ? 1600 : 2000, mentinere: F2 ? 1900 : 2400, masa: F2 ? 2300 : 2900 }[goal] || 2200;
     else if (info.kcalGoal && info.kcalGoal !== goal) { const base = info.kcalGoal === 'slabire' ? kcal + 450 : info.kcalGoal === 'masa' ? kcal - 300 : kcal; kcal = goal === 'slabire' ? base - 450 : goal === 'masa' ? base + 300 : base; }
+    if (fixed) kcal = fixed;
     kcal = Math.round(kcal / 10) * 10;
     const kg = info.kg || (F2 ? 62 : 78);
     const p = Math.round(Math.min(kg * (goal === 'slabire' ? 2 : 1.8), (kcal * 0.4) / 4)), f = Math.round((kcal * 0.27) / 9), c = Math.max(80, Math.round((kcal - p * 4 - f * 9) / 4));
     return { kcal, p, c, f };
   }
   function generate(P, info) {
-    const T = target(P, info), n = [3, 4, 5].includes(+P.meals) ? +P.meals : 4, used = new Set();
+    let g = gen1(P, info, 1);
+    for (let k = 0; k < 3; k++) { const want = g.target.kcal, r = want / g.kcal; if (Math.abs(1 - r) < 0.035) break; g = gen1(P, info, (g._f || 1) * r); }
+    delete g._f; return g;
+  }
+  function gen1(P, info, fac) {
+    const T0 = target(P, info), T = { kcal: T0.kcal * fac, p: T0.p * Math.min(1, fac), c: T0.c * fac, f: T0.f * fac }, n = [3, 4, 5].includes(+P.meals) ? +P.meals : 4, used = new Set();
     const meals = LAYOUT[n].map(([name, time, type, share], i) => buildMeal(type, { kcal: T.kcal * share, p: T.p * share, c: T.c * share, f: T.f * share }, P, used, i, name, time));
     // dacă au ieșit prea puține calorii, completăm cu fruct și nuci la gustare sau la micul dejun
     const sum = () => meals.reduce((a, m) => a + m.kcal, 0);
@@ -165,15 +174,35 @@
       const nut = ['nuci', 'arahide', 'avocado'].find((k) => allowed(k, P)); if (nut && miss > 60) ex.push([nut, Math.min(45, miss / (F[nut].f * 9 + (F[nut].p + F[nut].c) * 4) * 100)]);
       meals[i] = withName(mealFrom([...m._parts, ...ex], m.name, m.time), (x) => (/^(Omletă|Terci|Tofu făcut)/.test(m.items) ? m.items.split(',')[0] + x.slice(x.indexOf(',')) : x));
     }
-    meals.forEach((m) => delete m._parts);
+    meals.forEach((m) => { m.k = m._parts.map((x) => x[0]); delete m._parts; });
     const tot = (k) => meals.reduce((a, m) => a + m[k], 0);
     const GL = { slabire: 'Slăbire', mentinere: 'Menținere', masa: 'Masă musculară' };
     const likes = (P.likes || []).map((k) => (LIKES.find((x) => x[0] === k) || [k, k])[1].replace(/^\S+ /, '')).slice(0, 4);
     return {
-      name: 'Dieta mea personală', goal: GL[P.goal] || 'Menținere', kcal: tot('kcal'), p: tot('p'), c: tot('c'), f: tot('f'), target: T,
-      desc: `Făcută după ce-ți place${likes.length ? ` (${likes.join(', ').toLowerCase()})` : ''}${(P.allergies || []).length ? `, fără ${P.allergies.map((a) => (ALLERGIES.find((x) => x[0] === a) || [a, a])[1].toLowerCase()).join(', ')}` : ''}. ${n} mese pe zi, ~${T.kcal} kcal. Poți înlocui o carne cu alta și un carbohidrat cu altul, în cantități asemănătoare.`,
+      name: 'Dieta mea personală', goal: GL[P.goal] || 'Menținere', kcal: tot('kcal'), p: tot('p'), c: tot('c'), f: tot('f'), target: T0, _f: fac,
+      desc: `Făcută după ce-ți place${likes.length ? ` (${likes.join(', ').toLowerCase()})` : ''}${(P.allergies || []).length ? `, fără ${P.allergies.map((a) => (ALLERGIES.find((x) => x[0] === a) || [a, a])[1].toLowerCase()).join(', ')}` : ''}. ${n} mese pe zi, ~${T0.kcal} kcal. Poți înlocui o carne cu alta și un carbohidrat cu altul, în cantități asemănătoare.`,
       meals,
     };
   }
-  return { generate, target, LIKES, DIETS, ALLERGIES, FOODS: F };
+
+  /* altă variantă pentru o singură masă, cu aceleași calorii și macro-uri */
+  function mealType(m, i, n) { if (/mic dejun/i.test(m.name)) return 'bf'; if (/gustare|sală|sala/i.test(m.name)) return 'snack'; const L = LAYOUT[n]; return L && L[i] ? L[i][2] : 'main'; }
+  function keysOf(m) { if (Array.isArray(m.k) && m.k.length) return m.k; const t = String(m.items || '').toLowerCase(); return Object.keys(F).filter((k) => t.includes(String(F[k].n || k).toLowerCase().split(' ')[0])); }
+  function swapMeal(plan, i, P) {
+    const old = plan.meals[i]; if (!old) return null;
+    const type = mealType(old, i, plan.meals.length), T = { kcal: old.kcal, p: old.p, c: old.c, f: old.f };
+    const others = new Set(plan.meals.filter((_, j) => j !== i).flatMap(keysOf)), avoid = [...keysOf(old), ...(old.prev || [])];
+    let best = null;
+    for (let a = 0; a < 4 && !best; a++) {
+      const Q = { ...P, _avoid: avoid.slice(0, a ? avoid.length : avoid.length) };
+      const m = buildMeal(type, T, Q, new Set(a < 2 ? others : []), i + a * 3, old.name, old.time);
+      if (m && m.items && m.items !== old.items) best = m; else if (m) avoid.push(...(m._parts || []).map((x) => x[0]));
+    }
+    if (!best) return null;
+    if (T.kcal - best.kcal > 120 && type !== 'bf') { const fr = ['banana', 'mar', 'fructe'].find((k) => allowed(k, P)); if (fr) best = mealFrom([...best._parts, [fr, F[fr].u ? F[fr].u[0] : 150]], old.name, old.time); }
+    best.k = best._parts.map((x) => x[0]); delete best._parts;
+    best.prev = [...new Set([...keysOf(old), ...(old.prev || [])])].slice(-8);
+    return best;
+  }
+  return { generate, target, swapMeal, KCALS, LIKES, DIETS, ALLERGIES, FOODS: F };
 });

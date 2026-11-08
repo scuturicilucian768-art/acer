@@ -329,6 +329,19 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .bnums .input{padding:8px 6px;text-align:center;font-size:.95rem;min-width:0}
 .bld .empty{display:grid;justify-items:center;gap:6px;text-align:center;padding:30px 16px;border:1px dashed var(--line2);border-radius:18px;color:var(--muted)}
 .exg.in{border-color:color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--acc) 10%,var(--card))}
+.kcp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kcp button{display:grid;gap:0;padding:10px 4px;border-radius:14px;border:1px solid var(--line2);background:var(--card);color:var(--ink);font-weight:800;font-size:1.05rem;cursor:pointer}
+.kcp button small{font-size:.66rem;font-weight:700;color:var(--faint)}
+.kcp button.on{background:color-mix(in srgb,var(--acc) 18%,var(--card));border-color:color-mix(in srgb,var(--acc) 60%,transparent);color:var(--acc)}
+.kcp button.busy{animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.5}}
+.mealw{display:grid;gap:0}
+.mealw .meal{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.swapb{border:1px solid var(--line);border-top:0;background:var(--card2);color:var(--acc);font-weight:800;font-size:.84rem;padding:9px 12px;border-radius:0 0 16px 16px;cursor:pointer;text-align:center}
+.swapb:disabled{color:var(--muted)}
+.mealw.swapping .meal{opacity:.5;transition:opacity .2s}
+.mealw.swapped .meal{animation:swapIn .6s ease}
+@keyframes swapIn{from{transform:scale(.97);box-shadow:0 0 0 2px var(--acc)}to{transform:none;box-shadow:none}}
 .gstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
 .gstrip::-webkit-scrollbar{display:none}
 .gstrip button{flex:0 0 76%;aspect-ratio:4/3;border-radius:22px;overflow:hidden;scroll-snap-align:start;position:relative;border:1px solid var(--line2);padding:0;cursor:pointer;background:#000}
@@ -1188,7 +1201,7 @@ function openFoodQuiz() {
     $('#rbk', el).style.display = 'none';
     box.insertAdjacentHTML('beforeend', `<div class="rmsg" id="rty"><span class="rav">${GymFig.robot(28, { talk: true })}</span><div class="bub g"><span class="typing"><i></i><i></i><i></i></span></div></div>`); scroll();
     let r;
-    try { [r] = await Promise.all([api('/api/me/food', { method: 'POST', body: A }), wait(1400)]); }
+    try { [r] = await Promise.all([api('/api/me/food', { method: 'POST', body: { ...A, kcal: (H.me.food && H.me.food.kcal) || 0 } }), wait(1400)]); }
     catch (e) { const ty = $('#rty', box); if (ty) ty.remove(); if (e.status === 404) { box.insertAdjacentHTML('beforeend', rB('Aplicația tocmai s-a actualizat. O reîncarc acum, apoi apasă din nou „Fă-mi dieta”. 🔄')); setTimeout(() => location.reload(), 1800); return; } box.insertAdjacentHTML('beforeend', rB('Ups, n-am reușit: ' + e.message)); bar.innerHTML = '<button class="go" id="rre">Încearcă din nou</button>'; $('#rre', bar).onclick = () => { bar.innerHTML = ''; build(); }; return; }
     const ty = $('#rty', box); if (ty) ty.remove();
     H = r; const n = H.nutrition;
@@ -1502,20 +1515,29 @@ function vFood(v) {
   const water = `<div class="card" style="margin-top:12px"><div class="row"><span style="color:#5FB8FF">${IC('water', 24)}</span><div class="grow"><b>Apă azi</b><div class="muted small">${wt} din 8 pahare · ${(wt * 0.25).toLocaleString('ro-RO')} litri</div></div>${wt >= 8 ? '<span class="chip ok">Bravo!</span>' : ''}</div><div class="water">${Array.from({ length: 8 }, (_, i) => `<button class="${i < wt ? 'on' : ''}" data-w="${i + 1}" aria-label="${i + 1} pahare"></button>`).join('')}</div></div>`;
   const bindW = () => $$('[data-w]', v).forEach((b) => (b.onclick = async () => { const k = +b.dataset.w; await act('/api/me/water', { n: k === wt ? k - 1 : k }); if (k === 8 && wt < 8) confetti(); render(); }));
   const mine = n && n.owner, foodQ = `<div class="robocard" style="margin-top:0;margin-bottom:12px"><div>${GymFig.robot(70)}</div><div><div class="say"><span class="k">Dieta pe gustul tău</span>Spune-mi ce-ți place să mănânci și îți fac o dietă doar pentru tine, cu grame și calorii.</div><button class="btn btn-acc btn-sm" id="fq" style="margin-top:10px">${IC('food', 15)} Fă-mi dieta</button></div></div>`;
-  if (!n) { v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>Alege un plan</h1></div>${foodQ}<p class="muted">Sau alege unul dintre planurile sălii:</p>${water}<div class="list" id="np" style="margin-top:12px"></div>`; drawPlans(); bindW(); $('#fq', v).onclick = openFoodQuiz; return; }
+  const KC = [1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000], ck = (H.me.food && H.me.food.kcal) || (n && n.owner ? KC.reduce((a, x) => (Math.abs(x - n.kcal) < Math.abs(a - n.kcal) ? x : a), KC[0]) : 0);
+  const kpick = `<div class="sec" style="margin-top:14px"><h2>Câte calorii pe zi?</h2><small class="muted">alege și se reface dieta</small></div><div class="kcp" role="group" aria-label="Calorii pe zi">${KC.map((x) => `<button class="${x === ck ? 'on' : ''}" data-kc="${x}" aria-pressed="${x === ck}">${x}<small>kcal</small></button>`).join('')}</div>`;
+  const bindK = () => $$('[data-kc]', v).forEach((b) => (b.onclick = async () => { const k = +b.dataset.kc; if (k === ck && n && n.owner) return; $$('[data-kc]', v).forEach((x) => x.classList.toggle('on', x === b)); b.classList.add('busy'); try { H = await api('/api/me/food/kcal', { method: 'POST', body: { kcal: k } }); toast(`Gata! Dieta ta are acum ~${k} kcal pe zi`); render(); } catch (e) { b.classList.remove('busy'); toast(e.status === 404 ? 'Aplicația s-a actualizat. Reîncarcă pagina.' : e.message); } }));
+  if (!n) { v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>Alege un plan</h1></div>${foodQ}${kpick}<p class="muted">Sau alege unul dintre planurile sălii:</p>${water}<div class="list" id="np" style="margin-top:12px"></div>`; drawPlans(); bindW(); bindK(); $('#fq', v).onclick = openFoodQuiz; return; }
   const kc = n.meals.reduce((a, x, i) => a + (eaten.has(i) ? x.kcal : 0), 0), mac = (k) => n.meals.reduce((a, x, i) => a + (eaten.has(i) ? x[k] : 0), 0);
   v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>${esc(n.name)}</h1></div>${mine ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">${n.by === 'admin' ? `<span class="chip" style="background:rgba(61,220,151,.15);color:var(--green)">${IC('users', 13)} Ajustată de sală</span>` : `<span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">${IC('spark', 13)} Făcută pentru tine</span>`}${H.me.food ? `<span class="chip">${H.me.food.meals} mese pe zi</span>` : ''}</div>` : ''}<p class="muted" style="margin:8px 0 16px">${esc(n.desc || '')}</p>${mine ? '' : foodQ}
     <div class="card row" style="gap:18px">${ring(kc / n.kcal, `<span data-count="${kc}">0</span>`, `din ${n.kcal} kcal`, 130)}<div class="grow"><b>Azi</b><div class="muted" style="font-size:.88rem;margin:4px 0 10px">Bifează mesele pe care le-ai mâncat.</div>${mine ? `<span class="chip acc">Ținta ta: ~${n.kcal} kcal pe zi</span>` : H.kcal ? `<span class="chip acc">Recomandat pentru tine: ~${H.kcal} kcal</span>` : '<span class="chip">Completează greutatea, înălțimea și data nașterii pentru caloriile tale</span>'}</div></div>
     <div class="macro" style="margin-top:12px">${[['p', 'Proteine', '#3DDC97'], ['c', 'Carbohidrați', '#FFC23D'], ['f', 'Grăsimi', '#FF5A7A']].map(([k, l, c]) => `<div><small class="muted" style="font-weight:700">${l}</small><div><b>${mac(k)}</b><span class="muted"> / ${n[k]} g</span></div><div class="bar-p" style="margin-top:8px"><i style="width:${Math.min(1, mac(k) / n[k]) * 100}%;background:${c}"></i></div></div>`).join('')}</div>
+    ${kpick}
     ${water}
-    <div class="sec"><h2>Mesele de azi</h2></div>
-    <div class="list">${n.meals.map((x, i) => `<button class="meal ${eaten.has(i) ? 'done' : ''}" data-m="${i}"><span class="box">${IC('check', 18)}</span><span class="grow"><span class="row"><b class="grow">${esc(x.name)}</b><small class="muted">${esc(x.time)}</small></span><span class="muted" style="display:block;font-size:.9rem;margin:4px 0 6px">${esc(x.items)}</span><small><b>${x.kcal}</b> kcal · P ${x.p} g · C ${x.c} g · G ${x.f} g</small></span></button>`).join('')}</div>
+    <div class="sec"><h2>Mesele de azi</h2><small class="muted">nu-ți place ceva? 🔄</small></div>
+    <div class="list">${n.meals.map((x, i) => `<div class="mealw" id="mw${i}"><button class="meal ${eaten.has(i) ? 'done' : ''}" data-m="${i}"><span class="box">${IC('check', 18)}</span><span class="grow"><span class="row"><b class="grow">${esc(x.name)}</b><small class="muted">${esc(x.time)}</small></span><span class="muted" style="display:block;font-size:.9rem;margin:4px 0 6px">${esc(x.items)}</span><small><b>${x.kcal}</b> kcal · P ${x.p} g · C ${x.c} g · G ${x.f} g</small></span></button><button class="swapb" data-sw="${i}" aria-label="Altă variantă pentru ${esc(x.name)}">🔄 Altă variantă</button></div>`).join('')}</div>
     <div class="sec"><h2>Alte planuri</h2></div><div class="list" id="np"></div>
     ${mine ? `<button class="btn btn-ghost btn-block" id="fq" style="margin-top:14px">${IC('edit', 16)} Schimbă ce-mi place și refă dieta</button>` : ''}
-    <div class="tip" style="margin-top:16px">${IC('info', 18)} ${mine ? 'Poți înlocui o carne cu alta și un carbohidrat cu altul, în cantități asemănătoare. Vrei altceva? Spune-le celor de la sală: ți-o pot ajusta ei.' : 'Planurile sunt orientative. Pentru un plan făcut exact pentru tine, apasă „Fă-mi dieta”.'}</div>`;
+    <div class="tip" style="margin-top:16px">${IC('info', 18)} ${mine ? 'Nu-ți place o masă? Apasă „Altă variantă” și primești alta cu aceleași calorii. Poți schimba oricând și caloriile de mai sus.' : 'Planurile sunt orientative. Pentru un plan făcut exact pentru tine, apasă „Fă-mi dieta”.'}</div>`;
   if ($('#fq', v)) $('#fq', v).onclick = openFoodQuiz;
   $$('[data-m]', v).forEach((b) => (b.onclick = async () => { await act('/api/me/meal', { date: H.today, idx: +b.dataset.m, done: !eaten.has(+b.dataset.m) }); render(); }));
-  drawPlans(); bindW();
+  drawPlans(); bindW(); bindK();
+  $$('[data-sw]', v).forEach((b) => (b.onclick = async () => {
+    const i = +b.dataset.sw, w = $('#mw' + i, v); b.disabled = true; b.textContent = '⏳ Caut altă variantă…'; if (w) w.classList.add('swapping');
+    try { const [r] = await Promise.all([api('/api/me/food/swap', { method: 'POST', body: { i } }), wait(450)]); H = r; render(); const nw = $('#mw' + i); if (nw) { nw.classList.add('swapped'); nw.scrollIntoView({ block: 'nearest' }); } toast(`${n.meals[i].name}: ai o variantă nouă 🍽️`); }
+    catch (e) { b.disabled = false; b.textContent = '🔄 Altă variantă'; if (w) w.classList.remove('swapping'); toast(e.status === 404 ? 'Aplicația s-a actualizat. Reîncarcă pagina.' : e.message); }
+  }));
 }
 function drawPlans() { $('#np').innerHTML = H.nutritionPlans.filter((p) => !H.nutrition || p.id !== H.nutrition.id).map((p) => `<button class="day" data-np="${p.id}" style="background:var(--card)"><span class="n" style="width:auto;padding:0 10px;font-size:.84rem">${p.kcal}</span><span class="grow"><b>${esc(p.name)}</b><br><small class="muted">${esc(p.goal)} · P ${p.p} g · C ${p.c} g · G ${p.f} g</small></span>${IC('chev', 18)}</button>`).join(''); $$('[data-np]').forEach((b) => (b.onclick = async () => { await act('/api/me/nutrition', { nutritionId: b.dataset.np }); toast('Plan schimbat'); render(); })); }
 
