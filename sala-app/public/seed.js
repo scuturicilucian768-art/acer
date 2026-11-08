@@ -80,6 +80,26 @@
     { id: 'gl_sala1', file: 'img/sala-1.jpg', cat: 'sala', caption: 'Sala de forță', order: 1, date: '2026-11-04' },
     { id: 'gl_sala2', file: 'img/sala-2.jpg', cat: 'aparate', caption: 'Aparatele noastre, seara', order: 2, date: '2026-11-04' },
     { id: 'gl_sala3', file: 'img/sala-3.jpg', cat: 'sala', caption: 'Recepția', order: 3, date: '2026-11-04' },
+    { id: 'gl_sala4', file: 'img/sala-4.jpg', cat: 'sala', caption: 'Zona de gantere și cabluri', order: 4, date: '2026-11-08' },
+    { id: 'gl_sala5', file: 'img/sala-5.jpg', cat: 'sala', caption: 'Băncile din fața oglinzii', order: 5, date: '2026-11-08' },
+    { id: 'gl_sala6', file: 'img/sala-6.jpg', cat: 'sala', caption: 'Sala, vedere de ansamblu', order: 6, date: '2026-11-08' },
+    { id: 'gl_sala7', file: 'img/sala-7.jpg', cat: 'aparate', caption: 'Zona de cardio', order: 7, date: '2026-11-08' },
+    { id: 'gl_sala8', file: 'img/sala-8.jpg', cat: 'aparate', caption: 'Aparate cu discuri', order: 8, date: '2026-11-08' },
+    { id: 'gl_sala9', file: 'img/sala-9.jpg', cat: 'aparate', caption: 'Helcometru', order: 9, date: '2026-11-08' },
+    { id: 'gl_sala10', file: 'img/sala-10.jpg', cat: 'sala', caption: 'Peretele Fitness Empire', order: 10, date: '2026-11-08' },
+    { id: 'gl_sala11', file: 'img/sala-11.jpg', cat: 'aparate', caption: 'Aparatul Smith', order: 11, date: '2026-11-08' },
+    { id: 'gl_sala12', file: 'img/sala-12.jpg', cat: 'aparate', caption: 'Aparate pentru picioare', order: 12, date: '2026-11-08' },
+    { id: 'gl_sala13', file: 'img/sala-13.jpg', cat: 'aparate', caption: 'Zona de bicepși', order: 13, date: '2026-11-08' },
+    { id: 'gl_sala14', file: 'img/sala-14.jpg', cat: 'aparate', caption: 'Benzi de alergare', order: 14, date: '2026-11-08' },
+    { id: 'gl_sala15', file: 'img/sala-15.jpg', cat: 'sala', caption: 'Oglinda și ganterele', order: 15, date: '2026-11-08' },
+    { id: 'gl_sala16', file: 'img/sala-16.jpg', cat: 'aparate', caption: 'Cabluri și aparate', order: 16, date: '2026-11-08' },
+    { id: 'gl_sala17', file: 'img/sala-17.jpg', cat: 'aparate', caption: 'Zona de cabluri', order: 17, date: '2026-11-08' },
+    { id: 'gl_sala18', file: 'img/sala-18.jpg', cat: 'sala', caption: 'Sala, de sus', order: 18, date: '2026-11-08' },
+    { id: 'gl_sala19', file: 'img/sala-19.jpg', cat: 'sala', caption: 'Zona de forță', order: 19, date: '2026-11-08' },
+    { id: 'gl_sala20', file: 'img/sala-20.jpg', cat: 'aparate', caption: 'Aparat pentru piept', order: 20, date: '2026-11-08' },
+    { id: 'gl_sala21', file: 'img/sala-21.jpg', cat: 'aparate', caption: 'Aparatele Hoist', order: 21, date: '2026-11-08' },
+    { id: 'gl_sala22', file: 'img/sala-22.jpg', cat: 'aparate', caption: 'Presă pentru umeri', order: 22, date: '2026-11-08' },
+    { id: 'gl_sala23', file: 'img/sala-23.jpg', cat: 'sala', caption: 'Recepția și sala', order: 23, date: '2026-11-08' },
   ];
   const DAILY = [
     ['Disciplina înseamnă să faci ce trebuie, chiar și când nu ai chef.', 'Anonim', 'Bea 2 litri de apă azi'],
@@ -145,7 +165,7 @@
         { id: 'rw_towel', name: 'Prosop cu logo', points: 800, desc: 'Prosop de sală' },
         { id: 'rw_week', name: '7 zile gratuite', points: 1500, desc: 'Se adaugă la abonament' },
       ],
-      redemptions: [], sent: [], gallery: GALLERY.map((x) => ({ ...x })), seedGal: true, admin: null,
+      redemptions: [], sent: [], gallery: GALLERY.map((x) => ({ ...x })), seedGal: 2, admin: null,
     };
   }
 
@@ -216,6 +236,7 @@
     // fără evidență de bani: plățile vechi devin doar istoric de abonamente (fără sume)
     for (const m of db.members || []) if (m.payments) { m.subLog = [...(m.subLog || []), ...m.payments.map((p) => ({ id: p.id, date: p.date, planId: p.planId }))]; delete m.payments; changed = true; }
     if (!db.seedGal) { db.seedGal = true; db.gallery = db.gallery || []; for (const g of GALLERY) if (!db.gallery.some((x) => x.id === g.id)) db.gallery.push({ ...g, order: g.order - 100 }); changed = true; }
+    if ((db.seedGal | 0) < 2) { db.seedGal = 2; db.gallery = db.gallery || []; for (const g of GALLERY) if (!db.gallery.some((x) => x.id === g.id)) db.gallery.push({ ...g, order: g.order - 100 }); changed = true; }
     // numărul nou al sălii (și în bazele de date mai vechi)
     if (db.settings && db.settings.phone === '0785 769 200') { db.settings.phone = '0772 232 960'; db.settings.whatsapp = '40772232960'; changed = true; }
     for (const e of EXERCISES) if (!db.seedEx.includes(e.id)) { db.seedEx.push(e.id); if (!db.exercises.some((x) => x.id === e.id)) db.exercises.push(JSON.parse(JSON.stringify(e))); changed = true; }
