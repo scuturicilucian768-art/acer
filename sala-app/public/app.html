@@ -1359,7 +1359,7 @@ function openMachine(id) {
     ${e && (e.steps || []).length ? `<h3>2. Execuția</h3><ol class="msteps">${e.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
     ${(m.mistakes || []).length ? `<h3>Greșeli de evitat</h3><ul class="msteps bad">${m.mistakes.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
     ${e && e.tip ? `<div class="tip" style="margin-top:12px">${IC('info', 18)} ${esc(e.tip)}</div>` : ''}
-    ${e ? `<div class="row" style="gap:8px;margin-top:14px"><button class="btn btn-ghost grow" id="mEx">Recordurile mele aici</button><button class="btn btn-acc grow" id="mVis">📷 Robo te vede</button></div>` : ''}`);
+    ${e ? `<div class="row" style="gap:8px;margin-top:14px"><button class="btn btn-ghost grow" id="mEx">▶ Vezi cum se folosește</button><button class="btn btn-acc grow" id="mVis">📷 Robo te vede</button></div>` : ''}`);
   if ($('#mEx', el)) $('#mEx', el).onclick = () => { closeSheet(); setTimeout(() => openEx(m.ex), 260); };
   if ($('#mVis', el)) $('#mVis', el).onclick = () => { closeSheet(); setTimeout(() => openVision(), 260); };
 }
