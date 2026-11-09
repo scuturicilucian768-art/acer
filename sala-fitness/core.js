@@ -98,7 +98,7 @@
   // rolul fiecărui exercițiu în antrenament: [slot, regiune]
   const EXMETA = {
     ex_squat: ['quad', 'legs'], ex_goblet: ['quad', 'legs'], ex_legpress: ['quad', 'legs'], ex_lunge: ['quad2', 'legs'], ex_rdl: ['hinge', 'legs'], ex_hipthrust: ['glute', 'legs'],
-    ex_m_incpress: ['pushH', 'chest'], ex_m_decpress: ['pushH', 'chest'], ex_bench: ['pushH', 'chest'], ex_dbpress: ['pushH', 'chest'], ex_pushup: ['pushH', 'chest'], ex_fly: ['chestIso', 'chest'], ex_dips: ['tri', 'arms'],
+    ex_m_pecfly: ['chestIso', 'chest'], ex_m_incpress: ['pushH', 'chest'], ex_m_decpress: ['pushH', 'chest'], ex_bench: ['pushH', 'chest'], ex_dbpress: ['pushH', 'chest'], ex_pushup: ['pushH', 'chest'], ex_fly: ['chestIso', 'chest'], ex_dips: ['tri', 'arms'],
     ex_pullup: ['pullV', 'back'], ex_latpull: ['pullV', 'back'], ex_row: ['pullH', 'back'], ex_cablerow: ['pullH', 'back'],
     ex_ohp: ['pushV', 'shoulders'], ex_lateral: ['delt', 'shoulders'], ex_curl: ['bi', 'arms'], ex_triceps: ['tri', 'arms'],
     ex_plank: ['core', 'core'], ex_crunch: ['core', 'core'], ex_legraise: ['core', 'core'], ex_bike: ['cardio', 'cardio'], ex_treadmill: ['cardio', 'cardio'], ex_rowerg: ['cardio', 'cardio'],
