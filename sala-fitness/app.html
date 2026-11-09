@@ -371,7 +371,11 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .mcard{flex:0 0 46%;max-width:200px;scroll-snap-align:start;display:grid;gap:4px;text-align:left;padding:0 0 10px;border-radius:20px;overflow:hidden;background:var(--card);border:1px solid var(--line2);color:inherit;cursor:pointer}
 .mcard .mimg{display:block;aspect-ratio:3/4;overflow:hidden;background:#000}.mcard img{width:100%;height:100%;object-fit:cover;display:block}
 .mcard b{padding:6px 10px 0;font-size:.92rem;line-height:1.2}.mcard small{padding:0 10px;color:var(--faint);font-size:.74rem;line-height:1.25}
-.mhero{border-radius:20px;overflow:hidden;max-height:340px;background:#000;display:grid;place-items:center}.mhero img{width:100%;max-height:340px;object-fit:cover;display:block}
+.mtop{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mtop.one{grid-template-columns:1fr}
+.mhero,.msim{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:3/4;background:#000;border:1px solid var(--line2)}.mhero img{width:100%;height:100%;object-fit:cover;display:block}
+.msim{background:radial-gradient(120% 90% at 50% 70%,color-mix(in srgb,var(--acc) 16%,var(--card)),var(--card));display:grid;place-items:center}.msim .stage{width:100%;margin:0;background:none;border:0}
+.mhero span,.msim span{position:absolute;left:8px;bottom:8px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.72);color:#fff;font-size:.72rem;font-weight:800}.msim span{color:var(--acc)}
+.mplay{position:absolute;left:8px;right:8px;bottom:8px;padding:7px 8px;border-radius:12px;background:var(--acc);color:var(--acc-ink,#0B0B0F);font-size:.74rem;font-weight:900;text-align:center;box-shadow:0 6px 18px -6px rgba(0,0,0,.6)}.mcard .mimg{position:relative}
 .msteps{margin:8px 0 0;padding-left:20px;display:grid;gap:6px;line-height:1.45}.msteps.bad li::marker{content:"✕  ";color:var(--red)}
 .mlink{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:8px 12px 8px 8px;border-radius:16px;border:1px solid var(--line2);background:var(--card);color:inherit;text-align:left;cursor:pointer}
 .mlink img{width:48px;height:56px;object-fit:cover;border-radius:10px}.mlink small{display:block;font-size:.7rem;font-weight:800;color:var(--acc);text-transform:uppercase;letter-spacing:.1em}
@@ -1341,16 +1345,16 @@ const machFor = (exId) => MACH.find((m) => m.ex === exId);
 function machSection() {
   if (!MACH.length) return '';
   return `<div class="sec"><h2>Aparatele sălii</h2><small class="muted">${MACH.length} aparate</small></div>
-    <p class="muted small" style="margin:-6px 0 12px">Aparatele reale de la ${esc(S().name)}: cum le reglezi, cum lucrezi corect și ce să eviți. Robo îți face programul doar cu ele.</p>
-    <div class="mstrip">${MACH.map((m) => `<button class="mcard" data-mach="${m.id}"><span class="mimg"><img src="${esc(galUrl(m.photo || ''))}" alt="${esc(m.name)}" loading="lazy"></span><b>${esc(m.short || m.name)}</b><small>${esc(m.muscles || '')}</small></button>`).join('')}</div>`;
+    <p class="muted small" style="margin:-6px 0 12px">Apasă pe un aparat ca să vezi cum se folosește: omulețul îți arată mișcarea, plus reglajul și greșelile de evitat.</p>
+    <div class="mstrip">${MACH.map((m) => `<button class="mcard" data-mach="${m.id}"><span class="mimg"><img src="${esc(galUrl(m.photo || ''))}" alt="${esc(m.name)}" loading="lazy"><span class="mplay">▶ Vezi cum se folosește</span></span><b>${esc(m.short || m.name)}</b><small>${esc(m.muscles || '')}</small></button>`).join('')}</div>`;
 }
 function openMachine(id) {
   const m = MACH.find((x) => x.id === id); if (!m) return;
   const e = m.ex ? exById(m.ex) : null;
-  const el = sheet(`<div class="mhero"><img src="${esc(galUrl(m.photo || ''))}" alt="${esc(m.name)}"></div>
+  const el = sheet(`<div class="mtop ${e ? '' : 'one'}"><div class="mhero"><img src="${esc(galUrl(m.photo || ''))}" alt="${esc(m.name)}"><span>Aparatul din sală</span></div>${e ? `<div class="msim"><div class="stage">${GymFig.figure(e)}</div><span>▶ Așa se face</span></div>` : ''}</div>
     <h2 style="margin:12px 0 4px">${esc(m.short || m.name)}</h2><p class="muted small" style="margin:0 0 8px">${esc(m.name)}</p>
     <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip acc">${esc(m.muscles || (e ? e.muscle : ''))}</span>${e ? `<span class="chip">${esc(e.level)}</span>` : ''}</div>
-    ${e ? `<h3>Simulator: așa se face</h3><div class="stage sim" style="margin-top:8px">${GymFig.figure(e)}</div><p class="muted small" style="margin:6px 0 0;text-align:center">Urmărește omulețul: verde e ce lucrează. Mișcarea completă, lent la revenire.</p>` : ''}
+    ${e ? `<p class="muted small" style="margin:8px 0 0">Urmărește omulețul: verde e ce lucrează. Mișcarea completă, lent la revenire.</p>` : ''}
     ${(m.setup || []).length ? `<h3>1. Reglează aparatul</h3><ol class="msteps">${m.setup.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
     ${e && (e.steps || []).length ? `<h3>2. Execuția</h3><ol class="msteps">${e.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
     ${(m.mistakes || []).length ? `<h3>Greșeli de evitat</h3><ul class="msteps bad">${m.mistakes.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
