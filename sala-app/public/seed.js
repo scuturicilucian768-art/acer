@@ -40,6 +40,8 @@
     ['ex_wallangel', 'Îngerul pe perete', 'Recuperare', 'Fără echipament', 'ușor', ['Spatele, capul și fesierii lipiți de perete.', 'Brațele în formă de „W”, cu coatele și dosul palmelor pe perete.', 'Glisează brațele în sus, cât poți fără să se dezlipească de perete.', 'Coboară încet înapoi în „W”.'], 'Deschide pieptul și trezește mușchii dintre omoplați.'],
     ['ex_facepull', 'Face pull la cablu', 'Umeri', 'Cablu', 'ușor', ['Scripetele la înălțimea feței, cu funia.', 'Trage funia spre față, cu coatele sus și în afară.', 'Strânge omoplații 1 secundă, apoi revino controlat.'], 'Greutate mică, mișcare curată. Excelent pentru umeri sănătoși și postură.'],
     ['ex_wallsit', 'Scaunul la perete', 'Picioare', 'Fără echipament', 'ușor', ['Spatele lipit de perete, picioarele la un pas în față.', 'Coboară până când genunchii sunt la 60–90°, cât nu te doare.', 'Ține poziția 20–45 de secunde, respirând normal.'], 'Întărește coapsele fără să încarce genunchii cu mișcare.'],
+    ['ex_m_incpress', 'Împins înclinat la aparat', 'Piept', 'Aparat', 'ușor', ['Reglează scaunul: mânerele să fie la nivelul pieptului de sus.', 'Spatele lipit de spătar, picioarele pe podea, omoplații strânși.', 'Împinge mânerele în sus și în față până aproape întinzi brațele.', 'Revino încet, în 2–3 secunde, până simți întinderea în piept.'], 'Nu bloca coatele sus și nu desprinde spatele de spătar.'],
+    ['ex_m_decpress', 'Împins declinat la aparat', 'Piept', 'Aparat', 'ușor', ['Reglează scaunul: mânerele să fie la nivelul pieptului de jos.', 'Spatele lipit de spătar, pieptul sus, umerii trași în spate.', 'Împinge mânerele în față și ușor în jos, până aproape întinzi brațele.', 'Revino controlat, fără să lași greutățile să se lovească.'], 'Lucrează mai ales partea de jos a pieptului. Nu ridica umerii spre urechi.'],
   ].map(([id, name, muscle, equipment, level, steps, tip]) => ({ id, name, muscle, equipment, level, steps, tip, video: yt(name) }));
 
   const it = (ex, sets, reps, kg, rest) => ({ ex, sets, reps, kg: kg || 0, rest: rest || 90 });
@@ -154,7 +156,7 @@
         { id: 'pl_year', name: 'Anual', price: 1400, days: 365, desc: 'Cel mai bun preț', active: true },
         { id: 'pl_day', name: 'O zi', price: 25, days: 1, desc: 'Intrare o singură zi', active: true },
       ],
-      members: [], exercises: EXERCISES, programs: PROGRAMS, nutrition: NUTRITION,
+      members: [], exercises: EXERCISES, programs: PROGRAMS, nutrition: NUTRITION, machines: MACHINES.map((x) => JSON.parse(JSON.stringify(x))), seedMach: MACHINES.map((x) => x.id),
       dailyLib: DAILY, daily: {},
       announcements: [],
       services: [
@@ -231,6 +233,11 @@
     db.bookings.push({ id: ctx.uid('bk'), memberId: db.members[1].id, serviceId: 'sv_pt', date: add(t, 1), time: '18:00', status: 'pending', note: 'Vreau să învăț corect genuflexiunile', createdAt: t });
     db.bookings.push({ id: ctx.uid('bk'), memberId: db.members[0].id, serviceId: 'sv_eval', date: add(t, 2), time: '17:00', status: 'confirmed', note: '', createdAt: t });
   }
+  // aparatele reale din sală (poză, cum se reglează, greșeli); Robo face programe doar cu ele + gantere/bară/corp
+  const MACHINES = [
+    { id: 'ap_incpress', name: 'Nautilus Next Generation Incline Chest Press', short: 'Împins înclinat (Nautilus)', photo: 'img/aparat-1.jpg', ex: 'ex_m_incpress', muscles: 'Piept (partea de sus), umeri, triceps', setup: ['Scaunul: mânerele trebuie să ajungă la nivelul pieptului de sus când stai jos.', 'Greutatea: pune știftul în placa dorită. Începe ușor, cu 2–3 plăci.', 'Pune picioarele pe pedala verde de jos ca să aduci mânerele în față fără efort.'], mistakes: ['Desprinzi spatele de spătar ca să împingi mai greu.', 'Blochezi coatele la capăt.', 'Lași greutatea să cadă repede la revenire.'], order: 1 },
+    { id: 'ap_decpress', name: 'Nautilus Next Generation Decline Chest Press', short: 'Împins declinat (Nautilus)', photo: 'img/aparat-2.jpg', ex: 'ex_m_decpress', muscles: 'Piept (partea de jos), triceps, umeri', setup: ['Scaunul: mânerele trebuie să fie la nivelul pieptului de jos.', 'Greutatea: pune știftul în placa dorită. Începe ușor.', 'Folosește pedala verde de jos ca să aduci mânerele în poziția de start.'], mistakes: ['Ridici umerii spre urechi.', 'Împingi doar cu brațele, fără să strângi pieptul.', 'Mișcări scurte și rapide în loc de complete și controlate.'], order: 2 },
+  ];
   // bazele de date mai vechi primesc exercițiile noi (o singură dată; dacă sala le șterge, nu mai revin)
   function upgrade(db) {
     db.seedEx = db.seedEx || db.exercises.map((e) => e.id);
@@ -244,7 +251,9 @@
     // numărul nou al sălii (și în bazele de date mai vechi)
     if (db.settings && db.settings.phone === '0785 769 200') { db.settings.phone = '0772 232 960'; db.settings.whatsapp = '40772232960'; changed = true; }
     for (const e of EXERCISES) if (!db.seedEx.includes(e.id)) { db.seedEx.push(e.id); if (!db.exercises.some((x) => x.id === e.id)) db.exercises.push(JSON.parse(JSON.stringify(e))); changed = true; }
+    db.machines = db.machines || []; db.seedMach = db.seedMach || [];
+    for (const x of MACHINES) if (!db.seedMach.includes(x.id)) { db.seedMach.push(x.id); if (!db.machines.some((y) => y.id === x.id)) db.machines.push(JSON.parse(JSON.stringify(x))); changed = true; }
     return changed;
   }
-  return { base, demo, upgrade, EXERCISES, PROGRAMS, NUTRITION, DAILY };
+  return { base, demo, upgrade, MACHINES, EXERCISES, PROGRAMS, NUTRITION, DAILY };
 });

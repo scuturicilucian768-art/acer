@@ -98,7 +98,7 @@
   // rolul fiecărui exercițiu în antrenament: [slot, regiune]
   const EXMETA = {
     ex_squat: ['quad', 'legs'], ex_goblet: ['quad', 'legs'], ex_legpress: ['quad', 'legs'], ex_lunge: ['quad2', 'legs'], ex_rdl: ['hinge', 'legs'], ex_hipthrust: ['glute', 'legs'],
-    ex_bench: ['pushH', 'chest'], ex_dbpress: ['pushH', 'chest'], ex_pushup: ['pushH', 'chest'], ex_fly: ['chestIso', 'chest'], ex_dips: ['tri', 'arms'],
+    ex_m_incpress: ['pushH', 'chest'], ex_m_decpress: ['pushH', 'chest'], ex_bench: ['pushH', 'chest'], ex_dbpress: ['pushH', 'chest'], ex_pushup: ['pushH', 'chest'], ex_fly: ['chestIso', 'chest'], ex_dips: ['tri', 'arms'],
     ex_pullup: ['pullV', 'back'], ex_latpull: ['pullV', 'back'], ex_row: ['pullH', 'back'], ex_cablerow: ['pullH', 'back'],
     ex_ohp: ['pushV', 'shoulders'], ex_lateral: ['delt', 'shoulders'], ex_curl: ['bi', 'arms'], ex_triceps: ['tri', 'arms'],
     ex_plank: ['core', 'core'], ex_crunch: ['core', 'core'], ex_legraise: ['core', 'core'], ex_bike: ['cardio', 'cardio'], ex_treadmill: ['cardio', 'cardio'], ex_rowerg: ['cardio', 'cardio'],
@@ -123,13 +123,16 @@
     const pains = (Array.isArray(b.pains) ? b.pains : []).filter((p) => PAIN[p]), strong = b.painLevel === 'puternica', moderate = b.painLevel === 'moderata';
     const banned = new Set(pains.flatMap((p) => [...PAIN[p].avoid, ...(moderate || strong || goal === 'recuperare' ? PAIN[p].heavyAvoid : [])]));
     if (strong) for (const e of db.exercises) if (!REHAB_REPS[e.id] && e.muscle !== 'Cardio') banned.add(e.id);
+    // doar aparatele care există în sală (exercițiile la aparat fără aparat în listă nu se dau)
+    if (db.settings.onlyGym !== false && (db.machines || []).length) { const have = new Set(db.machines.map((x) => x.ex).filter(Boolean)); for (const e of db.exercises) if (e.equipment === 'Aparat' && e.muscle !== 'Cardio' && !have.has(e.id)) banned.add(e.id); }
     const days = Math.round(num(b.days, 2, 6) || 3), level = ['incepator', 'mediu', 'avansat'].includes(b.level) ? b.level : 'incepator';
     const home = b.place === 'acasa', minutes = num(b.minutes, 20, 120) || 45, focus = FOCUS[b.focus] ? b.focus : '';
     const fits = (e) => EXMETA[e.id] && !banned.has(e.id) && (!home || ['Fără echipament', 'Gantere'].includes(e.equipment)) && (level !== 'incepator' || e.level !== 'greu');
     const pool = db.exercises.filter(fits), bySlot = {};
-    for (const e of pool) { const k = EXMETA[e.id][0]; (bySlot[k] = bySlot[k] || []).push(e); }
+    const hasM = new Set((db.machines || []).map((x) => x.ex));
+    for (const e of pool.slice().sort((a, b) => hasM.has(b.id) - hasM.has(a.id))) { const k = EXMETA[e.id][0]; (bySlot[k] = bySlot[k] || []).push(e); }
     const alt = { quad2: 'quad', glute: 'hinge', chestIso: 'pushH', pullV: 'pullH', delt: 'pushV', tri: 'pushH', bi: 'pullH', hinge: 'glute', pushV: 'pushH' };
-    const pick = (slot, i, used) => { let list = bySlot[slot] || bySlot[alt[slot]] || []; const fresh = list.filter((e) => !used.has(e.id)); if (fresh.length) list = fresh; return list.length ? list[i % list.length] : null; };
+    const pick = (slot, i, used) => { let list = bySlot[slot] || bySlot[alt[slot]] || []; const fresh = list.filter((e) => !used.has(e.id)); if (fresh.length) list = fresh; const mm = list.filter((e) => hasM.has(e.id)); if (mm.length) list = mm; return list.length ? list[i % list.length] : null; };
     let plan;
     if (days === 2) plan = [SPLITS.full[0], SPLITS.full[1]];
     else if (days === 3) plan = goal === 'masa' && level !== 'incepator' ? [SPLITS.push, SPLITS.pull, SPLITS.legs] : SPLITS.full;
@@ -468,7 +471,7 @@
     }
     // galeria sălii: publică (se vede și pe pagina de logare)
     if (p === '/api/gallery' && m === 'GET') return ok({ sections: GALLERY_SECTIONS, photos: (db.gallery || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0)) });
-    if (p === '/api/exercises' && m === 'GET') { if (!s) return no(401, 'Intră în cont.'); return ok({ exercises: db.exercises }); }
+    if (p === '/api/exercises' && m === 'GET') { if (!s) return no(401, 'Intră în cont.'); return ok({ exercises: db.exercises, machines: (db.machines || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0)) }); }
 
     /* ======== MEMBRU ======== */
     if (p.startsWith('/api/me')) {
@@ -784,6 +787,7 @@
       if (body.accent && /^#[0-9a-f]{6}$/i.test(body.accent)) st.accent = body.accent;
       if (body.dailyHour !== undefined) st.dailyHour = num(body.dailyHour, 0, 23) || 0;
       if (body.autoIdle !== undefined) st.autoIdle = body.autoIdle === true || body.autoIdle === 'true';
+      if (body.onlyGym !== undefined) st.onlyGym = body.onlyGym === true || body.onlyGym === 'true';
       if (body.signup !== undefined) st.signup = body.signup === true || body.signup === 'true';
       if (body.idleHour !== undefined) st.idleHour = num(body.idleHour, 6, 22) || 17;
       if (body.idleText7 !== undefined) st.idleText7 = text(body.idleText7, 400);
@@ -875,12 +879,13 @@
       announcements: ['an', (b, x) => { x.title = clean(b.title, 100); x.body = text(b.body, 1500); x.type = ['program', 'noutate', 'oferta', 'eveniment'].includes(b.type) ? b.type : 'noutate'; x.date = isDate(b.date) ? b.date : x.date || ctx.today(); x.until = isDate(b.until) ? b.until : ''; x.pinned = !!b.pinned; if (!x.title || !x.body) return 'Completează titlul și textul.'; }],
       services: ['sv', (b, x) => { x.name = clean(b.name, 80); x.price = num(b.price, 0, 1e6) || 0; x.duration = num(b.duration, 10, 300) || 60; x.desc = clean(b.desc, 160); if (!x.name) return 'Scrie numele.'; }],
       rewards: ['rw', (b, x) => { x.name = clean(b.name, 80); x.points = num(b.points, 1, 1e6) || 100; x.desc = clean(b.desc, 120); if (!x.name) return 'Scrie numele.'; }],
+      machines: ['ap', (b, x) => { x.name = clean(b.name, 90); x.short = clean(b.short, 60); x.photo = clean(b.photo, 200); x.ex = db.exercises.some((e) => e.id === b.ex) ? b.ex : ''; x.muscles = clean(b.muscles, 120); const ls = (v) => (Array.isArray(v) ? v : String(v || '').split('\n')).map((y) => clean(y, 220)).filter(Boolean).slice(0, 10); x.setup = ls(b.setup); x.mistakes = ls(b.mistakes); x.order = num(b.order, 0, 999) || 0; if (!x.name) return 'Scrie numele aparatului.'; }],
       exercises: ['ex', (b, x) => { x.name = clean(b.name, 80); x.muscle = clean(b.muscle, 40); x.equipment = clean(b.equipment, 40); x.level = clean(b.level, 20); x.steps = (Array.isArray(b.steps) ? b.steps : String(b.steps || '').split('\n')).map((y) => clean(y, 300)).filter(Boolean).slice(0, 12); x.tip = clean(b.tip, 300); x.video = /^https?:\/\//.test(b.video || '') ? clean(b.video, 400) : 'https://www.youtube.com/results?search_query=' + encodeURIComponent(x.name + ' executie corecta'); if (!x.name) return 'Scrie numele.'; }],
       programs: ['pr', (b, x) => { x.name = clean(b.name, 80); x.goal = clean(b.goal, 60); x.level = clean(b.level, 20); x.desc = text(b.desc, 500); x.days = (Array.isArray(b.days) ? b.days : []).slice(0, 7).map((d) => ({ name: clean(d.name, 60), items: (Array.isArray(d.items) ? d.items : []).slice(0, 20).filter((i) => db.exercises.some((e) => e.id === i.ex)).map((i) => ({ ex: i.ex, sets: num(i.sets, 1, 20) || 3, reps: clean(i.reps, 20) || '10', kg: num(i.kg, 0, 1000) || 0, rest: num(i.rest, 0, 600) || 90 })) })).filter((d) => d.name); x.daysPerWeek = x.days.length; if (!x.name || !x.days.length) return 'Scrie numele și cel puțin o zi.'; }],
       nutrition: ['nu', (b, x) => { x.name = clean(b.name, 80); x.goal = clean(b.goal, 60); x.desc = text(b.desc, 400); x.meals = (Array.isArray(b.meals) ? b.meals : []).slice(0, 8).map((y) => ({ name: clean(y.name, 40), time: clean(y.time, 10), items: text(y.items, 300), kcal: num(y.kcal, 0, 5000) || 0, p: num(y.p, 0, 500) || 0, c: num(y.c, 0, 800) || 0, f: num(y.f, 0, 400) || 0 })).filter((y) => y.name); ['kcal', 'p', 'c', 'f'].forEach((k) => (x[k] = x.meals.reduce((a, y) => a + y[k], 0))); if (!x.name || !x.meals.length) return 'Scrie numele și cel puțin o masă.'; }],
     };
-    if ((r = /^\/api\/admin\/(plans|announcements|services|rewards|exercises|programs|nutrition)(?:\/(\w+))?$/.exec(p))) {
-      const [, key, id] = r, [pref, fill] = LISTS[key], list = db[key];
+    if ((r = /^\/api\/admin\/(plans|announcements|services|rewards|exercises|programs|nutrition|machines)(?:\/(\w+))?$/.exec(p))) {
+      const [, key, id] = r, [pref, fill] = LISTS[key], list = (db[key] = db[key] || []);
       if (!id && m === 'GET') return ok({ [key]: key === 'nutrition' || key === 'programs' ? list.filter((y) => !y.owner) : list });
       if (!id && m === 'POST') { const x = { id: ctx.uid(pref) }; const e = fill(body, x); if (e) return no(400, e); list.push(x); if (key === 'announcements' && body.notify) notify(db, ctx, targetMembers(db, t, 'active'), x.title, x.body.slice(0, 180), 'anunt'); return ok({ item: x }, 201); }
       const x = list.find((y) => y.id === id); if (!x) return no(404, 'Nu există.');

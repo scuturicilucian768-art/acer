@@ -58,6 +58,8 @@ body{min-height:100vh}
 .ed-meal{display:grid;grid-template-columns:1fr 80px 2fr 70px 60px 60px 60px 36px;gap:6px;align-items:center;margin-bottom:6px}
 .ed-item .input,.ed-meal .input{padding:9px 10px;font-size:.88rem}
 .rvbar{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;color:inherit;padding:4px 6px;border-radius:8px;cursor:pointer;font-weight:700}.rvbar.on,.rvbar:hover{background:var(--card2)}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}.mrow{display:flex;gap:12px;align-items:center;text-align:left;color:inherit;cursor:pointer;padding:10px}.mrow img{width:72px;height:92px;object-fit:cover;border-radius:12px;background:#000}
+.mph{width:120px;height:150px;border-radius:14px;overflow:hidden;background:var(--bg);border:1px dashed var(--line2);display:grid;place-items:center}.mph img{width:100%;height:100%;object-fit:cover}
 .pp{display:inline-flex;align-items:center;gap:4px;margin:0 8px 4px 0;padding:3px 4px 3px 10px;border-radius:999px;background:var(--card2);font-weight:600}.lnk{border:0;background:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:2px 6px;border-radius:999px}.lnk:hover{color:var(--red);background:rgba(229,72,77,.12)}
 .pill-tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px;width:max-content;max-width:100%;overflow:auto;margin-bottom:16px}
 .pill-tabs button{border:0;background:none;padding:9px 14px;border-radius:10px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
@@ -165,6 +167,7 @@ body{min-height:100vh}
       <button data-p="notify" data-i="bell">Notificări</button>
       <button data-p="daily" data-i="spark">Motivația zilei</button>
       <button data-p="programs" data-i="dumbbell">Antrenamente</button>
+      <button data-p="machines" data-i="scan">Aparate</button>
       <button data-p="nutrition" data-i="food">Nutriție</button>
       <button data-p="gallery" data-i="camera">Galerie foto</button>
       <button data-p="ann" data-i="megaphone">Anunțuri</button>
@@ -178,11 +181,11 @@ body{min-height:100vh}
   </div>
 </div>
 <script src="diet.e2c419a4.js"></script>
-<script src="core.6e7bb0b0.js"></script>
-<script src="seed.d978784b.js"></script>
+<script src="core.9f6f2a46.js"></script>
+<script src="seed.e5bb71b2.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
-<script src="fig.97d92ada.js"></script>
+<script src="fig.b5b0033a.js"></script>
 <script src="qr.40840928.js"></script>
 <script>
 let page = 'dash', O = null, CFG = null;
@@ -223,12 +226,12 @@ function showLogin() {
     <div class="field"><label>Parola</label><input class="input" type="password" id="pw" autocomplete="current-password" required></div><p class="err" id="le"></p><button class="btn btn-acc btn-block">Intră</button>${window.GymDemo ? '<p class="tip" style="margin-top:14px">Demo: parola <b>admin</b></p>' : ''}</form></div>`;
   $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/api/admin/login', { method: 'POST', body: { password: $('#pw').value } }); boot(); } catch (er) { $('#le').textContent = er.message; } };
 }
-const TITLES = { reviews: 'Evaluări', slots: 'Programări', gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
+const TITLES = { machines: 'Aparatele sălii', reviews: 'Evaluări', slots: 'Programări', gallery: 'Galerie foto', dash: 'Panou', desk: 'Recepție', chat: 'Mesaje', reports: 'Rapoarte', members: 'Membri', notify: 'Notificări', daily: 'Motivația zilei', programs: 'Antrenamente', nutrition: 'Nutriție', ann: 'Anunțuri', rewards: 'Premii', settings: 'Setări' };
 function go(p) {
   page = TITLES[p] ? p : 'dash'; history.replaceState(null, '', '#' + page);
   $$('.side [data-p]').forEach((b) => b.classList.toggle('on', b.dataset.p === page)); $('#mtitle').textContent = TITLES[page]; $('#side').classList.remove('open');
   M().innerHTML = '<div class="skel" style="height:60px;margin-bottom:14px"></div><div class="skel" style="height:220px"></div>'; M().classList.remove('stagger'); clearInterval(window._poll); window._quiet = null; window._convReload = null; stopScan();
-  const fn = ({ reviews: pReviews, slots: pSlots, gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
+  const fn = ({ machines: pMachines, reviews: pReviews, slots: pSlots, gallery: pGallery, dash: pDash, desk: pDesk, chat: pChat, reports: pReports, members: pMembers, notify: pNotify, daily: pDaily, programs: pPrograms, nutrition: pNutrition, ann: pAnn, rewards: pRewards, settings: pSettings })[page];
   fn().then(() => { M().classList.add('stagger'); countUp(M()); if (!window._quiet && ['dash', 'members', 'pt', 'rewards'].includes(page)) window._quiet = async () => { await fn(); countUp(M()); }; }).catch((e) => { if (e.status === 401) return showLogin(); M().innerHTML = `<p class="err">${esc(e.message)}</p>`; });
   scrollTo(0, 0);
 }
@@ -813,6 +816,42 @@ async function pReviews() {
   $$('[data-rf]').forEach((b) => (b.onclick = () => { rvF = rvF === +b.dataset.rf ? 0 : +b.dataset.rf; pReviews(); }));
   if ($('#rvAll')) $('#rvAll').onclick = () => { rvF = 0; pReviews(); };
   $$('[data-rd]').forEach((b) => (b.onclick = async () => { if (!(await ask('Ștergi evaluarea?', '', 'Șterge', { danger: true }))) return; await api('/api/admin/reviews/' + b.dataset.rd, { method: 'DELETE', body: {} }); pReviews(); }));
+}
+/* ───────── APARATE ───────── */
+async function pMachines() {
+  const [{ machines }, { exercises }, { settings: st }] = await Promise.all([api('/api/admin/machines'), api('/api/admin/exercises'), api('/api/config')]);
+  const L = machines.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  M().innerHTML = `<div class="ph"><div><h1>Aparatele sălii</h1><p>Aparatele reale de la sală, cu poză și explicații. Membrii le văd la Antrenament, iar Robo face programe doar cu ele (plus gantere, bară și greutatea corpului).</p></div><div class="row" style="gap:8px"><button class="btn btn-acc" id="mAdd">+ Aparat</button></div></div>
+    <label class="row card" style="gap:10px;cursor:pointer;margin-bottom:14px"><input type="checkbox" id="onlyG" ${st.onlyGym !== false ? 'checked' : ''} style="width:20px;height:20px"><span><b>Robo dă doar exerciții cu aparatele din listă</b><br><small class="muted">Exercițiile la aparate pe care sala nu le are nu mai apar în programele făcute de Robo.</small></span></label>
+    <div class="mgrid">${L.map((m) => `<button class="card mrow" data-me="${m.id}"><img src="${esc(galUrl(m.photo || ''))}" alt=""><span class="grow"><b>${esc(m.short || m.name)}</b><br><small class="muted">${esc(m.name)}</small><br><small>${esc(m.muscles || '')}</small>${m.ex ? '' : '<br><small style="color:var(--amber)">⚠️ fără exercițiu legat</small>'}</span></button>`).join('') || '<p class="muted">Niciun aparat încă. Apasă „+ Aparat”.</p>'}</div>`;
+  $('#onlyG').onchange = async (e) => { await api('/api/admin/settings', { method: 'PUT', body: { onlyGym: e.target.checked } }); toast(e.target.checked ? 'Robo folosește doar aparatele sălii' : 'Robo poate folosi toate exercițiile'); };
+  $('#mAdd').onclick = () => editMachine(null, exercises);
+  $$('[data-me]').forEach((b) => (b.onclick = () => editMachine(L.find((x) => x.id === b.dataset.me), exercises)));
+}
+function editMachine(m, exercises) {
+  const X = m ? { ...m } : { name: '', short: '', photo: '', ex: '', muscles: '', setup: [], mistakes: [], order: 99 };
+  const el = sheet(`<h2>${m ? 'Editează aparatul' : 'Aparat nou'}</h2>
+    <div class="row" style="gap:14px;align-items:flex-start;margin-top:12px;flex-wrap:wrap"><div class="mph" id="mPh">${X.photo ? `<img src="${esc(galUrl(X.photo))}" alt="">` : '<span class="muted small">Fără poză</span>'}</div><div class="grow" style="min-width:220px"><label class="btn" style="cursor:pointer">📷 ${X.photo ? 'Schimbă poza' : 'Pune poza aparatului'}<input type="file" accept="image/*" id="mF" hidden></label><p class="muted small" style="margin-top:8px">Fă poza din față, cu tot aparatul în cadru.</p></div></div>
+    <div class="g2" style="margin-top:12px"><div class="field"><label>Denumirea completă</label><input class="input" id="mN" value="${esc(X.name)}" placeholder="ex: Nautilus Next Generation Incline Chest Press"></div><div class="field"><label>Nume scurt (cum îl văd membrii)</label><input class="input" id="mS" value="${esc(X.short)}" placeholder="ex: Împins înclinat"></div>
+    <div class="field"><label>Mușchi lucrați</label><input class="input" id="mM" value="${esc(X.muscles)}" placeholder="ex: Piept, umeri, triceps"></div><div class="field"><label>Exercițiul de pe aparat (pentru simulator și Robo)</label><select class="input" id="mE"><option value="">—</option>${exercises.map((e) => `<option value="${e.id}" ${e.id === X.ex ? 'selected' : ''}>${esc(e.name)} · ${esc(e.muscle)}</option>`).join('')}</select></div></div>
+    <div class="field"><label>Cum se reglează (câte un pas pe rând)</label><textarea class="input" id="mU" rows="3">${esc((X.setup || []).join('\n'))}</textarea></div>
+    <div class="field"><label>Greșeli de evitat (câte una pe rând)</label><textarea class="input" id="mG" rows="3">${esc((X.mistakes || []).join('\n'))}</textarea></div>
+    <div class="field"><label>Ordinea în listă</label><input class="input" id="mO" type="number" value="${X.order || 0}" style="width:100px"></div>
+    <p class="err" id="mErr"></p><div class="row" style="gap:8px"><button class="btn btn-acc" id="mSv">Salvează</button>${m ? '<button class="btn" id="mDl" style="color:var(--red)">Șterge aparatul</button>' : ''}</div>`, { wide: true });
+  $('#mF', el).onchange = async (ev) => {
+    const f = ev.target.files[0]; if (!f) return; $('#mPh', el).innerHTML = '<span class="muted small">Se încarcă…</span>';
+    try {
+      let r;
+      if (window.GymDemo) { const b = await shrinkImg(f, 1100, 0.8); const url = await new Promise((rs) => { const fr = new FileReader(); fr.onload = () => rs(fr.result); fr.readAsDataURL(b); }); r = await api('/api/admin/gallery', { method: 'POST', body: { file: url, cat: 'aparate', caption: $('#mS', el).value || $('#mN', el).value } }); }
+      else { const b = await shrinkImg(f, 1400, 0.85); r = await api('/api/admin/gallery?cat=aparate&caption=' + encodeURIComponent($('#mS', el).value || $('#mN', el).value), { method: 'POST', raw: b, type: 'image/jpeg' }); }
+      X.photo = r.item.file; $('#mPh', el).innerHTML = `<img src="${esc(galUrl(X.photo))}" alt="">`;
+    } catch (e) { $('#mPh', el).innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+  };
+  $('#mSv', el).onclick = async () => {
+    const body = { name: $('#mN', el).value, short: $('#mS', el).value, muscles: $('#mM', el).value, ex: $('#mE', el).value, setup: $('#mU', el).value, mistakes: $('#mG', el).value, photo: X.photo, order: $('#mO', el).value };
+    try { await api('/api/admin/machines' + (m ? '/' + m.id : ''), { method: m ? 'PUT' : 'POST', body }); closeSheet(); toast('Aparat salvat ✅'); pMachines(); } catch (e) { $('#mErr', el).textContent = e.message; }
+  };
+  if ($('#mDl', el)) $('#mDl', el).onclick = async () => { if (!(await ask('Ștergi aparatul?', 'Dispare din aplicație și Robo nu-l mai folosește.', 'Șterge', { danger: true }))) return; await api('/api/admin/machines/' + m.id, { method: 'DELETE', body: {} }); toast('Aparat șters'); pMachines(); };
 }
 async function pChat() {
   M().innerHTML = `<div class="ph"><div><h1>Mesaje</h1><p>Conversațiile cu membrii din aplicație. Când răspunzi, membrul primește notificare pe telefon.</p></div><button class="btn btn-acc" id="nw">${IC('plus', 18)} Conversație nouă</button></div><div class="inbox ${chatSel ? 'open' : ''}" id="ib"><div class="thr" id="thr"></div><div class="conv" id="conv"><div class="muted" style="margin:auto;text-align:center;padding:40px">${IC('chat', 40)}<p>Alege o conversație</p></div></div></div>`;

@@ -367,6 +367,14 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .ratecard small{display:block;font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}.ratecard b{display:block;margin-top:2px;line-height:1.3}
 .stars{display:flex;gap:6px;justify-content:center;margin-top:10px}.stars button{border:0;background:none;font-size:2rem;line-height:1;color:var(--line2);cursor:pointer;padding:2px 4px;transition:transform .15s,color .15s}
 .stars button:hover,.stars button.on{color:#FFC23D}.stars button:active{transform:scale(1.25)}.stars.big button{font-size:2.6rem}
+.mstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px 6px;padding:0 16px 4px;scrollbar-width:none}.mstrip::-webkit-scrollbar{display:none}
+.mcard{flex:0 0 46%;max-width:200px;scroll-snap-align:start;display:grid;gap:4px;text-align:left;padding:0 0 10px;border-radius:20px;overflow:hidden;background:var(--card);border:1px solid var(--line2);color:inherit;cursor:pointer}
+.mcard .mimg{display:block;aspect-ratio:3/4;overflow:hidden;background:#000}.mcard img{width:100%;height:100%;object-fit:cover;display:block}
+.mcard b{padding:6px 10px 0;font-size:.92rem;line-height:1.2}.mcard small{padding:0 10px;color:var(--faint);font-size:.74rem;line-height:1.25}
+.mhero{border-radius:20px;overflow:hidden;max-height:340px;background:#000;display:grid;place-items:center}.mhero img{width:100%;max-height:340px;object-fit:cover;display:block}
+.msteps{margin:8px 0 0;padding-left:20px;display:grid;gap:6px;line-height:1.45}.msteps.bad li::marker{content:"✕  ";color:var(--red)}
+.mlink{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:8px 12px 8px 8px;border-radius:16px;border:1px solid var(--line2);background:var(--card);color:inherit;text-align:left;cursor:pointer}
+.mlink img{width:48px;height:56px;object-fit:cover;border-radius:10px}.mlink small{display:block;font-size:.7rem;font-weight:800;color:var(--acc);text-transform:uppercase;letter-spacing:.1em}
 .gstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
 .gstrip::-webkit-scrollbar{display:none}
 .gstrip button{flex:0 0 76%;aspect-ratio:4/3;border-radius:22px;overflow:hidden;scroll-snap-align:start;position:relative;border:1px solid var(--line2);padding:0;cursor:pointer;background:#000}
@@ -541,7 +549,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 <script src="vision.js?v=14"></script>
 <script src="qr.js?v=14"></script>
 <script>
-let CFG = null, H = null, EX = [], tab = 'home', GAL = { sections: [], photos: [] };
+let CFG = null, H = null, EX = [], MACH = [], tab = 'home', GAL = { sections: [], photos: [] };
 const exById = (id) => EX.find((e) => e.id === id) || (/^free:/.test(id) ? { id, name: id.slice(5), muscle: 'scris de tine', steps: [], free: true } : { id, name: id, muscle: '', steps: [] });
 const S = () => CFG.settings;
 const TABS = ['home', 'train', 'progress', 'food', 'me'];
@@ -612,7 +620,7 @@ async function boot() {
   try { GAL = await api('/api/gallery'); } catch {}
   document.title = 'FET · ' + S().name; $('#gName').textContent = S().name; $('#spn').textContent = S().name;
   try { H = await api('/api/me'); } catch (e) { if (e.status === 401) { hideSplash(t0); return showLogin(); } throw e; }
-  EX = (await api('/api/exercises')).exercises;
+  { const xr = await api('/api/exercises'); EX = xr.exercises; MACH = xr.machines || []; }
   $('#login').classList.add('hide'); $('#shell').classList.remove('hide');
   const h = location.hash.slice(1);
   go(TABS.includes(h) ? h : 'home'); hideSplash(t0);
@@ -1328,6 +1336,30 @@ function openReview(bookingId, preset) {
   draw();
 }
 
+/* ───────── APARATELE SĂLII ───────── */
+const machFor = (exId) => MACH.find((m) => m.ex === exId);
+function machSection() {
+  if (!MACH.length) return '';
+  return `<div class="sec"><h2>Aparatele sălii</h2><small class="muted">${MACH.length} aparate</small></div>
+    <p class="muted small" style="margin:-6px 0 12px">Aparatele reale de la ${esc(S().name)}: cum le reglezi, cum lucrezi corect și ce să eviți. Robo îți face programul doar cu ele.</p>
+    <div class="mstrip">${MACH.map((m) => `<button class="mcard" data-mach="${m.id}"><span class="mimg"><img src="${esc(galUrl(m.photo || ''))}" alt="${esc(m.name)}" loading="lazy"></span><b>${esc(m.short || m.name)}</b><small>${esc(m.muscles || '')}</small></button>`).join('')}</div>`;
+}
+function openMachine(id) {
+  const m = MACH.find((x) => x.id === id); if (!m) return;
+  const e = m.ex ? exById(m.ex) : null;
+  const el = sheet(`<div class="mhero"><img src="${esc(galUrl(m.photo || ''))}" alt="${esc(m.name)}"></div>
+    <h2 style="margin:12px 0 4px">${esc(m.short || m.name)}</h2><p class="muted small" style="margin:0 0 8px">${esc(m.name)}</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip acc">${esc(m.muscles || (e ? e.muscle : ''))}</span>${e ? `<span class="chip">${esc(e.level)}</span>` : ''}</div>
+    ${e ? `<h3>Simulator: așa se face</h3><div class="stage sim" style="margin-top:8px">${GymFig.figure(e)}</div><p class="muted small" style="margin:6px 0 0;text-align:center">Urmărește omulețul: verde e ce lucrează. Mișcarea completă, lent la revenire.</p>` : ''}
+    ${(m.setup || []).length ? `<h3>1. Reglează aparatul</h3><ol class="msteps">${m.setup.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
+    ${e && (e.steps || []).length ? `<h3>2. Execuția</h3><ol class="msteps">${e.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
+    ${(m.mistakes || []).length ? `<h3>Greșeli de evitat</h3><ul class="msteps bad">${m.mistakes.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${e && e.tip ? `<div class="tip" style="margin-top:12px">${IC('info', 18)} ${esc(e.tip)}</div>` : ''}
+    ${e ? `<div class="row" style="gap:8px;margin-top:14px"><button class="btn btn-ghost grow" id="mEx">Recordurile mele aici</button><button class="btn btn-acc grow" id="mVis">📷 Robo te vede</button></div>` : ''}`);
+  if ($('#mEx', el)) $('#mEx', el).onclick = () => { closeSheet(); setTimeout(() => openEx(m.ex), 260); };
+  if ($('#mVis', el)) $('#mVis', el).onclick = () => { closeSheet(); setTimeout(() => openVision(), 260); };
+}
+
 /* ───────── ANTRENAMENT ───────── */
 let exFilter = 'Toate', exQuery = '';
 function vTrain(v) {
@@ -1341,6 +1373,7 @@ function vTrain(v) {
     <button class="rvcard bldcard" id="bldGo"><span class="rvi">✍️</span><span class="grow"><b>${prog && prog.custom ? 'Editează programul tău' : 'Scrie-ți singur programul'}</b><small>${prog && prog.custom ? 'Schimbă exercițiile, seriile, kilogramele sau adaugă zile.' : 'Alegi tu zilele, exercițiile, seriile și kilogramele.'}</small></span>${IC('chev', 18)}</button>
     <div class="ai" style="margin-top:14px"><div class="row" style="position:relative">${GymFig.robot(58)}<div class="grow"><b style="font-size:1.08rem">Robo, antrenorul tău virtual</b><div class="small" style="color:#C9BCFF">Te întreabă ce vrei să obții, dacă ai dureri (spate, gât, genunchi) și cât timp ai. Apoi îți face programul.</div></div></div><button class="btn btn-block" id="gen" style="margin-top:14px;background:#fff;color:#1A1240;position:relative">${IC('chat', 18)} ${prog && prog.owner ? 'Refă-mi programul cu Robo' : 'Vorbește cu Robo'}</button></div>
     <button class="rvcard" id="rvGo"><span class="rvi">📷</span><span class="grow"><b>Robo te vede <span class="chip acc" style="vertical-align:2px">NOU</span></b><small>Pune telefonul jos: Robo îți numără repetările și îți corectează forma, cu voce.</small></span>${IC('chev', 18)}</button>
+    ${machSection()}
     <div class="sec"><h2>Ghidul exercițiilor</h2><small class="muted">${EX.length} exerciții</small></div>
     <p class="muted small" style="margin:-6px 0 12px">Animație, mușchii lucrați, pașii și video pentru fiecare exercițiu.</p>
     <button class="scanbtn" id="scanEx" style="margin:0 0 12px"><span class="q">${IC('scan', 22)}</span><span class="grow"><b>Scanează codul de pe aparat</b><br><small class="muted">Vezi pe loc cum se face exercițiul corect</small></span>${IC('chev', 18)}</button>
@@ -1350,6 +1383,7 @@ function vTrain(v) {
     <div class="sec"><h2>Istoric</h2></div>
     <div class="list">${last.length ? last.map((w) => { const vol = (w.sets || []).reduce((a, s) => a + (s.kg || 0) * (s.reps || 0), 0); return `<div class="card row" style="padding:12px 14px"><span class="ico" style="color:var(--green)">${IC('check', 20)}</span><div class="grow"><b>${esc(w.title || (prog && prog.id === w.programId && prog.days[w.dayIdx] ? prog.days[w.dayIdx].name : 'Antrenament'))}</b><div class="muted" style="font-size:.84rem">${fday(w.date)}${w.duration ? ` · ${w.duration} min` : ''}${w.sets && w.sets.length ? ` · ${w.sets.length} serii` : ''}${vol ? ` · ${Math.round(vol).toLocaleString('ro-RO')} kg` : ''}</div></div></div>`; }).join('') : '<p class="muted">Primul antrenament te așteaptă.</p>'}</div>`;
   $$('.day', v).forEach((b) => (b.onclick = () => openDay(prog, +b.dataset.d)));
+  $$('[data-mach]', v).forEach((b) => (b.onclick = () => openMachine(b.dataset.mach)));
   $('#chP').onclick = chooseProgram; $('#bldGo').onclick = openBuilder; $('#gen').onclick = openRobo; $('#rvGo').onclick = () => openVision(); $('#scanEx').onclick = scanMachine;
   const drawEx = () => { const q = exQuery.toLowerCase(); $('#exl').innerHTML = EX.filter((e) => (exFilter === 'Toate' || e.muscle === exFilter) && (!q || e.name.toLowerCase().includes(q))).map((e) => `<button class="exg" data-ex="${e.id}">${thumb(e)}<b>${esc(e.name)}</b><small>${esc(e.muscle)} · ${esc(e.level)}</small></button>`).join('') || '<p class="muted">Niciun exercițiu găsit.</p>'; $$('[data-ex]', v).forEach((b) => (b.onclick = () => openEx(b.dataset.ex))); };
   drawEx();
@@ -1450,6 +1484,7 @@ function prsFor(exId) {
 function openEx(id) {
   const e = exById(id), hist = prsFor(id), best = hist.reduce((a, x) => (!a || x.e > a.e ? x : a), null);
   const el = sheet(`<h2 style="margin:0 0 8px">${esc(e.name)}</h2><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip acc">${esc(e.muscle)}</span><span class="chip">${esc(e.equipment)}</span><span class="chip">${esc(e.level)}</span></div>
+    ${machFor(e.id) ? `<button class="mlink" id="exM"><img src="${esc(galUrl(machFor(e.id).photo || ''))}" alt=""><span class="grow"><small>Aparatul din sală</small><b>${esc(machFor(e.id).short || machFor(e.id).name)}</b></span>${IC('chev', 18)}</button>` : ''}
     <div class="stage" style="margin-top:12px">${GymFig.figure(e)}</div>
     <h3>Mușchi lucrați</h3><div style="margin:10px 0 6px">${GymFig.muscleMap(e)}</div>
     ${best ? `<h3 style="margin-top:18px">Recordul tău</h3><div class="pr" style="margin-top:10px"><span style="color:var(--amber)">${IC('medal', 28)}</span><div class="grow"><b>${best.kg} kg × ${best.reps}</b><div class="muted small">${fdate(best.date, true)} · forță maximă estimată ~${Math.round(best.e)} kg</div></div></div>${hist.length > 1 ? `<div style="margin-top:8px">${lineChart(hist.slice(-12).map((x) => ({ v: x.kg, l: fdate(x.date) })), { h: 170, label: 'Greutatea maximă' })}</div>` : ''}` : ''}
@@ -1458,6 +1493,7 @@ function openEx(id) {
     <a class="btn btn-acc btn-block" style="margin-top:16px" href="${esc(e.video)}" target="_blank" rel="noopener">${IC('play', 18)} Vezi video demonstrativ</a>
     ${VKIND[e.id] ? `<button class="btn btn-acc btn-block" style="margin-top:10px" id="rvEx">📷 Robo îmi verifică forma</button>` : ''}
     <button class="btn btn-ghost btn-block" style="margin-top:10px" id="askT">${IC('chat', 18)} Întreabă-l pe Robo</button>`);
+  if ($('#exM', el)) $('#exM', el).onclick = () => { const mm = machFor(e.id); closeSheet(); setTimeout(() => openMachine(mm.id), 260); };
   GymFig.animate(el);
   if ($('#rvEx', el)) $('#rvEx', el).onclick = () => { closeSheet(); setTimeout(() => openVision(VKIND[e.id]), 250); };
   $('#askT', el).onclick = () => { closeSheet(); setTimeout(() => openChat(`Cum fac corect ${e.name.toLowerCase()}?`, 'robo', true), 260); };
