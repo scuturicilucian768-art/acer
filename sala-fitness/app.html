@@ -495,6 +495,21 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .studio h4{font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;font-weight:800}
 .figpv{display:grid;place-items:center;height:230px;border-radius:22px;background:radial-gradient(60% 50% at 50% 85%,color-mix(in srgb,var(--acc) 22%,transparent),transparent 70%),var(--card);border:1px solid var(--line)}
 .figpv svg{height:220px;width:auto}
+.figpv img.aich{height:220px;width:auto;border-radius:16px;object-fit:cover}
+.herocard .hstage img.aich{position:relative;height:150px;width:auto;max-width:100%;border-radius:14px;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.mc-fig img{width:100%;height:100%;object-fit:cover;object-position:50% 6%;display:block}
+.aibox{display:flex;gap:12px;align-items:center;padding:12px;border-radius:18px;margin-bottom:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 18%,transparent),transparent 70%),var(--card);border:1px solid color-mix(in srgb,var(--acc) 40%,var(--line))}
+.aibox img{width:64px;height:88px;border-radius:12px;object-fit:cover;flex:none}
+.aibox .aiic{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;font-size:1.7rem;background:color-mix(in srgb,var(--acc) 22%,transparent);flex:none}
+.aist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 14px}
+.aist button{padding:14px 8px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-weight:800;font-size:.92rem;display:grid;gap:4px;place-items:center;cursor:pointer}
+.aist button span{font-size:1.7rem}
+.aist button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--card))}
+.aiwait{display:grid;place-items:center;gap:14px;padding:26px 6px;text-align:center}
+.aiwait .orb{width:120px;height:120px;border-radius:50%;background:conic-gradient(from 0deg,var(--acc),transparent 40%,var(--acc) 70%,transparent);animation:spin 1.6s linear infinite;display:grid;place-items:center}
+.aiwait .orb::after{content:"✨";font-size:2.4rem;width:96px;height:96px;border-radius:50%;background:var(--bg,#0A0A0C);display:grid;place-items:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.aires img{width:100%;max-height:62vh;object-fit:contain;border-radius:20px;display:block;margin:6px 0 12px;background:var(--card)}
 .evo{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:8px}
 .evo div{display:grid;justify-items:center;gap:2px;padding:6px 2px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:.62rem;font-weight:800;color:var(--muted);text-align:center}
 .evo div.cur{border-color:var(--acc);color:var(--ink)}
@@ -546,7 +561,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 <script src="robo-kb.75d77752.js"></script>
 <script src="robo.dd82a5df.js"></script>
 <script src="diet.e2c419a4.js"></script>
-<script src="core.51f11946.js"></script>
+<script src="core.2eaf6e68.js"></script>
 <script src="seed.262589b2.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
@@ -701,7 +716,7 @@ function cardHtml(me = H.me, pv = false) {
   const themed = L.card && L.card !== 'empire';
   const cls = (themed ? 'th-' + L.card : s.state === 'expired' || s.state === 'none' ? 'exp' : s.state === 'expiring' ? 'warn' : '') + (L.pattern ? ' pt-' + L.pattern : '');
   const useFig = L.useFig !== undefined ? L.useFig || !me.avatar : !me.avatar;
-  const who = useFig ? `<span class="mc-fig">${GymFig.hero(L, me.rank.idx, { bust: true, still: true })}</span>` : `<img class="mc-av" src="${esc(avUrl(me.avatar))}" alt="">`;
+  const who = useFig ? `<span class="mc-fig">${me.aiChar && L.useAI ? `<img src="${esc(avUrl(me.aiChar))}" alt="">` : GymFig.hero(L, me.rank.idx, { bust: true, still: true })}</span>` : `<img class="mc-av" src="${esc(avUrl(me.avatar))}" alt="">`;
   const front = `<div class="face mc-f ${cls}">`;
   if (pv) return `<div class="mc3${L.motto ? ' has-m' : ''}"><div class="mc-in">${front}${cardFront(me, s, left, total, who, L)}</div></div>`;
   return `<div style="position:relative"><div class="mc3${L.motto ? ' has-m' : ''}" id="mc" role="button" tabindex="0" aria-label="Cardul de membru. Atinge ca să vezi codul QR."><div class="mc-in">
@@ -1018,9 +1033,10 @@ function openVision(kind) {
 /* ───────── FIGURINA TA ───────── */
 const UNLOCK = ['brățările de campion', 'centura de campion', 'pelerina de comandant', 'coroana de împărat'];
 const THEME_AT = (i) => (GymCore.CARD_THEMES.find((t) => t.min === i) || {}).name;
+const aiOn = (me) => !!(me.aiChar && (me.look || {}).useAI);
 function heroCard(me) {
   const r = me.rank;
-  return `<div class="herocard" id="hero" role="button" tabindex="0" style="--rkc:${RK_C[r.idx]}" aria-label="Figurina ta. Atinge ca s-o personalizezi."><div class="hstage">${GymFig.hero(me.look, r.idx)}</div>
+  return `<div class="herocard" id="hero" role="button" tabindex="0" style="--rkc:${RK_C[r.idx]}" aria-label="Figurina ta. Atinge ca s-o personalizezi."><div class="hstage">${aiOn(me) ? `<img class="aich" src="${esc(avUrl(me.aiChar))}" alt="Caracterul tău AI">` : GymFig.hero(me.look, r.idx)}</div>
     <div><span class="k">Luptătorul tău</span><b class="rn">${GymFig.rankBadge(r.idx, 22)} ${esc(r.name)}</b>
     ${r.next ? `<div class="bar-p" style="margin-top:8px;height:7px"><i style="width:${Math.round(r.pct * 100)}%;background:${RK_C[r.idx + 1]}"></i></div><small class="muted">încă <b style="color:var(--ink)">${r.toNext}</b> puncte până la ${esc(r.next.name)}</small>
       <div class="unl">${IC('gift', 14)} <span>Primești ${UNLOCK[r.idx]}${THEME_AT(r.idx + 1) ? ` și cardul ${esc(THEME_AT(r.idx + 1))}` : ''}</span></div>` : '<small class="muted">Ai atins cel mai înalt rang. Respect!</small>'}
@@ -1153,6 +1169,10 @@ function openStudio(startTab) {
   const segs = (k, list) => `<div class="segs">${list.map((x, i) => { const [v, l] = Array.isArray(x) ? x : [i, x]; return `<button data-k="${k}" data-v="${v}" class="${String(L[k]) === String(v) ? 'on' : ''}">${esc(l)}</button>`; }).join('')}</div>`;
   const dots = (k, cols) => `<div class="dots">${cols.map((c, i) => `<button data-k="${k}" data-v="${i}" class="${+L[k] === i ? 'on' : ''}" style="background:${c}" aria-label="Culoarea ${i + 1}"></button>`).join('')}</div>`;
   const pvCard = () => cardHtml({ ...me, look: { ...L } }, true);
+  const AI = H.aiChar || {}, aiShow = AI.on && (AI.ready || CFG.demo);
+  const aiBox = () => !aiShow ? '' : `<div class="aibox">${me.aiChar ? `<img src="${esc(avUrl(me.aiChar))}" alt="">` : '<span class="aiic">✨</span>'}<div class="grow"><b>Caracterul tău AI</b><br><small class="muted">${me.aiChar ? 'Făcut de AI din poza ta.' : 'AI-ul îți desenează un caracter care seamănă cu tine, dintr-un selfie.'}</small>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-sm btn-acc" id="aiNew" type="button">📸 ${me.aiChar ? 'Altul nou' : 'Fă-mi caracterul'}</button>${me.aiChar ? `<button class="btn btn-sm ${L.useAI ? '' : 'btn-ghost'}" data-k="useAI" data-v="${L.useAI ? 'false' : 'true'}" type="button">${L.useAI ? '↩︎ Folosește figurina' : '✨ Folosește-l'}</button>` : ''}</div>
+      <small class="muted" style="display:block;margin-top:6px">${AI.left} din ${AI.per} rămase luna asta${me.aiChar ? ' · <button type="button" id="aiDel" style="background:none;border:0;color:inherit;text-decoration:underline;padding:0;font:inherit;cursor:pointer">șterge-l</button>' : ''}</small></div></div>`;
   const MOT = ['Nu renunț!', 'Încă o repetare', 'Disciplină, nu scuze', 'Imperiul se construiește zilnic', 'Mai puternic decât ieri'];
   function draw() {
     const top = sc.scrollTop;
@@ -1164,7 +1184,8 @@ function openStudio(startTab) {
         <h4>Motto pe card</h4><input class="input" id="mot" maxlength="34" placeholder="Scrie ce te motivează" value="${esc(L.motto || '')}">
         <div class="segs" style="margin-top:8px">${MOT.map((m) => `<button data-mot="${esc(m)}">${esc(m)}</button>`).join('')}</div>
         <h4>Pe card apare</h4><div class="segs"><button data-k="useFig" data-v="false" class="${!L.useFig ? 'on' : ''}" ${me.avatar ? '' : 'disabled title="Pune întâi o poză de profil"'}>Poza mea</button><button data-k="useFig" data-v="true" class="${L.useFig ? 'on' : ''}">Figurina</button></div>`
-      : `<div class="figpv" id="fpv">${GymFig.hero(L, rk)}</div>
+      : `${aiBox()}<div class="figpv" id="fpv">${me.aiChar && L.useAI ? `<img class="aich" src="${esc(avUrl(me.aiChar))}" alt="">` : GymFig.hero(L, rk)}</div>
+        ${me.aiChar && L.useAI ? '<p class="muted small" style="margin:6px 0 0;text-align:center">Folosești caracterul AI. Setările de mai jos sunt pentru figurina desenată (tipul de corp contează și la următorul caracter AI).</p>' : ''}
         <h4>Stilul figurinei</h4>${segs('style', LO.style.map((x, i) => [i, ['🎨 ', '🧍 '][i] + x]))}
         <h4>Corp</h4>${segs('body', LO.body)}
         <h4>Tipul de corp <span class="muted" style="font-weight:600;text-transform:none;letter-spacing:0">· corpul tău ideal</span></h4>${segs('build', LO.build.map((x, i) => [i, ['🌱 ', '💪 ', '🏆 '][i] + x]))}
@@ -1187,11 +1208,49 @@ function openStudio(startTab) {
     if (b.dataset.tab) { tb = b.dataset.tab; return draw(); }
     if (b.dataset.th) { const t = TH.find((x) => x.id === b.dataset.th); if (t.min > rk) return toast(`Tema ${t.name} se deblochează la rangul ${GymCore.RANKS[t.min].name}. Mai antrenează-te! 💪`); L.card = t.id; return draw(); }
     if (b.dataset.mot) { L.motto = b.dataset.mot; return draw(); }
-    if (b.dataset.k) { const k = b.dataset.k, v = b.dataset.v; L[k] = k === 'body' ? v : k === 'useFig' ? v === 'true' : +v; if (k === 'body' && v === 'F' && !L.hair) L.hair = 2; return draw(); }
+    if (b.dataset.k) { const k = b.dataset.k, v = b.dataset.v; L[k] = k === 'body' ? v : k === 'useFig' || k === 'useAI' ? v === 'true' : +v; if (k === 'body' && v === 'F' && !L.hair) L.hair = 2; return draw(); }
+    if (b.id === 'aiNew') { return openAIChar(L); }
+    if (b.id === 'aiDel') { if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = 'apasă iar ca să-l ștergi'; return; } await act('/api/me/aichar', {}, 'DELETE'); closeSheet(); toast('Caracterul AI a fost șters'); return render(); }
     if (b.id === 'sv') { b.disabled = true; try { await act('/api/me/look', L, 'PUT'); closeSheet(); toast('Salvat! Arăți super 😎'); render(); } catch { b.disabled = false; } }
   };
   draw();
 }
+
+/* ───────── CARACTERUL AI DIN POZĂ ───────── */
+function openAIChar(L0) {
+  const AI = H.aiChar || {}, ST = [['🎬', '3D animat'], ['🦸', 'Supererou'], ['🌸', 'Anime'], ['📷', 'Realist']];
+  let style = 0, ok = false;
+  const el = sheet('<div id="aic"></div>'), root = $('#aic', el);
+  const pick = () => {
+    root.innerHTML = `<h2>✨ Caracterul tău AI</h2><p class="muted" style="margin:0 0 6px">Fă-ți un selfie și AI-ul îți desenează caracterul de la sală: seamănă cu tine, cu corpul pe care ți l-ai ales${(L0 || {}).build === 2 ? ' (bodybuilder 🏆)' : (L0 || {}).build === 0 ? ' (skinny 🌱)' : ' (fit 💪)'} și cu însemnele rangului tău.</p>
+      <h4>Alege stilul</h4><div class="aist">${ST.map(([e, n], i) => `<button data-st="${i}" class="${i === style ? 'on' : ''}" type="button"><span>${e}</span>${n}</button>`).join('')}</div>
+      <div class="card" style="padding:12px;margin-bottom:12px"><small>💡 Cel mai bine iese cu un selfie <b>doar cu tine</b>, cu fața spre cameră și <b>lumină bună</b>, fără ochelari de soare.</small></div>
+      <label class="row" style="gap:10px;align-items:flex-start;cursor:pointer;margin-bottom:14px"><input type="checkbox" id="aiOk" ${ok ? 'checked' : ''} style="width:22px;height:22px;flex:none;margin-top:2px"><small>Sunt de acord ca poza mea să fie trimisă la serviciul de AI (OpenAI) <b>doar</b> ca să-mi creeze caracterul. Poza <b>nu se păstrează</b> în aplicație; rămâne doar caracterul, pe care îl pot șterge oricând.</small></label>
+      <label class="btn btn-acc btn-block ${ok ? '' : 'dis'}" id="aiCam" style="cursor:pointer;${ok ? '' : 'opacity:.45;pointer-events:none'}">📸 Fă un selfie<input type="file" accept="image/*" capture="user" hidden></label>
+      <label class="btn btn-ghost btn-block" id="aiGal" style="cursor:pointer;margin-top:8px;${ok ? '' : 'opacity:.45;pointer-events:none'}">🖼️ Alege o poză din telefon<input type="file" accept="image/*" hidden></label>
+      <p class="muted small" style="text-align:center;margin:10px 0 0">${AI.left} din ${AI.per} caractere rămase luna asta</p><p class="err" id="aiE"></p>`;
+    $$('[data-st]', root).forEach((b) => (b.onclick = () => { style = +b.dataset.st; pick(); }));
+    $('#aiOk', root).onchange = (e) => { ok = e.target.checked; pick(); };
+    $$('input[type=file]', root).forEach((i) => (i.onchange = () => i.files[0] && go(i.files[0])));
+  };
+  const go = async (file) => {
+    if (!AI.left && !CFG.demo) { $('#aiE', root).textContent = `Ai folosit cele ${AI.per} caractere AI din luna asta.`; return; }
+    const tips = ['Robo se uită atent la poza ta…', 'Îți desenează fața…', 'Îți pune echipamentul de sală…', 'Adaugă însemnele rangului…', 'Ultimele retușuri…'];
+    root.innerHTML = `<div class="aiwait"><div class="orb"></div><h2 style="margin:0">Îți desenez caracterul</h2><p class="muted" id="aiT" style="margin:0">${tips[0]}</p><small class="muted">Durează cam 30–60 de secunde. Nu închide fereastra.</small></div>`;
+    let ti = 0; const tm = setInterval(() => { const t = $('#aiT', root); if (t) t.textContent = tips[Math.min(++ti, tips.length - 1)]; }, 8000);
+    try {
+      const b = await shrinkTo(file, 1024);
+      const r = window.GymDemo ? await api('/api/me/aichar', { method: 'POST', body: {} }) : await api(`/api/me/aichar?style=${style}&build=${(L0 || {}).build ?? 1}&ok=1`, { method: 'POST', raw: b, type: 'image/jpeg' });
+      clearInterval(tm); H = r; render();
+      root.innerHTML = `<div class="aires"><h2>Gata! Ăsta ești tu 🔥</h2><img src="${esc(avUrl(H.me.aiChar))}" alt="Caracterul tău AI">
+        <button class="btn btn-acc btn-block" id="aiUse">✅ Îl păstrez</button>${H.aiChar.left ? `<button class="btn btn-ghost btn-block" id="aiRe" style="margin-top:8px">🔄 Mai încerc o dată (${H.aiChar.left} rămase)</button>` : ''}</div>`;
+      $('#aiUse', root).onclick = () => { closeSheet(); toast('Caracterul tău e pe ecranul principal ✨'); render(); };
+      if ($('#aiRe', root)) $('#aiRe', root).onclick = () => { Object.assign(AI, H.aiChar); pick(); };
+    } catch (e) { clearInterval(tm); pick(); $('#aiE', root).textContent = e.message; }
+  };
+  pick();
+}
+function shrinkTo(file, max) { return new Promise((res) => { const img = new Image(); img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => res(b || file), 'image/jpeg', 0.88); }; img.onerror = () => res(file); img.src = URL.createObjectURL(file); }); }
 
 /* ───────── DIETA PE GUSTUL TĂU (chestionar cu Robo) ───────── */
 function openFoodQuiz() {
@@ -1700,7 +1759,7 @@ function drawPlans() { $('#np').innerHTML = H.nutritionPlans.filter((p) => !H.nu
 function vMe(v) {
   const me = H.me, ini = me.name.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase();
   const M = (id, ic, label, right) => `<button id="${id}"><span class="mi">${IC(ic, 18)}</span>${label}${right || `<span class="ar">${IC('chev', 18)}</span>`}</button>`;
-  v.innerHTML = `<div class="row" style="padding:18px 0 10px;gap:16px"><button class="avatar avb" id="avB" aria-label="Schimbă poza de profil" style="${me.avatar ? '' : 'background:var(--card2)'}">${me.avatar ? `<img src="${esc(avUrl(me.avatar))}" alt="">` : GymFig.hero(me.look, me.rank.idx, { bust: true, still: true, style: 'width:100%;height:100%;border-radius:50%' })}<span class="avc">${IC('camera', 15)}</span></button><div class="grow"><h1 style="font-size:1.6rem">${esc(me.name)}</h1><div class="muted">${esc(me.phone)}</div><div style="margin-top:6px">${chipFor(me.subscription)}</div></div></div>
+  v.innerHTML = `<div class="row" style="padding:18px 0 10px;gap:16px"><button class="avatar avb" id="avB" aria-label="Schimbă poza de profil" style="${me.avatar ? '' : 'background:var(--card2)'}">${me.avatar ? `<img src="${esc(avUrl(me.avatar))}" alt="">` : aiOn(me) ? `<img src="${esc(avUrl(me.aiChar))}" alt="" style="object-position:50% 6%">` : GymFig.hero(me.look, me.rank.idx, { bust: true, still: true, style: 'width:100%;height:100%;border-radius:50%' })}<span class="avc">${IC('camera', 15)}</span></button><div class="grow"><h1 style="font-size:1.6rem">${esc(me.name)}</h1><div class="muted">${esc(me.phone)}</div><div style="margin-top:6px">${chipFor(me.subscription)}</div></div></div>
     ${rankCard(me).replace('id="rkC"', 'id="rkP"')}
     <div class="kp" style="margin-top:10px"><div class="st"><b data-count="${me.points.balance}">0</b><small>puncte</small></div><div class="st"><b data-count="${me.badges.filter((b) => b.earned).length}">0</b><small>insigne</small></div><div class="st"><b>${H.board.me && H.board.me.rank ? '#' + H.board.me.rank : '–'}</b><small>în clasament</small></div></div>
     <div class="sec"><h2>Despre mine</h2><button id="ed">Editează</button></div>

@@ -215,6 +215,7 @@
     if (b.body !== undefined) L.body = b.body === 'F' ? 'F' : 'M';
     for (const [k, n] of [['skin', 5], ['hair', 6], ['hairCol', 6], ['top', 3], ['topCol', 8], ['acc', 5], ['build', 3], ['style', 2]]) if (b[k] !== undefined) L[k] = int(b[k], n);
     if (b.useFig !== undefined) L.useFig = !!b.useFig;
+    if (b.useAI !== undefined) L.useAI = !!b.useAI;
     return [L, null];
   }
 
@@ -288,6 +289,12 @@
     const { pass, push, ...r } = m;
     return { ...r, pushOn: (push || []).length > 0, subscription: subOf(db, m, t), streak: streak(m, t), maxStreak: maxStreak(m), weekCount: weekCount(m, t), points: pointsOf(db, m, t), badges: badgesOf(m, t), lastActive: lastActive(m), rank: rankOf(pointsOf(db, m, t).earned) };
   }
+  /* ---------- caracterul AI din poză ---------- */
+  const AI_STYLES = ['3D animat', 'Supererou', 'Anime', 'Realist'];
+  function aiCharInfo(db, m, t, ctx) {
+    const st = db.settings, per = st.aiPer || 3, used = (m.aiUse || []).filter((d) => String(d).slice(0, 7) === t.slice(0, 7)).length;
+    return { on: st.aiChar !== false, ready: st.aiChar !== false && !!(ctx && ctx.aiImg), per, left: Math.max(0, per - used), file: m.aiChar || '', styles: AI_STYLES };
+  }
   function homeFor(db, m, t, ctx) {
     const full = memberFull(db, m, t), d = dailyFor(db, t);
     const program = db.programs.find((p) => p.id === m.programId) || null, nutrition = db.nutrition.find((n) => n.id === m.nutritionId) || null;
@@ -304,7 +311,7 @@
       bookings: db.bookings.filter((b) => b.memberId === m.id).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 20),
       services: db.services, rewards: db.rewards, redemptions: db.redemptions.filter((r) => r.memberId === m.id).slice(-20).reverse(),
       programs: db.programs.filter((p) => !p.owner || p.owner === m.id).map(({ days, ...p }) => ({ ...p, nDays: days.length })), plans: db.plans.filter((p) => p.active),
-      slotBk: myBookings(db, m, t), booking: bookPublic(bkCfg(db)), rateDue: rateDue(db, m, t, ctx.time ? ctx.time() : '00:00'),
+      aiChar: aiCharInfo(db, m, t, ctx), slotBk: myBookings(db, m, t), booking: bookPublic(bkCfg(db)), rateDue: rateDue(db, m, t, ctx.time ? ctx.time() : '00:00'),
       board: boardFor(db, m, t), crowd: crowdFor(db, t, ctx.time ? ctx.time() : '12:00'), water: (m.water || {})[t] || 0, chatUnread: (m.chat || []).filter((x) => x.from === 'g' && !x.read).length,
       memberCode: 'GYM:' + m.id, checkinTime: (m.ciAt || {})[t] || null,
       nutritionPlans: db.nutrition.filter((n) => !n.owner || n.owner === m.id).map(({ meals, ...n }) => n), unread: (m.notifs || []).filter((n) => !n.read).length, checkedInToday: (m.checkins || []).includes(t),
@@ -577,6 +584,16 @@
         return ok(homeFor(db, me, t, ctx));
       }
       if (p === '/api/me/avatar' && m === 'POST') { if (!body.file) return no(400, 'Alege o poză.'); const old = me.avatar || null; me.avatar = String(body.file); return ok({ ...homeFor(db, me, t, ctx), avatarRemoved: old }); }
+      if (p === '/api/me/aichar' && m === 'POST') {
+        const info = aiCharInfo(db, me, t, ctx);
+        if (!info.on) return no(403, 'Funcția nu e pornită de sală.');
+        if (!ctx.aiFile) return no(503, ctx.demo ? 'În demonstrație nu se trimit poze la AI. În aplicația publicată, caracterul tău e gata în aproximativ 30 de secunde.' : 'Caracterul AI nu e configurat încă pe server.');
+        if (info.left <= 0) return no(429, `Ai folosit cele ${info.per} caractere AI din luna asta. Revino luna viitoare!`);
+        const old = me.aiChar || null; me.aiChar = String(ctx.aiFile); me.aiUse = [...(me.aiUse || []).slice(-30), t]; me.aiConsent = ctx.nowISO();
+        me.look = { ...(me.look || {}), useAI: true };
+        return ok({ ...homeFor(db, me, t, ctx), avatarRemoved: old });
+      }
+      if (p === '/api/me/aichar' && m === 'DELETE') { const old = me.aiChar || null; me.aiChar = ''; me.look = { ...(me.look || {}), useAI: false }; return ok({ ...homeFor(db, me, t, ctx), avatarRemoved: old }); }
       if (p === '/api/me/avatar' && m === 'DELETE') { const old = me.avatar || null; me.avatar = ''; return ok({ ...homeFor(db, me, t, ctx), avatarRemoved: old }); }
       if (p === '/api/me/photo' && m === 'POST') {
         if (!body.file) return no(400, 'Alege o poză.');
@@ -667,7 +684,7 @@
     if (p === A + '/overview' && m === 'GET') {
       const rows = db.members.map((x) => memberRow(db, x, t));
       return ok({
-        stats: stats(db, t), checkinCode: db.settings.checkinCode, settings: db.settings,
+        stats: stats(db, t), checkinCode: db.settings.checkinCode, settings: db.settings, aiImg: !!ctx.aiImg, aiMonth: db.members.reduce((n, x) => n + (x.aiUse || []).filter((d) => String(d).slice(0, 7) === t.slice(0, 7)).length, 0),
         expiring: rows.filter((x) => x.state === 'expiring').sort((a, b) => a.daysLeft - b.daysLeft),
         expired: rows.filter((x) => x.state === 'expired' && x.daysLeft >= -60).sort((a, b) => b.daysLeft - a.daysLeft),
         idle7: rows.filter((x) => (x.state === 'active' || x.state === 'expiring') && x.idle !== null && x.idle >= 7 && x.idle <= 14).sort((a, b) => b.idle - a.idle),
@@ -715,7 +732,7 @@
         let pw = null; if (body.resetPassword) { pw = String(body.password || '').trim() || phoneKey(mem.phone).slice(-4); mem.pass = ctx.hash(pw); }
         return ok({ member: memberFull(db, mem, t), password: pw });
       }
-      if (!sub && m === 'DELETE') { db.members = db.members.filter((x) => x.id !== mem.id); db.bookings = db.bookings.filter((b) => b.memberId !== mem.id); db.slotBk = (db.slotBk || []).filter((b) => b.memberId !== mem.id); return ok({ ok: true, files: (mem.photos || []).map((x) => x.file), avatarRemoved: mem.avatar || null }); }
+      if (!sub && m === 'DELETE') { db.members = db.members.filter((x) => x.id !== mem.id); db.bookings = db.bookings.filter((b) => b.memberId !== mem.id); db.slotBk = (db.slotBk || []).filter((b) => b.memberId !== mem.id); return ok({ ok: true, files: (mem.photos || []).map((x) => x.file), avatarRemoved: mem.avatar || null, aiRemoved: mem.aiChar || null }); }
       if (sub === '/renew' && m === 'POST') { const e = renewSub(db, mem, t, ctx, body); if (e) return no(400, e); notify(db, ctx, [mem], 'Abonament activ ✅', `Abonamentul tău e valabil până pe ${mem.sub.end.split('-').reverse().join('.')}. Spor la antrenamente!`, 'abonament'); return ok({ member: memberFull(db, mem, t) }, 201); }
       if ((r = /^\/renew\/(\w+)$/.exec(sub)) && m === 'DELETE') { mem.subLog = (mem.subLog || []).filter((x) => x.id !== r[1]); return ok({ member: memberFull(db, mem, t) }); }
       if (sub === '/checkin' && m === 'POST') { mem.checkins = mem.checkins || []; const already = mem.checkins.includes(t); if (!already) { mem.checkins.push(t); mem.ciAt = mem.ciAt || {}; mem.ciAt[t] = ctx.time ? ctx.time() : ''; } return ok({ member: memberFull(db, mem, t), already }); }
@@ -789,6 +806,8 @@
       if (body.autoIdle !== undefined) st.autoIdle = body.autoIdle === true || body.autoIdle === 'true';
       if (body.onlyGym !== undefined) st.onlyGym = body.onlyGym === true || body.onlyGym === 'true';
       if (body.signup !== undefined) st.signup = body.signup === true || body.signup === 'true';
+      if (body.aiChar !== undefined) st.aiChar = body.aiChar === true || body.aiChar === 'true';
+      if (body.aiPer !== undefined) st.aiPer = num(body.aiPer, 1, 20) || 3;
       if (body.idleHour !== undefined) st.idleHour = num(body.idleHour, 6, 22) || 17;
       if (body.idleText7 !== undefined) st.idleText7 = text(body.idleText7, 400);
       if (body.idleText14 !== undefined) st.idleText14 = text(body.idleText14, 400);
@@ -944,5 +963,5 @@
     }
     return dirty;
   }
-  return { route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile, roboBrief };
+  return { route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile, roboBrief, aiCharInfo, AI_STYLES };
 });

@@ -10,6 +10,9 @@
  *   SEED_DEMO=1      creează membri demonstrativi (doar pentru prezentare)
  *   ANTHROPIC_API_KEY opțional: Robo din Mesaje răspunde cu AI (Claude). Fără cheie, Robo răspunde din baza lui de cunoștințe.
  *   ROBO_MODEL       opțional: modelul folosit (implicit claude-haiku-4-5-20251001)
+ *   OPENAI_API_KEY   opțional: membrii își fac „caracterul AI” dintr-o poză (OpenAI, generare de imagini).
+ *   AI_IMAGE_MODEL   opțional: modelul de imagini (implicit gpt-image-1.5)
+ *   AI_IMAGE_QUALITY opțional: low / medium / high (implicit medium; low e de ~5 ori mai ieftin)
  */
 const http = require('http');
 const https = require('https');
@@ -91,7 +94,7 @@ function sendPush(member, data) {
     req.on('error', () => {}); req.setTimeout(15000, () => req.destroy()); req.end(body);
   }
 }
-const ctx = { ...baseCtx, push: sendPush, get vapidPublic() { return db.vapid.pub; } };
+const ctx = { ...baseCtx, push: sendPush, aiImg: !!process.env.OPENAI_API_KEY, get vapidPublic() { return db.vapid.pub; } };
 
 /* ---------- sesiuni (cookie semnat) ---------- */
 function sign(o) { const b = b64u(JSON.stringify(o)); return b + '.' + crypto.createHmac('sha256', db.secret).update(b).digest('base64url'); }
@@ -130,6 +133,28 @@ ${brief}`;
     rq.on('error', reject); rq.setTimeout(20000, () => rq.destroy(new Error('timeout'))); rq.end(body);
   });
 }
+/* ---------- Caracterul AI din poză (doar dacă există OPENAI_API_KEY) ---------- */
+const AI_LOOK = {
+  style: ['a high-quality stylized 3D animated movie character', 'a bold comic-book superhero illustration', 'a clean, modern anime character', 'a realistic, cinematic fitness photo'],
+  build: ['a lean, slim and toned physique', 'a fit, athletic physique with visible muscle tone', 'a very muscular bodybuilder physique'],
+  rank: ['', ' Wearing gold champion wrist bands.', ' Wearing a gold champion belt.', ' Wearing a gold champion belt and a short dark red commander cape.', ' Wearing a gold champion belt, a dark red cape and a small golden crown.'],
+};
+function aiPrompt(style, build, rank) {
+  return `Turn the person in this photo into ${AI_LOOK.style[style] || AI_LOOK.style[0]}, as their personal character in a gym app. Keep them clearly recognizable: same face shape, eyes, nose, skin tone, hairstyle, hair color, and beard or glasses if they have them. Full body from head to shoes, standing in a confident heroic pose, facing the viewer, centered, with some space around. Give them ${AI_LOOK.build[build] ?? AI_LOOK.build[1]}. Wearing a modest black athletic gym outfit with gold accents and sneakers.${AI_LOOK.rank[rank] || ''} Background: a dark, moody gym with soft golden rim light from behind. One person only, no text, no logos, no watermark.`;
+}
+async function aiCharacter(buf, type, prompt) {
+  const fd = new FormData();
+  fd.append('model', process.env.AI_IMAGE_MODEL || 'gpt-image-1.5');
+  fd.append('image', new Blob([buf], { type }), 'poza.' + (type.split('/')[1] || 'jpg'));
+  fd.append('prompt', prompt); fd.append('n', '1'); fd.append('size', '1024x1536');
+  fd.append('quality', process.env.AI_IMAGE_QUALITY || 'medium'); fd.append('output_format', 'jpeg'); fd.append('output_compression', '85');
+  const r = await fetch((process.env.AI_IMAGE_URL || 'https://api.openai.com/v1') + '/images/edits', { method: 'POST', headers: { Authorization: 'Bearer ' + process.env.OPENAI_API_KEY }, body: fd, signal: AbortSignal.timeout(170000) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.data || !j.data[0] || !j.data[0].b64_json) { const e = new Error((j.error && j.error.message) || 'HTTP ' + r.status); e.code = (j.error && (j.error.code || j.error.type)) || ''; e.status = r.status; throw e; }
+  return Buffer.from(j.data[0].b64_json, 'base64');
+}
+const aiBusy = new Set();
+
 /* ---------- HTTP ---------- */
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.mp4': 'video/mp4' };
 function send(res, status, data, headers = {}) { const b = JSON.stringify(data); res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers }); res.end(b); }
@@ -165,9 +190,36 @@ const server = http.createServer(async (req, res) => {
         if (out.data && /^[a-f0-9]{24}\.\w+$/.test(out.data.avatarRemoved || '')) fs.rm(path.join(AVATARS, out.data.avatarRemoved), () => {});
         save(); return send(res, out.status, out.data);
       }
+      // caracterul AI: poza merge la AI, nu se salvează; se păstrează doar caracterul creat
+      if (p === '/api/me/aichar' && req.method === 'POST' && (req.headers['content-type'] || '').startsWith('image/')) {
+        if (!session || session.role !== 'member') return send(res, 401, { error: 'Intră în cont.' });
+        const me = db.members.find((x) => x.id === session.id); if (!me) return send(res, 401, { error: 'Intră în cont.' });
+        const type = (req.headers['content-type'] || '').split(';')[0]; if (!['image/jpeg', 'image/png', 'image/webp'].includes(type)) return send(res, 400, { error: 'Doar poze JPG, PNG sau WEBP.' });
+        if (url.searchParams.get('ok') !== '1') return send(res, 400, { error: 'Bifează acordul pentru poză.' });
+        const info = Core.aiCharInfo(db, me, today(), ctx);
+        if (!info.ready) return send(res, 503, { error: 'Caracterul AI nu e pornit încă la sală.' });
+        if (info.left <= 0) return send(res, 429, { error: `Ai folosit cele ${info.per} caractere AI din luna asta. Revino luna viitoare!` });
+        if (aiBusy.has(me.id)) return send(res, 409, { error: 'Caracterul tău se desenează deja. Mai așteaptă puțin.' });
+        if (limited(req, 'aichar', 6, 30 * 6e4)) return send(res, 429, { error: 'Prea multe încercări. Mai încearcă peste o jumătate de oră.' });
+        let buf; try { buf = await readBody(req, 8e6); } catch { return send(res, 413, { error: 'Poza e prea mare.' }); }
+        const L = me.look || {}, style = Math.min(3, Math.max(0, parseInt(url.searchParams.get('style'), 10) || 0));
+        const mine = Core.route(db, { method: 'GET', path: '/api/me', body: {}, query: {}, session }, ctx).data, rank = (mine && mine.me && mine.me.rank && mine.me.rank.idx) || 0;
+        aiBusy.add(me.id); let img;
+        try { img = await aiCharacter(buf, type, aiPrompt(style, ['0', '1', '2'].includes(url.searchParams.get('build')) ? +url.searchParams.get('build') : L.build === undefined ? 1 : L.build, rank)); }
+        catch (e) {
+          console.warn('Caracter AI:', e.status || '', e.code || '', e.message);
+          const safety = /safety|moderation|content_policy/i.test(e.code + ' ' + e.message);
+          return send(res, safety ? 422 : 502, { error: safety ? 'Poza n-a putut fi folosită. Încearcă un selfie simplu, doar cu tine, cu fața bine luminată.' : 'AI-ul nu a răspuns acum. Încearcă din nou peste câteva minute (nu ți s-a consumat nicio încercare).' });
+        } finally { aiBusy.delete(me.id); buf = null; }
+        const file = crypto.randomBytes(12).toString('hex') + '.jpg'; fs.writeFileSync(path.join(AVATARS, file), img);
+        const out = Core.route(db, { method: 'POST', path: p, body: {}, query: {}, session }, { ...ctx, aiFile: file });
+        if (out.status >= 300) fs.rm(path.join(AVATARS, file), () => {});
+        if (out.data && /^[a-f0-9]{24}\.\w+$/.test(out.data.avatarRemoved || '')) fs.rm(path.join(AVATARS, out.data.avatarRemoved), () => {});
+        save(); return send(res, out.status, out.data);
+      }
       if ((r = /^\/api\/avatar\/([a-f0-9]{24}\.(?:jpg|png|webp))$/.exec(p)) && req.method === 'GET') {
         if (!session) return send(res, 401, { error: 'Intră în cont.' });
-        const owner = db.members.find((x) => x.avatar === r[1]);
+        const owner = db.members.find((x) => x.avatar === r[1] || x.aiChar === r[1]);
         if (!owner || (session.role !== 'admin' && session.id !== owner.id)) return send(res, 403, { error: 'Privat.' });
         res.writeHead(200, { 'Content-Type': MIME[path.extname(r[1])], 'Cache-Control': 'private, max-age=604800' }); return fs.createReadStream(path.join(AVATARS, r[1])).pipe(res);
       }
@@ -199,13 +251,15 @@ const server = http.createServer(async (req, res) => {
         const out = Core.route(db, { method: 'POST', path: p, body: { text: b.text }, query: {}, session }, { ...ctx, aiReply });
         save(); return send(res, out.status, out.data);
       }
+      // încărcările de fișiere trec doar prin rutele de mai sus (nu se pot „lipi” nume de fișiere străine)
+      if (req.method === 'POST' && ['/api/me/photo', '/api/me/avatar', '/api/me/aichar', '/api/admin/gallery'].includes(p)) return send(res, 400, { error: 'Trimite poza ca imagine.' });
       let body = {};
       if (['POST', 'PUT', 'DELETE'].includes(req.method)) { let raw; try { raw = await readBody(req, 1e6); } catch { return send(res, 413, { error: 'Prea mare.' }); } if (raw.length) { try { body = JSON.parse(raw); } catch { return send(res, 400, { error: 'Date invalide.' }); } } }
       const out = Core.route(db, { method: req.method, path: p, body, query: Object.fromEntries(url.searchParams), session }, ctx);
       if ('session' in out) setCookie(req, res, out.session); else if (session && Date.now() - (session.iat || 0) > 864e5) setCookie(req, res, session);
       for (const f of [].concat(out.data && out.data.files || [], out.data && out.data.removed || [])) if (/^[a-f0-9]{24}\.\w+$/.test(f)) fs.rm(path.join(UPLOADS, f), () => {});
       if (out.data && /^[a-f0-9]{24}\.\w+$/.test(out.data.galleryRemoved || '')) fs.rm(path.join(GALLERY, out.data.galleryRemoved), () => {});
-      if (out.data && /^[a-f0-9]{24}\.\w+$/.test(out.data.avatarRemoved || '')) fs.rm(path.join(AVATARS, out.data.avatarRemoved), () => {});
+      for (const k of ['avatarRemoved', 'aiRemoved']) if (out.data && /^[a-f0-9]{24}\.\w+$/.test(out.data[k] || '')) fs.rm(path.join(AVATARS, out.data[k]), () => {});
       if (req.method !== 'GET' || p === '/api/me') save();
       return send(res, out.status, out.data);
     }
