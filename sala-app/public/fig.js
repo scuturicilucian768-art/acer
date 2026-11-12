@@ -363,15 +363,69 @@
   };
   const pick = (arr, i, d = 0) => arr[i | 0] !== undefined ? arr[i | 0] : arr[d];
   const P2 = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
-  /* avatarele ilustrate (fată / băiat), cu insigna rangului */
-  const AV = { F: { src: 'img/avatar-f.webp', w: 253, h: 703, bust: '7 25 240 240' }, M: { src: 'img/avatar-m.webp', w: 551, h: 685, bust: '93 -26 250 250' } };
+  /* avatarele ilustrate (fată / băiat): culori pe zone (măști), accesorii desenate peste, insigna rangului */
+  const AV = {
+    F: { k: 'f', w: 253, h: 703, bust: '7 25 240 240', head: { cx: 130, top: 50, eye: 104, fw: 86 },
+      avg: { hair: 0.139, top: 0.166, bot: 0.182, shoe: 0.264 }, skin: [0.849, 0.596, 0.471] },
+    M: { k: 'm', w: 551, h: 685, bust: '93 -26 250 250', head: { cx: 226, top: 4, eye: 47, fw: 96 },
+      avg: { hair: 0.129, top: 0.166, bot: 0.255, shoe: 0.29 }, skin: [0.818, 0.548, 0.428] },
+  };
+  const AV_OPT = {
+    hair: [null, '#141010', '#7A4A2A', '#E2BC6E', '#B5402E', '#D9D5CD'],
+    skin: [null, '#F6DCC6', '#EBC09A', '#C68E63', '#8E5B3C', '#5C3A25'],
+    top: [null, '#F2F2F5', '#E5484D', '#3E7BFA', '#8B6CFF', '#2BB673', '#FF8A3D', '#C8F03C'],
+    bot: [null, '#3A3F4B', '#3E7BFA', '#8A93A3', '#E5484D', '#2BB673', '#8B6CFF'],
+    shoe: [null, '#F2F2F5', '#E5484D', '#3E7BFA', '#C8F03C', '#FF8A3D', '#151515'],
+    acc: ['Nimic', 'Bentiță', 'Șapcă', 'Căști', 'Ochelari'],
+  };
+  const rgb01 = (h) => { const n = parseInt(h.slice(1), 16); return [(n >> 16) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; };
+  const lin = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  function tintMatrix(hex, avg, B) {
+    // culoare nouă păstrând umbrele: ieșire = culoare × (luminozitate / luminozitatea medie a zonei)
+    const t = rgb01(hex).map(lin).map((c) => Math.pow(c, 1 / 2.2)), k = B / avg, w = [0.299, 0.587, 0.114];
+    return t.map((c) => w.map((x) => (c * k * x).toFixed(4)).join(' ') + ' 0 0').join(' ') + ' 0 0 0 1 0';
+  }
+  function skinMatrix(hex, avg) {
+    const t = rgb01(hex);
+    return [0, 1, 2].map((i) => [0, 1, 2].map((j) => (i === j ? (t[i] / avg[i]).toFixed(4) : '0')).join(' ') + ' 0 0').join(' ') + ' 0 0 0 1 0';
+  }
+  function avAcc(a, ac, col) {
+    const { cx, top, eye, fw } = a.head, s = fw / 96, ln = `stroke="#0B0B0E" stroke-width="${(3.2 * s).toFixed(1)}" stroke-linejoin="round"`;
+    const c = col || '#C8F03C';
+    if (ac === 1) return `<rect x="${cx - fw * 0.58}" y="${eye - 30 * s}" width="${fw * 1.16}" height="${12 * s}" rx="${6 * s}" fill="${c}" ${ln}/>`;
+    if (ac === 2) {
+      const L = cx - fw * 0.62, R = cx + fw * 0.62, y = eye - 15 * s;
+      return `<path d="M${L} ${y + 2 * s}C${L - 2 * s} ${top - 20 * s} ${R + 2 * s} ${top - 20 * s} ${R} ${y + 2 * s}Z" fill="${col || '#1E1E24'}" ${ln}/><path d="M${cx} ${top - 6 * s}V${y}" stroke="#0B0B0E" stroke-opacity=".35" stroke-width="${2 * s}"/>` +
+        `<path d="M${L - 3 * s} ${y + 1 * s}Q${cx} ${y - 5 * s} ${R + 3 * s} ${y + 1 * s}Q${R + 6 * s} ${y + 9 * s} ${cx + fw * 0.45} ${y + 15 * s}Q${cx} ${y + 24 * s} ${cx - fw * 0.45} ${y + 15 * s}Q${L - 6 * s} ${y + 9 * s} ${L - 3 * s} ${y + 1 * s}Z" fill="${col || '#1E1E24'}" ${ln}/><path d="M${cx - fw * 0.4} ${y + 6 * s}Q${cx} ${y + 2 * s} ${cx + fw * 0.4} ${y + 6 * s}" fill="none" stroke="#0B0B0E" stroke-opacity=".35" stroke-width="${2 * s}"/><circle cx="${cx}" cy="${top - 12 * s}" r="${4 * s}" fill="${c}" ${ln}/>`;
+    }
+    if (ac === 3) {
+      const ey = eye + 14 * s, L = cx - fw * 0.56, R = cx + fw * 0.56;
+      return `<path d="M${L} ${ey}C${L - 6 * s} ${top - 24 * s} ${R + 6 * s} ${top - 24 * s} ${R} ${ey}" fill="none" stroke="#0B0B0E" stroke-width="${11 * s}" stroke-linecap="round"/><path d="M${L} ${ey}C${L - 6 * s} ${top - 24 * s} ${R + 6 * s} ${top - 24 * s} ${R} ${ey}" fill="none" stroke="${c}" stroke-width="${4.5 * s}" stroke-linecap="round"/>` +
+        [L, R].map((x) => `<rect x="${x - 10 * s}" y="${ey - 17 * s}" width="${20 * s}" height="${34 * s}" rx="${9 * s}" fill="#1E1E24" ${ln}/><rect x="${x - 5 * s}" y="${ey - 10 * s}" width="${10 * s}" height="${20 * s}" rx="${5 * s}" fill="${c}"/>`).join('');
+    }
+    if (ac === 4) {
+      const g = fw * 0.2, gw = fw * 0.36, gh = 17 * s, y = eye - gh * 0.5;
+      return [cx - g, cx + g].map((x) => `<rect x="${x - gw / 2}" y="${y}" width="${gw}" height="${gh}" rx="${7 * s}" fill="#0B0D12" ${ln}/><path d="M${x - gw * 0.28} ${y + gh * 0.32}l${gw * 0.22} ${-gh * 0.12}" stroke="#fff" stroke-opacity=".7" stroke-width="${2.2 * s}" stroke-linecap="round"/>`).join('') +
+        `<path d="M${cx - g + gw / 2} ${y + gh * 0.35}Q${cx} ${y + gh * 0.1} ${cx + g - gw / 2} ${y + gh * 0.35}" fill="none" stroke="#0B0B0E" stroke-width="${3 * s}"/>`;
+    }
+    return '';
+  }
   function heroAvatar(L, rank, o) {
-    const a = AV[L.body === 'F' ? 'F' : 'M'], r = Math.max(0, Math.min(4, rank | 0));
-    const vb = o.bust ? a.bust : `${-a.w * 0.06} 0 ${a.w * 1.12} ${a.h + a.h * 0.03}`;
+    const a = AV[L.body === 'F' ? 'F' : 'M'], r = Math.max(0, Math.min(4, rank | 0)), id = 'av' + Math.random().toString(36).slice(2, 7);
+    const base = `img/avatar-${a.k}.webp`, defs = [], layers = [];
+    const zone = (z, hex, mtx) => {
+      defs.push(`<mask id="${id}${z}" maskUnits="userSpaceOnUse" x="0" y="0" width="${a.w}" height="${a.h}"><image href="img/avm-${a.k}-${z}.png" width="${a.w}" height="${a.h}"/></mask><filter id="${id}f${z}" color-interpolation-filters="sRGB" x="0" y="0" width="1" height="1">${z === 'top' || z === 'bot' ? '<feGaussianBlur stdDeviation="0.7"/>' : ''}<feColorMatrix type="matrix" values="${mtx}"/></filter>`);
+      layers.push(`<image href="${base}" width="${a.w}" height="${a.h}" mask="url(#${id}${z})" filter="url(#${id}f${z})"/>`);
+    };
+    const pickC = (arr, i) => arr[i | 0] || null;
+    const sk = pickC(AV_OPT.skin, L.avSkin); if (sk) zone('skin', sk, skinMatrix(sk, a.skin));
+    for (const [z, key, B] of [['hair', 'avHair', 0.9], ['top', 'avTop', 0.82], ['bot', 'avBot', 0.82], ['shoe', 'avShoe', 0.85]]) { const c = pickC(AV_OPT[z], L[key]); if (c) zone(z, c, tintMatrix(c, a.avg[z], B)); }
+    const acc = avAcc(a, L.avAcc | 0, pickC(AV_OPT.top, L.avTop));
+    const vb = o.bust ? a.bust : `${-a.w * 0.06} ${-a.h * 0.03} ${a.w * 1.12} ${a.h * 1.06}`;
     const sh = o.bust ? '' : `<ellipse cx="${a.w / 2}" cy="${a.h - 4}" rx="${a.w * 0.36}" ry="${a.h * 0.018}" fill="#000" opacity=".35"/>`;
-    const badge = !o.bust && r > 0 ? `<g transform="translate(${a.w - a.h * 0.13} ${a.h * 0.02}) scale(${(a.h * 0.13 / 100).toFixed(3)})">${rankBadge(r, 100).replace('<svg ', '<svg x="0" y="0" ')}</g>` : '';
+    const bs = Math.min(a.w * 0.2, a.h * 0.12), badge = !o.bust && r > 0 ? `<g transform="translate(${a.w - bs} ${a.h * 0.02}) scale(${(bs / 100).toFixed(3)})">${rankBadge(r, 100).replace('<svg ', '<svg x="0" y="0" ')}</g>` : '';
     const h = o.size ? (o.bust ? o.size : Math.round(o.size * 154 / 120)) : 0;
-    return `<svg class="hero av${o.still ? ' still' : ''}" viewBox="${vb}" ${o.size ? `width="${o.size}" height="${h}"` : ''} preserveAspectRatio="xMidYMax meet" role="img" aria-label="${o.label || 'Avatarul tău'}" ${o.style ? `style="${o.style}"` : ''}>${sh}<g class="avb"><image href="${a.src}" width="${a.w}" height="${a.h}"/></g>${badge}</svg>`;
+    return `<svg class="hero av${o.still ? ' still' : ''}" viewBox="${vb}" ${o.size ? `width="${o.size}" height="${h}"` : ''} preserveAspectRatio="xMidYMax meet" role="img" aria-label="${o.label || 'Avatarul tău'}" ${o.style ? `style="${o.style}"` : ''}><defs>${defs.join('')}</defs>${sh}<g class="avb"><image href="${base}" width="${a.w}" height="${a.h}"/>${layers.join('')}${acc}</g>${badge}</svg>`;
   }
   function hero(L, rank, o = {}) {
     L = L || {}; o = o || {};
@@ -491,5 +545,5 @@
         <circle cx="60" cy="104" r="6.5" fill="var(--acc, #C8F03C)" opacity=".9"/><circle cx="60" cy="104" r="11" fill="var(--acc, #C8F03C)" opacity=".18"/>
       </g></svg>`;
   }
-  root.GymFig = { hero, robot, LOOK_OPT, rankBadge, drawFig: (k, t) => drawFig(PAT[k], t), PATS: Object.keys(PAT), icon, figure, animate, muscleMap, musclesOf, MNAME, patFor };
+  root.GymFig = { hero, robot, LOOK_OPT, AV_OPT, rankBadge, drawFig: (k, t) => drawFig(PAT[k], t), PATS: Object.keys(PAT), icon, figure, animate, muscleMap, musclesOf, MNAME, patFor };
 })(this);
