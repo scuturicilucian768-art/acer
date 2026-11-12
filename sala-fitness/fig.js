@@ -359,7 +359,7 @@
     top: ['Tricou', 'Maieu', 'Hanorac'],
     acc: ['Nimic', 'Bentiță', 'Șapcă', 'Căști', 'Ochelari'],
     build: ['Slab', 'Fit', 'Bodybuilder'],
-    style: ['Avatar', 'Realistă', 'Desen animat', 'Foto'],
+    style: ['Avatar', '', '', 'Foto'],
   };
   const pick = (arr, i, d = 0) => arr[i | 0] !== undefined ? arr[i | 0] : arr[d];
   const P2 = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
@@ -433,9 +433,7 @@
   }
   function hero(L, rank, o = {}) {
     L = L || {}; o = o || {};
-    const st = L.style | 0;
-    if (st === 0) return heroAvatar(L, rank, o);
-    if (st === 3) return heroAvatar(L, rank, o, true);
+    return heroAvatar(L, rank, o, (L.style | 0) === 3);
     if (st === 1) return heroReal(L, rank, o);
     const r = Math.max(0, Math.min(4, rank | 0)), F = L.body === 'F', sk = pick(SKIN, L.skin, 1), hc = pick(HAIRC, L.hairCol, 0), ti = L.topCol | 0, tc = pick(TOPC, ti, 0);
     const top = L.top | 0, hs = L.hair | 0, ac = L.acc | 0, cx = 60;

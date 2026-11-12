@@ -1189,7 +1189,7 @@ function openStudio(startTab) {
         <h4>Pe card apare</h4><div class="segs"><button data-k="useFig" data-v="false" class="${!L.useFig ? 'on' : ''}" ${me.avatar ? '' : 'disabled title="Pune întâi o poză de profil"'}>Poza mea</button><button data-k="useFig" data-v="true" class="${L.useFig ? 'on' : ''}">Figurina</button></div>`
       : `${aiBox()}<div class="figpv" id="fpv">${me.aiChar && L.useAI ? `<img class="aich" src="${esc(avUrl(me.aiChar))}" alt="">` : GymFig.hero(L, rk)}</div>
         ${me.aiChar && L.useAI ? '<p class="muted small" style="margin:6px 0 0;text-align:center">Folosești caracterul AI. Setările de mai jos sunt pentru figurina desenată (tipul de corp contează și la următorul caracter AI).</p>' : ''}
-        <h4>Stilul figurinei</h4>${segs('style', LO.style.map((x, i) => [i, ['⭐ ', '🧍 ', '🎨 ', '📸 '][i] + x]))}
+        <h4>Stilul figurinei</h4>${segs('style', [[0, '⭐ Avatar'], [3, '📸 Foto']])}
         <h4>Corp</h4>${segs('body', LO.body)}
         ${(L.style | 0) === 3 ? `${avDots('avHair', AO.hair, 'Culoarea părului')}${avDots('avSkin', AO.skin, 'Pielea')}${avDots('avTop', AO.top, L.body === 'F' ? 'Topul' : 'Tricoul')}${avDots('avBot', AO.bot, L.body === 'F' ? 'Colanții' : 'Pantalonii')}${avDots('avShoe', AO.shoe, 'Papucii')}
         <h4>Accesoriu</h4><div class="segs">${AO.acc.map((x, i) => `<button data-k="avAcc" data-v="${i}" class="${(L.avAcc | 0) === i ? 'on' : ''}">${esc(x)}</button>`).join('')}</div>

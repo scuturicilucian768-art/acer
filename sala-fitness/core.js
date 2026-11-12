@@ -214,6 +214,7 @@
     if (b.motto !== undefined) L.motto = clean(b.motto, 34);
     if (b.body !== undefined) L.body = b.body === 'F' ? 'F' : 'M';
     for (const [k, n] of [['skin', 5], ['hair', 6], ['hairCol', 6], ['top', 3], ['topCol', 8], ['acc', 5], ['build', 3], ['style', 4], ['avHair', 6], ['avSkin', 6], ['avTop', 8], ['avBot', 7], ['avShoe', 7], ['avAcc', 5]]) if (b[k] !== undefined) L[k] = int(b[k], n);
+    if (L.style !== 3) L.style = 0;
     if (b.useFig !== undefined) L.useFig = !!b.useFig;
     if (b.useAI !== undefined) L.useAI = !!b.useAI;
     return [L, null];
