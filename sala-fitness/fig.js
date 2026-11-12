@@ -359,13 +359,25 @@
     top: ['Tricou', 'Maieu', 'Hanorac'],
     acc: ['Nimic', 'Bentiță', 'Șapcă', 'Căști', 'Ochelari'],
     build: ['Slab', 'Fit', 'Bodybuilder'],
-    style: ['Desen animat', 'Realistă'],
+    style: ['Avatar', 'Realistă', 'Desen animat'],
   };
   const pick = (arr, i, d = 0) => arr[i | 0] !== undefined ? arr[i | 0] : arr[d];
   const P2 = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
+  /* avatarele ilustrate (fată / băiat), cu insigna rangului */
+  const AV = { F: { src: 'img/avatar-f.webp', w: 253, h: 703, bust: '7 25 240 240' }, M: { src: 'img/avatar-m.webp', w: 551, h: 685, bust: '93 -26 250 250' } };
+  function heroAvatar(L, rank, o) {
+    const a = AV[L.body === 'F' ? 'F' : 'M'], r = Math.max(0, Math.min(4, rank | 0));
+    const vb = o.bust ? a.bust : `${-a.w * 0.06} 0 ${a.w * 1.12} ${a.h + a.h * 0.03}`;
+    const sh = o.bust ? '' : `<ellipse cx="${a.w / 2}" cy="${a.h - 4}" rx="${a.w * 0.36}" ry="${a.h * 0.018}" fill="#000" opacity=".35"/>`;
+    const badge = !o.bust && r > 0 ? `<g transform="translate(${a.w - a.h * 0.13} ${a.h * 0.02}) scale(${(a.h * 0.13 / 100).toFixed(3)})">${rankBadge(r, 100).replace('<svg ', '<svg x="0" y="0" ')}</g>` : '';
+    const h = o.size ? (o.bust ? o.size : Math.round(o.size * 154 / 120)) : 0;
+    return `<svg class="hero av${o.still ? ' still' : ''}" viewBox="${vb}" ${o.size ? `width="${o.size}" height="${h}"` : ''} preserveAspectRatio="xMidYMax meet" role="img" aria-label="${o.label || 'Avatarul tău'}" ${o.style ? `style="${o.style}"` : ''}>${sh}<g class="avb"><image href="${a.src}" width="${a.w}" height="${a.h}"/></g>${badge}</svg>`;
+  }
   function hero(L, rank, o = {}) {
     L = L || {}; o = o || {};
-    if ((L.style | 0) === 1) return heroReal(L, rank, o);
+    const st = L.style | 0;
+    if (st === 0) return heroAvatar(L, rank, o);
+    if (st === 1) return heroReal(L, rank, o);
     const r = Math.max(0, Math.min(4, rank | 0)), F = L.body === 'F', sk = pick(SKIN, L.skin, 1), hc = pick(HAIRC, L.hairCol, 0), ti = L.topCol | 0, tc = pick(TOPC, ti, 0);
     const top = L.top | 0, hs = L.hair | 0, ac = L.acc | 0, cx = 60;
     const bd = L.build === undefined || L.build === null ? 1 : Math.max(0, Math.min(2, L.build | 0)), SK = bd === 0, BB = bd === 2;

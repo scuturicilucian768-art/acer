@@ -130,6 +130,9 @@ textarea.input{min-height:90px;resize:vertical}
 .hero .arm{animation:hflex 2.8s ease-in-out infinite;transform-box:view-box}
 .hero .eyes{animation:blink 4.6s infinite;transform-box:view-box}
 .hero.still .hb,.hero.still .arm,.hero.still .eyes{animation:none}
+.hero.av .avb{animation:avbob 3.2s ease-in-out infinite;transform-box:view-box;transform-origin:50% 100%}
+.hero.av.still .avb{animation:none}
+@keyframes avbob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-1.2%) scale(1.008)}}
 @keyframes hbob{50%{transform:translateY(-2.5px)}}
 @keyframes hflex{50%{transform:rotate(calc(var(--d) * 7deg))}}
 @keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
@@ -142,7 +145,8 @@ textarea.input{min-height:90px;resize:vertical}
 @keyframes rbulb{50%{opacity:.35}}
 @keyframes rwave{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-18deg)}80%{transform:rotate(10deg)}90%{transform:rotate(-12deg)}}
 @keyframes rtalk{to{transform:scaleY(.25)}}
-@media (prefers-reduced-motion:reduce){.hero .hb,.hero .arm,.hero .eyes,.robo .rb,.robo .rb-bulb,.robo .rb-eyes,.robo .rb-wave,.robo.talk .rb-mouth{animation:none}}
+.hero.av .avb{will-change:transform}
+@media (prefers-reduced-motion:reduce){.hero.av .avb,.hero .hb,.hero .arm,.hero .eyes,.robo .rb,.robo .rb-bulb,.robo .rb-eyes,.robo .rb-wave,.robo.talk .rb-mouth{animation:none}}
 /* Robo te vede */
 .rv{position:fixed;inset:0;z-index:250;background:#07080A;color:#fff;overflow-y:auto}
 .rv .iconbtn{background:rgba(255,255,255,.12);color:#fff;border:0;width:42px;height:42px;border-radius:14px;font-size:1.15rem;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(8px)}

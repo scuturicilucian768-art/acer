@@ -1187,8 +1187,11 @@ function openStudio(startTab) {
         <h4>Pe card apare</h4><div class="segs"><button data-k="useFig" data-v="false" class="${!L.useFig ? 'on' : ''}" ${me.avatar ? '' : 'disabled title="Pune întâi o poză de profil"'}>Poza mea</button><button data-k="useFig" data-v="true" class="${L.useFig ? 'on' : ''}">Figurina</button></div>`
       : `${aiBox()}<div class="figpv" id="fpv">${me.aiChar && L.useAI ? `<img class="aich" src="${esc(avUrl(me.aiChar))}" alt="">` : GymFig.hero(L, rk)}</div>
         ${me.aiChar && L.useAI ? '<p class="muted small" style="margin:6px 0 0;text-align:center">Folosești caracterul AI. Setările de mai jos sunt pentru figurina desenată (tipul de corp contează și la următorul caracter AI).</p>' : ''}
-        <h4>Stilul figurinei</h4>${segs('style', LO.style.map((x, i) => [i, ['🎨 ', '🧍 '][i] + x]))}
+        <h4>Stilul figurinei</h4>${segs('style', LO.style.map((x, i) => [i, ['⭐ ', '🧍 ', '🎨 '][i] + x]))}
         <h4>Corp</h4>${segs('body', LO.body)}
+        ${(L.style | 0) === 0 ? `<p class="muted small" style="margin-top:10px">Avatarul are aspect fix. Pentru piele, păr, haine și tip de corp, alege stilul „Realistă” sau „Desen animat”.</p>
+        <h4>Avatarul crește cu tine</h4><div class="evo">${GymCore.RANKS.map((x, i) => `<div class="${i === rk ? 'cur' : i > rk ? 'lock' : ''}">${GymFig.hero(L, i, { still: true })}${esc(x.name)}${i > rk ? ` ${IC('lock', 10)}` : ''}</div>`).join('')}</div>
+        <p class="muted small" style="margin-top:8px">La fiecare rang nou, avatarul primește insigna rangului.</p>` : `
         <h4>Tipul de corp <span class="muted" style="font-weight:600;text-transform:none;letter-spacing:0">· corpul tău ideal</span></h4>${segs('build', LO.build.map((x, i) => [i, ['🌱 ', '💪 ', '🏆 '][i] + x]))}
         <h4>Piele</h4>${dots('skin', LO.skin)}
         <h4>Păr</h4>${segs('hair', LO.hair)}
@@ -1197,7 +1200,7 @@ function openStudio(startTab) {
         <h4>Culoarea hainelor</h4>${dots('topCol', LO.topCol)}
         <h4>Accesoriu</h4>${segs('acc', LO.acc)}
         <h4>Figurina crește cu tine</h4><div class="evo">${GymCore.RANKS.map((x, i) => `<div class="${i === rk ? 'cur' : i > rk ? 'lock' : ''}">${GymFig.hero(L, i, { still: true })}${esc(x.name)}${i > rk ? ` ${IC('lock', 10)}` : ''}</div>`).join('')}</div>
-        <p class="muted small" style="margin-top:8px">Soldat: brățări · Gladiator: centura · Comandant: pelerina · Împărat: coroana. Mușchii cresc la fiecare rang.</p>`}
+        <p class="muted small" style="margin-top:8px">Soldat: brățări · Gladiator: centura · Comandant: pelerina · Împărat: coroana. Mușchii cresc la fiecare rang.</p>`}`}
       <div class="stbar"><button class="btn btn-acc btn-block" id="sv">${IC('check', 18)} Salvează</button></div>`;
     sc.scrollTop = top;
     const mot = $('#mot', root);
