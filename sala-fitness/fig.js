@@ -359,7 +359,7 @@
     top: ['Tricou', 'Maieu', 'Hanorac'],
     acc: ['Nimic', 'Bentiță', 'Șapcă', 'Căști', 'Ochelari'],
     build: ['Slab', 'Fit', 'Bodybuilder'],
-    style: ['Avatar', 'Realistă', 'Desen animat'],
+    style: ['Avatar', 'Realistă', 'Desen animat', 'Foto'],
   };
   const pick = (arr, i, d = 0) => arr[i | 0] !== undefined ? arr[i | 0] : arr[d];
   const P2 = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
@@ -410,17 +410,18 @@
     }
     return '';
   }
-  function heroAvatar(L, rank, o) {
-    const a = AV[L.body === 'F' ? 'F' : 'M'], r = Math.max(0, Math.min(4, rank | 0)), id = 'av' + Math.random().toString(36).slice(2, 7);
-    const base = `img/avatar-${a.k}.webp`, defs = [], layers = [];
+  const AVP = { F: { k: 'f', w: 239, h: 676, bust: '18 0 205 205', photo: 1 }, M: { k: 'm', w: 545, h: 701, bust: '112 -6 220 220', photo: 1 } };
+  function heroAvatar(L, rank, o, photo) {
+    const a = (photo ? AVP : AV)[L.body === 'F' ? 'F' : 'M'], r = Math.max(0, Math.min(4, rank | 0)), id = 'av' + Math.random().toString(36).slice(2, 7);
+    const base = `img/${a.photo ? 'photo' : 'avatar'}-${a.k}.webp`, defs = [], layers = [];
     const zone = (z, hex, mtx) => {
       defs.push(`<mask id="${id}${z}" maskUnits="userSpaceOnUse" x="0" y="0" width="${a.w}" height="${a.h}"><image href="img/avm-${a.k}-${z}.png" width="${a.w}" height="${a.h}"/></mask><filter id="${id}f${z}" color-interpolation-filters="sRGB" x="0" y="0" width="1" height="1">${z === 'top' || z === 'bot' ? '<feGaussianBlur stdDeviation="0.7"/>' : ''}<feColorMatrix type="matrix" values="${mtx}"/></filter>`);
       layers.push(`<image href="${base}" width="${a.w}" height="${a.h}" mask="url(#${id}${z})" filter="url(#${id}f${z})"/>`);
     };
     const pickC = (arr, i) => arr[i | 0] || null;
-    const sk = pickC(AV_OPT.skin, L.avSkin); if (sk) zone('skin', sk, skinMatrix(sk, a.skin));
-    for (const [z, key, B] of [['hair', 'avHair', 0.9], ['top', 'avTop', 0.82], ['bot', 'avBot', 0.82], ['shoe', 'avShoe', 0.85]]) { const c = pickC(AV_OPT[z], L[key]); if (c) zone(z, c, tintMatrix(c, a.avg[z], B)); }
-    const acc = avAcc(a, L.avAcc | 0, pickC(AV_OPT.top, L.avTop));
+    const sk = a.photo ? null : pickC(AV_OPT.skin, L.avSkin); if (sk) zone('skin', sk, skinMatrix(sk, a.skin));
+    if (!a.photo) for (const [z, key, B] of [['hair', 'avHair', 0.9], ['top', 'avTop', 0.82], ['bot', 'avBot', 0.82], ['shoe', 'avShoe', 0.85]]) { const c = pickC(AV_OPT[z], L[key]); if (c) zone(z, c, tintMatrix(c, a.avg[z], B)); }
+    const acc = a.photo ? '' : avAcc(a, L.avAcc | 0, pickC(AV_OPT.top, L.avTop));
     const vb = o.bust ? a.bust : `${-a.w * 0.06} ${-a.h * 0.03} ${a.w * 1.12} ${a.h * 1.06}`;
     const sh = o.bust ? '' : `<ellipse cx="${a.w / 2}" cy="${a.h - 4}" rx="${a.w * 0.36}" ry="${a.h * 0.018}" fill="#000" opacity=".35"/>`;
     const bs = Math.min(a.w * 0.2, a.h * 0.12), badge = !o.bust && r > 0 ? `<g transform="translate(${a.w - bs} ${a.h * 0.02}) scale(${(bs / 100).toFixed(3)})">${rankBadge(r, 100).replace('<svg ', '<svg x="0" y="0" ')}</g>` : '';
@@ -431,6 +432,7 @@
     L = L || {}; o = o || {};
     const st = L.style | 0;
     if (st === 0) return heroAvatar(L, rank, o);
+    if (st === 3) return heroAvatar(L, rank, o, true);
     if (st === 1) return heroReal(L, rank, o);
     const r = Math.max(0, Math.min(4, rank | 0)), F = L.body === 'F', sk = pick(SKIN, L.skin, 1), hc = pick(HAIRC, L.hairCol, 0), ti = L.topCol | 0, tc = pick(TOPC, ti, 0);
     const top = L.top | 0, hs = L.hair | 0, ac = L.acc | 0, cx = 60;

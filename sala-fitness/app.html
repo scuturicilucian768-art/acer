@@ -562,11 +562,11 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 <script src="robo-kb.75d77752.js"></script>
 <script src="robo.dd82a5df.js"></script>
 <script src="diet.e2c419a4.js"></script>
-<script src="core.7c9953a3.js"></script>
+<script src="core.d44f1051.js"></script>
 <script src="seed.262589b2.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
-<script src="fig.92bbd5aa.js"></script>
+<script src="fig.47644bb7.js"></script>
 <script src="vision.cb2683f3.js"></script>
 <script src="qr.40840928.js"></script>
 <script>
@@ -1189,9 +1189,11 @@ function openStudio(startTab) {
         <h4>Pe card apare</h4><div class="segs"><button data-k="useFig" data-v="false" class="${!L.useFig ? 'on' : ''}" ${me.avatar ? '' : 'disabled title="Pune întâi o poză de profil"'}>Poza mea</button><button data-k="useFig" data-v="true" class="${L.useFig ? 'on' : ''}">Figurina</button></div>`
       : `${aiBox()}<div class="figpv" id="fpv">${me.aiChar && L.useAI ? `<img class="aich" src="${esc(avUrl(me.aiChar))}" alt="">` : GymFig.hero(L, rk)}</div>
         ${me.aiChar && L.useAI ? '<p class="muted small" style="margin:6px 0 0;text-align:center">Folosești caracterul AI. Setările de mai jos sunt pentru figurina desenată (tipul de corp contează și la următorul caracter AI).</p>' : ''}
-        <h4>Stilul figurinei</h4>${segs('style', LO.style.map((x, i) => [i, ['⭐ ', '🧍 ', '🎨 '][i] + x]))}
+        <h4>Stilul figurinei</h4>${segs('style', LO.style.map((x, i) => [i, ['⭐ ', '🧍 ', '🎨 ', '📸 '][i] + x]))}
         <h4>Corp</h4>${segs('body', LO.body)}
-        ${(L.style | 0) === 0 ? `${avDots('avHair', AO.hair, 'Culoarea părului')}${avDots('avSkin', AO.skin, 'Pielea')}${avDots('avTop', AO.top, L.body === 'F' ? 'Topul' : 'Tricoul')}${avDots('avBot', AO.bot, L.body === 'F' ? 'Colanții' : 'Pantalonii')}${avDots('avShoe', AO.shoe, 'Papucii')}
+        ${(L.style | 0) === 3 ? `<p class="muted small" style="margin-top:10px">Avatarul foto are aspect fix. Culorile hainelor, părul și accesoriile se schimbă la stilul „Avatar”.</p>
+        <h4>Avatarul crește cu tine</h4><div class="evo">${GymCore.RANKS.map((x, i) => `<div class="${i === rk ? 'cur' : i > rk ? 'lock' : ''}">${GymFig.hero(L, i, { still: true })}${esc(x.name)}${i > rk ? ` ${IC('lock', 10)}` : ''}</div>`).join('')}</div>
+        <p class="muted small" style="margin-top:8px">La fiecare rang nou, avatarul primește insigna rangului.</p>` : (L.style | 0) === 0 ? `${avDots('avHair', AO.hair, 'Culoarea părului')}${avDots('avSkin', AO.skin, 'Pielea')}${avDots('avTop', AO.top, L.body === 'F' ? 'Topul' : 'Tricoul')}${avDots('avBot', AO.bot, L.body === 'F' ? 'Colanții' : 'Pantalonii')}${avDots('avShoe', AO.shoe, 'Papucii')}
         <h4>Accesoriu</h4><div class="segs">${AO.acc.map((x, i) => `<button data-k="avAcc" data-v="${i}" class="${(L.avAcc | 0) === i ? 'on' : ''}">${esc(x)}</button>`).join('')}</div>
         <h4>Avatarul crește cu tine</h4><div class="evo">${GymCore.RANKS.map((x, i) => `<div class="${i === rk ? 'cur' : i > rk ? 'lock' : ''}">${GymFig.hero(L, i, { still: true })}${esc(x.name)}${i > rk ? ` ${IC('lock', 10)}` : ''}</div>`).join('')}</div>
         <p class="muted small" style="margin-top:8px">La fiecare rang nou, avatarul primește insigna rangului.</p>` : `
