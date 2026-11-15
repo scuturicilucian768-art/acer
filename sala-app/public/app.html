@@ -419,6 +419,15 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .gstrip button:active img{transform:scale(1.04)}
 .gcap{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.85));color:#fff;text-align:left;font-weight:700;font-size:.9rem}
 .gcap small{display:block;color:var(--acc);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800}
+.g3d{margin:2px -16px 0;overflow:hidden}
+.g3d-stage{height:300px;perspective:640px;perspective-origin:50% 40%;display:grid;place-items:center;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.g3d-ring{--a:0deg;position:relative;width:min(44vw,170px);aspect-ratio:3/4;transform-style:preserve-3d;transform:translateZ(calc(var(--r) * -1)) rotateX(-5deg) rotateY(var(--a));--r:calc(min(44vw,170px) * var(--n) / 5.6);cursor:grab}
+.g3d-ring:active{cursor:grabbing}
+.g3d-ring button{position:absolute;inset:0;padding:0;border-radius:20px;overflow:hidden;border:1px solid color-mix(in srgb,var(--acc) 40%,transparent);background:#000;cursor:pointer;transform:rotateY(calc(360deg / var(--n) * var(--i))) translateZ(var(--r));backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 18px 40px rgba(0,0,0,.55)}
+.g3d-ring button img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.g3d-stage{-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+.g3d-cap{margin:6px 16px 0;text-align:center;font-weight:800;color:var(--acc);min-height:1.3em}
+.g3d-hint{margin:2px 16px 0;text-align:center;font-size:.74rem;color:var(--faint)}
 .gal-ov{position:fixed;inset:0;z-index:130;background:var(--bg);overflow:auto;animation:vin .3s}
 .ggrid{columns:2;column-gap:8px;padding:12px 12px calc(30px + env(safe-area-inset-bottom))}
 .ggrid button{display:block;width:100%;margin:0 0 8px;break-inside:avoid;border:0;padding:0;border-radius:16px;overflow:hidden;cursor:pointer;background:#000}
@@ -770,6 +779,32 @@ function cardFront(me, s, left, total, who, L) {
       <div class="mc-bot"><span style="display:flex;align-items:center;min-width:0">${who}<span style="min-width:0"><span class="nm">${esc(me.name)}</span><br><span class="rkline">${GymFig.rankBadge(me.rank.idx, 16)} ${esc(me.rank.name)}</span>${L.motto ? `<span class="mc-motto">„${esc(L.motto)}”</span>` : ''}</span></span><span class="mc-hint">${IC('qr', 16)} Cardul tău</span></div>
     </div>`;
 }
+// Caruselul 3D din „Sala noastră”: se rotește singur, se poate învârti cu degetul.
+function ring3d(v) {
+  const box = $('#g3d', v); if (!box) return;
+  const ring = $('.g3d-ring', box), cap = $('.g3d-cap', box), items = $$('button', ring);
+  const n = items.length; if (!n) return;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches, base = still ? 0 : -0.1, step = 360 / n;
+  let a = 0, vel = base, drag = false, sx = 0, lx = 0, moved = 0, last = -1, seen = true, raf = 0;
+  const io = 'IntersectionObserver' in window ? new IntersectionObserver((es) => { seen = es[0].isIntersecting; if (seen && !raf) raf = requestAnimationFrame(loop); }) : null;
+  if (io) io.observe(box);
+  ring.addEventListener('pointerdown', (e) => { drag = true; sx = lx = e.clientX; moved = 0; ring.dataset.dragged = '0'; });
+  const mv = (e) => { if (!drag) return; const dx = e.clientX - lx; lx = e.clientX; moved = Math.abs(e.clientX - sx); if (moved > 6) ring.dataset.dragged = '1'; a += dx * 0.35; vel = dx * 0.35; };
+  window.addEventListener('pointermove', mv);
+  const up = () => { if (!drag) return; drag = false; setTimeout(() => (ring.dataset.dragged = '0'), 60); };
+  window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+  function loop() {
+    raf = 0;
+    if (!box.isConnected) { if (io) io.disconnect(); window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); return; }
+    if (!drag) { a += vel; vel += (base - vel) * 0.03; }
+    ring.style.setProperty('--a', a.toFixed(2) + 'deg');
+    const k = ((Math.round(-a / step) % n) + n) % n;
+    if (k !== last) { last = k; cap.textContent = items[k].getAttribute('aria-label') || ''; }
+    if (seen || drag || Math.abs(vel - base) > 0.01) raf = requestAnimationFrame(loop);
+  }
+  raf = requestAnimationFrame(loop);
+}
+
 function vHome(v) {
   const me = H.me, d = H.daily, first = me.name.split(' ')[0];
   const hour = new Date().getHours(), hi = hour < 11 ? 'Bună dimineața' : hour < 18 ? 'Salut' : 'Bună seara';
@@ -811,7 +846,7 @@ function vHome(v) {
     <div class="sec"><h2>Intră în sală</h2><small class="muted">video · 6 sec</small></div>
     <button class="vtour" id="vTour" aria-label="Pornește turul video al sălii"><video src="img/sala-tur.mp4" poster="img/sala-tur.jpg" muted loop playsinline preload="metadata" ${matchMedia('(prefers-reduced-motion: reduce)').matches ? '' : 'autoplay'}></video><span class="vt-t"><small>Turul sălii</small><b>Așa arată Empire-ul</b><span class="vt-p">${IC('arrow', 16)} Vezi pe tot ecranul</span></span></button>
     ${!GAL.photos.length ? `<div class="sec"><h2>Galerie foto</h2><button id="galAll">Deschide</button></div><div class="gstrip">${GAL.sections.map((sc, i) => `<button data-gs="${sc.id}" style="background:radial-gradient(120% 100% at 30% 0%,color-mix(in srgb,var(--acc) ${22 - i * 3}%,transparent),transparent 70%),var(--card)"><span style="position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:8px;color:var(--acc)">${IC(['home', 'dumbbell', 'users', 'star', 'chart'][i], 34)}</span><span class="gcap"><small>${esc(sc.name)}</small>Pozele vin în curând</span></button>`).join('')}</div>` : ''}
-    ${GAL.photos.length ? `<div class="sec"><h2>Sala noastră</h2><button id="galAll">Toate pozele</button></div><div class="gstrip">${GAL.photos.slice().sort((a, b) => (a.cat === 'sala' ? 0 : 1) - (b.cat === 'sala' ? 0 : 1)).slice(0, 12).map((x) => `<button data-gp="${x.id}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || 'Fitness Empire')}" loading="lazy"><span class="gcap"><small>${esc((GAL.sections.find((s) => s.id === x.cat) || {}).name || '')}</small>${esc(x.caption || '')}</span></button>`).join('')}</div>` : ''}
+    ${GAL.photos.length ? `<div class="sec"><h2>Sala noastră</h2><button id="galAll">Toate pozele</button></div>${(() => { const g = GAL.photos.slice().sort((a, b) => (a.cat === 'sala' ? 0 : 1) - (b.cat === 'sala' ? 0 : 1)).slice(0, 12); return `<div class="g3d" id="g3d"><div class="g3d-stage"><div class="g3d-ring" style="--n:${g.length}">${g.map((x, i) => `<button data-gp="${x.id}" style="--i:${i}" aria-label="${esc(x.caption || 'Poză din sală')}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || 'Fitness Empire')}" draggable="false"></button>`).join('')}</div></div><p class="g3d-cap" aria-live="polite">${esc(g[0].caption || '')}</p><p class="g3d-hint">Trage ca să rotești · atinge o poză ca s-o deschizi</p></div>`; })()}` : ''}
     ${H.announcements.length ? `<div class="sec"><h2>Noutăți de la sală</h2><button id="allAnn">Toate</button></div><div class="list">${H.announcements.slice(0, 2).map(annHtml).join('')}</div>` : ''}
     <div class="sec"><h2>Contact rapid</h2></div>
     <div class="contact">
@@ -845,7 +880,8 @@ function vHome(v) {
     $('#vfx', el).onclick = close;
   };
   $$('[data-gs]', v).forEach((b) => (b.onclick = () => openGallery(b.dataset.gs)));
-  $$('[data-gp]', v).forEach((b) => (b.onclick = () => { const all = GAL.photos.slice().sort((a, b2) => (a.cat === 'sala' ? 0 : 1) - (b2.cat === 'sala' ? 0 : 1)).slice(0, 12); lightbox(all, all.findIndex((x) => x.id === b.dataset.gp)); }));
+  $$('[data-gp]', v).forEach((b) => (b.onclick = (e) => { if (b.closest('.g3d-ring')?.dataset.dragged === '1') { e.preventDefault(); return; } const all = GAL.photos.slice().sort((a, b2) => (a.cat === 'sala' ? 0 : 1) - (b2.cat === 'sala' ? 0 : 1)).slice(0, 12); lightbox(all, all.findIndex((x) => x.id === b.dataset.gp)); }));
+  ring3d(v);
   bindInstall();
 }
 const CoreAdd = (d, n) => GymCore.add(d, n);
