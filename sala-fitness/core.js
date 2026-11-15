@@ -348,7 +348,7 @@
     if (!c.cap) c.cap = 5; if (!c.dur) c.dur = 60; if (!c.ahead) c.ahead = 7; if (c.cancelH === undefined) c.cancelH = 2; if (!c.perDay) c.perDay = 1;
     if (c.needSub === undefined) c.needSub = true; if (c.title === undefined) c.title = 'Antrenament cu antrenor'; if (c.coach === undefined) c.coach = '';
     if (!Array.isArray(c.hours) || c.hours.length !== 7) c.hours = [0, 1, 2, 3, 4, 5, 6].map((d) => ({ d, on: d !== 0, from: d === 6 ? '09:00' : '08:00', to: d === 6 ? '14:00' : '21:00' }));
-    c.capOv = c.capOv || {}; c.closed = c.closed || {}; c.dayCap = c.dayCap || {}; c.hours.forEach((h) => { if (!h.cap) h.cap = c.cap; }); db.slotBk = db.slotBk || [];
+    c.capOv = c.capOv || {}; c.closed = c.closed || {}; if (!Array.isArray(c.blocks)) c.blocks = []; c.dayCap = c.dayCap || {}; c.hours.forEach((h) => { if (!h.cap) h.cap = c.cap; }); db.slotBk = db.slotBk || [];
     return c;
   }
   const toMin = (s) => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(s || '')); return m ? +m[1] * 60 + +m[2] : null; };
@@ -359,18 +359,24 @@
     for (let x = a; x + c.dur <= b; x += c.dur) out.push(toHM(x));
     return out;
   }
+  /* perioade blocate (sărbători, concediu, renovare): o zi întreagă sau un interval de ore, pe una sau mai multe zile */
+  function blockFor(c, date, time, dur) {
+    const a = toMin(time), b = a + dur;
+    return c.blocks.find((k) => date >= k.from && date <= k.to && (!k.start || (toMin(k.start) < b && toMin(k.end) > a))) || null;
+  }
+  function dayBlock(c, date) { return c.blocks.find((k) => date >= k.from && date <= k.to && !k.start) || null; }
   function dayCapOf(c, date) { if (c.dayCap[date] !== undefined) return c.dayCap[date]; const h = c.hours[new Date(date + 'T12:00:00Z').getUTCDay()]; return h && h.cap ? h.cap : c.cap; }
   function slotsDay(db, date, t, now, meId, admin) {
     const c = bkCfg(db);
     return slotTimes(c, date).map((time) => {
       const key = date + ' ' + time, list = db.slotBk.filter((b) => b.date === date && b.time === time && b.status === 'ok');
-      const dc = dayCapOf(c, date), cap = c.capOv[key] !== undefined ? c.capOv[key] : dc, mine = list.find((b) => b.memberId === meId);
-      const x = { time, end: toHM(toMin(time) + c.dur), cap, booked: list.length, free: Math.max(0, cap - list.length), closed: !!c.closed[key], past: date < t || (date === t && toMin(time) <= toMin(now)), mine: mine ? mine.id : null, ov: c.capOv[key] !== undefined };
+      const dc = dayCapOf(c, date), cap = c.capOv[key] !== undefined ? c.capOv[key] : dc, mine = list.find((b) => b.memberId === meId), blk = blockFor(c, date, time, c.dur);
+      const x = { time, end: toHM(toMin(time) + c.dur), cap, booked: list.length, free: Math.max(0, cap - list.length), closed: !!c.closed[key] || !!blk, reason: blk ? blk.reason || 'Închis' : '', past: date < t || (date === t && toMin(time) <= toMin(now)), mine: mine ? mine.id : null, ov: c.capOv[key] !== undefined };
       if (admin) x.people = list.map((b) => { const m = db.members.find((y) => y.id === b.memberId) || {}; return { id: b.id, memberId: b.memberId, name: m.name || '—', phone: m.phone || '', by: b.by || 'membru' }; });
       return x;
     });
   }
-  function slotsWeek(db, from, n, t, now, meId, admin) { const out = []; for (let i = 0; i < n; i++) { const d = add(from, i); { const c = bkCfg(db); out.push({ date: d, dow: DOW[new Date(d + 'T12:00:00Z').getUTCDay()], cap: dayCapOf(c, d), capSpecial: c.dayCap[d] !== undefined, slots: slotsDay(db, d, t, now, meId, admin) }); } } return out; }
+  function slotsWeek(db, from, n, t, now, meId, admin) { const out = []; for (let i = 0; i < n; i++) { const d = add(from, i); { const c = bkCfg(db); out.push({ date: d, dow: DOW[new Date(d + 'T12:00:00Z').getUTCDay()], cap: dayCapOf(c, d), capSpecial: c.dayCap[d] !== undefined, block: (() => { const k = dayBlock(c, d); return k ? { reason: k.reason || 'Închis' } : null; })(), slots: slotsDay(db, d, t, now, meId, admin) }); } } return out; }
   function bookPublic(c) { return { on: c.on, cap: c.cap, dur: c.dur, ahead: c.ahead, cancelH: c.cancelH, perDay: c.perDay, needSub: c.needSub, title: c.title, coach: c.coach }; }
   function rateDue(db, m, t, now) {
     const c = bkCfg(db), done = new Set((db.reviews || []).filter((r) => r.memberId === m.id && r.bookingId).map((r) => r.bookingId));
@@ -648,7 +654,7 @@
         if (!isDate(body.date) || body.date < t || diff(body.date, t) >= c.ahead) return no(400, `Poți rezerva doar pentru următoarele ${c.ahead} zile.`);
         if (c.needSub && !['active', 'expiring'].includes(subOf(db, me, t).state)) return no(403, 'Ai nevoie de un abonament activ ca să rezervi. Treci pe la recepție.');
         const sl = slotsDay(db, body.date, t, now, me.id, false).find((x) => x.time === body.time); if (!sl) return no(400, 'Ora asta nu există în program.');
-        if (sl.past) return no(400, 'Ora asta a trecut deja.'); if (sl.closed) return no(409, 'Ora asta e închisă de sală.'); if (sl.mine) return no(409, 'Ai deja rezervare la ora asta.');
+        if (sl.past) return no(400, 'Ora asta a trecut deja.'); if (sl.closed) return no(409, sl.reason ? `Ora asta e închisă de sală: ${sl.reason}.` : 'Ora asta e închisă de sală.'); if (sl.mine) return no(409, 'Ai deja rezervare la ora asta.');
         if (sl.free <= 0) return no(409, 'Nu mai sunt locuri libere la ora asta. Alege altă oră.');
         if (db.slotBk.filter((b) => b.memberId === me.id && b.date === body.date && b.status === 'ok').length >= c.perDay) return no(409, c.perDay === 1 ? 'Ai deja o rezervare în ziua asta. Anuleaz-o dacă vrei altă oră.' : `Poți avea maxim ${c.perDay} rezervări pe zi.`);
         db.slotBk.push({ id: ctx.uid('sb'), memberId: me.id, date: body.date, time: body.time, at: ctx.nowISO(), status: 'ok' });
@@ -861,6 +867,20 @@
       return ok({ cfg: c });
     }
     if (p === A + '/slots/day' && m === 'PUT') { const c = bkCfg(db); if (!isDate(body.date)) return no(400, 'Ziua nu e corectă.'); if (body.cap === null || body.cap === '') delete c.dayCap[body.date]; else c.dayCap[body.date] = Math.max(0, Math.min(500, Math.round(num(body.cap, 0, 500) || 0))); return ok({ ok: true }); }
+    if (p === A + '/slots/block' && m === 'POST') {
+      const c = bkCfg(db), from = body.from, to = body.to || body.from, whole = !body.start && !body.end;
+      if (!isDate(from) || !isDate(to)) return no(400, 'Alege ziua de început și de sfârșit.'); if (to < from) return no(400, 'Ziua de sfârșit e înainte de cea de început.');
+      if (diff(to, from) > 366) return no(400, 'Perioada e prea lungă (maxim un an).');
+      const k = { id: ctx.uid('bl'), from, to, reason: clean(body.reason, 80), at: ctx.nowISO() };
+      if (!whole) { const a = toMin(body.start), b = toMin(body.end); if (a === null || b === null || b <= a) return no(400, 'Verifică orele intervalului (ex: 12:00 – 15:00).'); k.start = toHM(a); k.end = toHM(b); }
+      c.blocks.push(k); c.blocks.sort((x, y) => (x.from + (x.start || '')).localeCompare(y.from + (y.start || '')));
+      const hit = db.slotBk.filter((b) => b.status === 'ok' && b.date >= t && b.date >= from && b.date <= to && (whole || (toMin(b.time) < toMin(k.end) && toMin(b.time) + c.dur > toMin(k.start))));
+      hit.forEach((b) => { b.status = 'anulat'; b.cancelAt = ctx.nowISO(); b.byGym = true; });
+      const fd = (d) => d.split('-').reverse().slice(0, 2).join('.');
+      for (const b of hit) { const mem = db.members.find((x) => x.id === b.memberId); if (mem) notify(db, ctx, [mem], 'Ora ta a fost anulată de sală', `Rezervarea din ${fd(b.date)}, ora ${b.time}, a fost anulată${k.reason ? ': ' + k.reason : ''}. Alege altă oră din aplicație.`, 'programare', '/app.html'); }
+      return ok({ ok: true, block: k, cancelled: hit.length });
+    }
+    if ((r = /^\/api\/admin\/slots\/block\/(\w+)$/.exec(p)) && m === 'DELETE') { const c = bkCfg(db), n = c.blocks.length; c.blocks = c.blocks.filter((k) => k.id !== r[1]); if (c.blocks.length === n) return no(404, 'Perioada nu există.'); return ok({ ok: true }); }
     if (p === A + '/slots/slot' && m === 'PUT') {
       const c = bkCfg(db); if (!isDate(body.date) || toMin(body.time) === null) return no(400, 'Ora nu e corectă.'); const key = body.date + ' ' + body.time;
       if (body.cap === null || body.cap === '') delete c.capOv[key]; else if (body.cap !== undefined) c.capOv[key] = Math.max(0, Math.min(500, Math.round(num(body.cap, 0, 500) || 0)));
