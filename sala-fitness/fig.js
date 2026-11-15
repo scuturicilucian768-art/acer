@@ -365,9 +365,9 @@
   const P2 = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
   /* avatarele ilustrate (fată / băiat): culori pe zone (măști), accesorii desenate peste, insigna rangului */
   const AV = {
-    F: { k: 'f', w: 253, h: 703, bust: '7 25 240 240', logo: [148, 226, 64], head: { cx: 130, top: 50, eye: 104, fw: 86 },
+    F: { k: 'f', w: 253, h: 703, bust: '7 25 240 240', logo: [118, 200, 60, 55], head: { cx: 130, top: 50, eye: 104, fw: 86 },
       avg: { hair: 0.139, top: 0.166, bot: 0.182, shoe: 0.264 }, skin: [0.849, 0.596, 0.471] },
-    M: { k: 'm', w: 551, h: 685, bust: '93 -26 250 250', logo: [222, 178, 104], head: { cx: 226, top: 4, eye: 47, fw: 96 },
+    M: { k: 'm', w: 551, h: 685, bust: '93 -26 250 250', logo: [174, 137, 97, 85], head: { cx: 226, top: 4, eye: 47, fw: 96 },
       avg: { hair: 0.129, top: 0.166, bot: 0.255, shoe: 0.29 }, skin: [0.818, 0.548, 0.428] },
   };
   const AV_OPT = {
@@ -411,8 +411,8 @@
     return '';
   }
   const AVP = {
-    F: { k: 'f', w: 239, h: 676, bust: '18 0 205 205', photo: 1, logo: [141, 196, 60], head: { cx: 127, top: 32, eye: 77, fw: 64 }, avg: { hair: 0.133, top: 0.161, bot: 0.121, shoe: 0.211 }, skin: [0.593, 0.436, 0.342] },
-    M: { k: 'm', w: 545, h: 701, bust: '112 -6 220 220', photo: 1, logo: [214, 198, 96], head: { cx: 221, top: 16, eye: 68, fw: 82 }, avg: { hair: 0.126, top: 0.109, bot: 0.081, shoe: 0.276 }, skin: [0.558, 0.389, 0.314] },
+    F: { k: 'f', w: 239, h: 676, bust: '18 0 205 205', photo: 1, logo: [114, 173, 55, 51], head: { cx: 127, top: 32, eye: 77, fw: 64 }, avg: { hair: 0.133, top: 0.161, bot: 0.121, shoe: 0.211 }, skin: [0.593, 0.436, 0.342] },
+    M: { k: 'm', w: 545, h: 701, bust: '112 -6 220 220', photo: 1, logo: [170, 158, 89, 82], head: { cx: 221, top: 16, eye: 68, fw: 82 }, avg: { hair: 0.126, top: 0.109, bot: 0.081, shoe: 0.276 }, skin: [0.558, 0.389, 0.314] },
   };
   function heroAvatar(L, rank, o, photo) {
     const a = (photo ? AVP : AV)[L.body === 'F' ? 'F' : 'M'], r = Math.max(0, Math.min(4, rank | 0)), id = 'av' + Math.random().toString(36).slice(2, 7);
@@ -424,7 +424,7 @@
     const pickC = (arr, i) => arr[i | 0] || null;
     const sk = pickC(AV_OPT.skin, L.avSkin); if (sk) zone('skin', sk, skinMatrix(sk, a.skin));
     for (const [z, key, B] of [['hair', 'avHair', 0.9], ['top', 'avTop', 0.82], ['bot', 'avBot', 0.82], ['shoe', 'avShoe', 0.85]]) { const c = pickC(AV_OPT[z], L[key]); if (c) zone(z, c, tintMatrix(c, a.avg[z], B)); }
-    const [lx, ly, lw] = a.logo, lh = lw * 0.89, logo = `<image href="img/logo-shirt.webp" x="${lx - lw / 2}" y="${ly - lh / 2}" width="${lw}" height="${lh}" opacity="${a.photo ? 0.9 : 1}"/>`;
+    const [lx, ly, lw, lh] = a.logo, logo = `<image href="img/logo-${a.photo ? 'photo' : 'avatar'}-${a.k}.webp" x="${lx}" y="${ly}" width="${lw}" height="${lh}"/>`;
     const acc = avAcc(a, L.avAcc | 0, pickC(AV_OPT.top, L.avTop));
     const vb = o.bust ? a.bust : `${-a.w * 0.06} ${-a.h * 0.03} ${a.w * 1.12} ${a.h * 1.06}`;
     const sh = o.bust ? '' : `<ellipse cx="${a.w / 2}" cy="${a.h - 4}" rx="${a.w * 0.36}" ry="${a.h * 0.018}" fill="#000" opacity=".35"/>`;
