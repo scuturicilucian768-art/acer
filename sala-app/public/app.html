@@ -420,6 +420,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .gcap{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.85));color:#fff;text-align:left;font-weight:700;font-size:.9rem}
 .gcap small{display:block;color:var(--acc);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800}
 .g3d{margin:2px -16px 0;overflow:hidden}
+.gal-ov .g3d{margin:18px 0 0}.gal-ov .g3d-stage{height:min(54vh,400px)}.gal-ov .g3d-ring{width:min(56vw,240px)}.gal-ov .g3d-ring{--r:calc(min(56vw,240px) * var(--n) / 5.6)}
 .g3d-stage{height:300px;perspective:640px;perspective-origin:50% 40%;display:grid;place-items:center;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .g3d-ring{--a:0deg;position:relative;width:min(44vw,170px);aspect-ratio:3/4;transform-style:preserve-3d;transform:translateZ(calc(var(--r) * -1)) rotateX(-5deg) rotateY(var(--a));--r:calc(min(44vw,170px) * var(--n) / 5.6);cursor:grab}
 .g3d-ring:active{cursor:grabbing}
@@ -779,7 +780,7 @@ function cardFront(me, s, left, total, who, L) {
       <div class="mc-bot"><span style="display:flex;align-items:center;min-width:0">${who}<span style="min-width:0"><span class="nm">${esc(me.name)}</span><br><span class="rkline">${GymFig.rankBadge(me.rank.idx, 16)} ${esc(me.rank.name)}</span>${L.motto ? `<span class="mc-motto">„${esc(L.motto)}”</span>` : ''}</span></span><span class="mc-hint">${IC('qr', 16)} Cardul tău</span></div>
     </div>`;
 }
-// Caruselul 3D din „Sala noastră”: se rotește singur, se poate învârti cu degetul.
+// Caruselul 3D din Galerie („Sala noastră” și „Aparate”): se rotește singur, se poate învârti cu degetul.
 function ring3d(v) {
   const box = $('#g3d', v); if (!box) return;
   const ring = $('.g3d-ring', box), cap = $('.g3d-cap', box), items = $$('button', ring);
@@ -846,7 +847,7 @@ function vHome(v) {
     <div class="sec"><h2>Intră în sală</h2><small class="muted">video · 6 sec</small></div>
     <button class="vtour" id="vTour" aria-label="Pornește turul video al sălii"><video src="img/sala-tur.mp4" poster="img/sala-tur.jpg" muted loop playsinline preload="metadata" ${matchMedia('(prefers-reduced-motion: reduce)').matches ? '' : 'autoplay'}></video><span class="vt-t"><small>Turul sălii</small><b>Așa arată Empire-ul</b><span class="vt-p">${IC('arrow', 16)} Vezi pe tot ecranul</span></span></button>
     ${!GAL.photos.length ? `<div class="sec"><h2>Galerie foto</h2><button id="galAll">Deschide</button></div><div class="gstrip">${GAL.sections.map((sc, i) => `<button data-gs="${sc.id}" style="background:radial-gradient(120% 100% at 30% 0%,color-mix(in srgb,var(--acc) ${22 - i * 3}%,transparent),transparent 70%),var(--card)"><span style="position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:8px;color:var(--acc)">${IC(['home', 'dumbbell', 'users', 'star', 'chart'][i], 34)}</span><span class="gcap"><small>${esc(sc.name)}</small>Pozele vin în curând</span></button>`).join('')}</div>` : ''}
-    ${GAL.photos.length ? `<div class="sec"><h2>Sala noastră</h2><button id="galAll">Toate pozele</button></div>${(() => { const g = GAL.photos.slice().sort((a, b) => (a.cat === 'sala' ? 0 : 1) - (b.cat === 'sala' ? 0 : 1)).slice(0, 12); return `<div class="g3d" id="g3d"><div class="g3d-stage"><div class="g3d-ring" style="--n:${g.length}">${g.map((x, i) => `<button data-gp="${x.id}" style="--i:${i}" aria-label="${esc(x.caption || 'Poză din sală')}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || 'Fitness Empire')}" draggable="false"></button>`).join('')}</div></div><p class="g3d-cap" aria-live="polite">${esc(g[0].caption || '')}</p><p class="g3d-hint">Trage ca să rotești · atinge o poză ca s-o deschizi</p></div>`; })()}` : ''}
+    ${GAL.photos.length ? `<div class="sec"><h2>Sala noastră</h2><button id="galAll">Toate pozele</button></div><div class="gstrip">${GAL.photos.slice().sort((a, b) => (a.cat === 'sala' ? 0 : 1) - (b.cat === 'sala' ? 0 : 1)).slice(0, 12).map((x) => `<button data-gp="${x.id}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || 'Fitness Empire')}" loading="lazy"><span class="gcap"><small>${esc((GAL.sections.find((s) => s.id === x.cat) || {}).name || '')}</small>${esc(x.caption || '')}</span></button>`).join('')}</div>` : ''}
     ${H.announcements.length ? `<div class="sec"><h2>Noutăți de la sală</h2><button id="allAnn">Toate</button></div><div class="list">${H.announcements.slice(0, 2).map(annHtml).join('')}</div>` : ''}
     <div class="sec"><h2>Contact rapid</h2></div>
     <div class="contact">
@@ -880,8 +881,7 @@ function vHome(v) {
     $('#vfx', el).onclick = close;
   };
   $$('[data-gs]', v).forEach((b) => (b.onclick = () => openGallery(b.dataset.gs)));
-  $$('[data-gp]', v).forEach((b) => (b.onclick = (e) => { if (b.closest('.g3d-ring')?.dataset.dragged === '1') { e.preventDefault(); return; } const all = GAL.photos.slice().sort((a, b2) => (a.cat === 'sala' ? 0 : 1) - (b2.cat === 'sala' ? 0 : 1)).slice(0, 12); lightbox(all, all.findIndex((x) => x.id === b.dataset.gp)); }));
-  ring3d(v);
+  $$('[data-gp]', v).forEach((b) => (b.onclick = () => { const all = GAL.photos.slice().sort((a, b2) => (a.cat === 'sala' ? 0 : 1) - (b2.cat === 'sala' ? 0 : 1)).slice(0, 12); lightbox(all, all.findIndex((x) => x.id === b.dataset.gp)); }));
   bindInstall();
 }
 const CoreAdd = (d, n) => GymCore.add(d, n);
@@ -915,10 +915,11 @@ function openGallery(cat) {
     const list = GAL.photos.filter((x) => !cur || x.cat === cur);
     el.innerHTML = `<div class="chat-top"><button class="iconbtn" id="gx" aria-label="Înapoi">${IC('back', 20)}</button><div class="grow"><b>${esc(S().name)}</b><div class="muted small">${GAL.photos.length} poze</div></div></div>
       <div class="filters" style="padding:12px 12px 0"><button data-gc="" class="${cur ? '' : 'on'}">Toate</button>${secs.map((s) => `<button data-gc="${s.id}" class="${cur === s.id ? 'on' : ''}">${esc(s.name)}</button>`).join('')}</div>
-      ${list.length ? `<div class="ggrid">${list.map((x, i) => `<button data-gi="${i}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || '')}" loading="lazy"></button>`).join('')}</div>` : `<div style="display:grid;justify-items:center;gap:10px;text-align:center;padding:60px 24px;color:var(--muted)">${IC('camera', 44)}<b style="color:var(--ink)">Încă nu sunt poze aici</b><span class="small">Sala adaugă pozele în curând.</span></div>`}`;
+      ${list.length && (cur === 'sala' || cur === 'aparate') && list.length >= 3 ? `<div class="g3d" id="g3d"><div class="g3d-stage"><div class="g3d-ring" style="--n:${list.length}">${list.map((x, i) => `<button data-gi="${i}" style="--i:${i}" aria-label="${esc(x.caption || 'Poză din sală')}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || 'Fitness Empire')}" draggable="false"></button>`).join('')}</div></div><p class="g3d-cap" aria-live="polite">${esc(list[0].caption || '')}</p><p class="g3d-hint">${list.length} poze · trage ca să rotești · atinge o poză ca s-o deschizi</p></div>` : list.length ? `<div class="ggrid">${list.map((x, i) => `<button data-gi="${i}"><img src="${esc(galUrl(x.file))}" alt="${esc(x.caption || '')}" loading="lazy"></button>`).join('')}</div>` : `<div style="display:grid;justify-items:center;gap:10px;text-align:center;padding:60px 24px;color:var(--muted)">${IC('camera', 44)}<b style="color:var(--ink)">Încă nu sunt poze aici</b><span class="small">Sala adaugă pozele în curând.</span></div>`}`;
     $('#gx', el).onclick = () => { el.remove(); if (!$('.wo') && !$('#chat')) document.body.classList.remove('noscroll'); };
     $$('[data-gc]', el).forEach((b) => (b.onclick = () => { cur = b.dataset.gc; draw(); }));
-    $$('[data-gi]', el).forEach((b) => (b.onclick = () => lightbox(list, +b.dataset.gi)));
+    $$('[data-gi]', el).forEach((b) => (b.onclick = (e) => { if (b.closest('.g3d-ring')?.dataset.dragged === '1') { e.preventDefault(); return; } lightbox(list, +b.dataset.gi); }));
+    ring3d(el);
   };
   draw();
 }
