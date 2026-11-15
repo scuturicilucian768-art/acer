@@ -694,7 +694,12 @@ async function boot() {
   if (/^ci-\d{4}$/.test(h)) doCheckin(h.slice(3));
   if (h === 'chat') openChat();
   if (/^ex-\w+$/.test(h)) openExFromQR(h.slice(3));
+  if (/^ap-\w+$/.test(h)) openMachFromQR(h.slice(3));
   if (consentDue()) setTimeout(() => openConsent(false), 500);
+}
+function openMachFromQR(id) {
+  history.replaceState(null, '', '#' + tab); if (!MACH.some((x) => x.id === id)) return toast('Aparatul nu mai există în aplicație.', 'bad');
+  if (tab !== 'train') go('train'); setTimeout(() => openMachine(id), 250);
 }
 function openExFromQR(id) {
   const e = EX.find((x) => x.id === id); history.replaceState(null, '', '#' + tab);
@@ -746,7 +751,7 @@ function go(t) {
   render(true); scrollTo(0, 0);
 }
 $$('.tabs button').forEach((b) => (b.onclick = () => go(b.dataset.t)));
-addEventListener('hashchange', () => { const h = location.hash.slice(1); if (!H) return; if (/^ci-\d{4}$/.test(h)) return doCheckin(h.slice(3)); if (h === 'chat') return openChat(); if (/^ex-\w+$/.test(h)) return openExFromQR(h.slice(3)); if (TABS.includes(h) && h !== tab) go(h); });
+addEventListener('hashchange', () => { const h = location.hash.slice(1); if (!H) return; if (/^ci-\d{4}$/.test(h)) return doCheckin(h.slice(3)); if (h === 'chat') return openChat(); if (/^ex-\w+$/.test(h)) return openExFromQR(h.slice(3)); if (/^ap-\w+$/.test(h)) return openMachFromQR(h.slice(3)); if (TABS.includes(h) && h !== tab) go(h); });
 $('#bell').onclick = openNotifs; $('#chatB').onclick = () => openChat();
 function render(anim) {
   const v = $('#view'); v.className = 'wrap' + (anim ? ' stagger' : '');
@@ -1500,7 +1505,7 @@ function openMachine(id) {
   const e = m.ex ? exById(m.ex) : null;
   const el = sheet(`<button class="mback" id="mBk" type="button">${IC('back', 18)} Înapoi la aparate</button><div class="mtop one"><div class="mhero big"><img src="${esc(galUrl(m.photo || ''))}" alt="${esc(m.name)}"></div></div>
     <h2 style="margin:12px 0 4px">${esc(m.short || m.name)}</h2><p class="muted small" style="margin:0 0 8px">${esc(m.name)}</p>
-    <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip acc">${esc(m.muscles || (e ? e.muscle : ''))}</span>${e ? `<span class="chip">${esc(e.level)}</span>` : ''}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="chip acc" style="white-space:normal;height:auto;line-height:1.3;padding-top:6px;padding-bottom:6px;text-align:left">${esc(m.muscles || (e ? e.muscle : ''))}</span>${e ? `<span class="chip">${esc(e.level)}</span>` : ''}</div>
     ${(m.setup || []).length ? `<h3>1. Reglează aparatul</h3><ol class="msteps">${m.setup.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
     ${e && (e.steps || []).length ? `<h3>2. Execuția</h3><ol class="msteps">${e.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
     ${(m.mistakes || []).length ? `<h3>Greșeli de evitat</h3><ul class="msteps bad">${m.mistakes.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
@@ -1618,7 +1623,7 @@ function scanMachine() {
   const w = $('#sheet'), close = () => { stopCam(); closeSheet(); }; $('.sheet-bg', w).onclick = close; $('.sheet-x', w).onclick = close;
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then((st) => {
     camStream = st; const vid = $('video', el); vid.srcObject = st; const det = new BarcodeDetector({ formats: ['qr_code'] });
-    const loop = async () => { if (!camStream) return; try { const r = await det.detect(vid); const m = r[0] && /#ex-(\w+)/.exec(r[0].rawValue); if (m) { stopCam(); closeSheet(); setTimeout(() => openExFromQR(m[1]), 280); return; } if (r[0]) $('#sce', el).textContent = 'Codul ăsta nu e de pe un aparat.'; } catch {} setTimeout(loop, 300); };
+    const loop = async () => { if (!camStream) return; try { const r = await det.detect(vid); const m = r[0] && /#(ex|ap)-(\w+)/.exec(r[0].rawValue); if (m) { stopCam(); closeSheet(); setTimeout(() => (m[1] === 'ap' ? openMachFromQR(m[2]) : openExFromQR(m[2])), 280); return; } if (r[0]) $('#sce', el).textContent = 'Codul ăsta nu e de pe un aparat.'; } catch {} setTimeout(loop, 300); };
     loop();
   }).catch(() => { $('#sce', el).textContent = 'Nu am acces la cameră. Folosește camera telefonului.'; });
 }
