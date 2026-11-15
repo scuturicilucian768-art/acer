@@ -516,7 +516,9 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .swz{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 .sw{position:relative;aspect-ratio:1.55;border-radius:12px;border:2px solid transparent;cursor:pointer;overflow:hidden;padding:0}
 .sw.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--acc)}
-.sw .lk{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;background:rgba(0,0,0,.62);color:#fff;font-size:.6rem;font-weight:800;gap:2px;text-align:center;line-height:1.1}
+.sw .lk{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;background:rgba(0,0,0,.62);color:#fff;font-size:.6rem;font-weight:800;gap:1px;text-align:center;line-height:1.05;padding:0 3px}
+.sw .lk span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sw .lk span+span{font-size:.52rem}
 .sw small{position:absolute;left:6px;bottom:4px;font-size:.6rem;font-weight:800;color:#fff;text-shadow:0 1px 3px #000}
 .dots{display:flex;gap:10px;flex-wrap:wrap}
 .dots button{width:36px;height:36px;border-radius:50%;border:3px solid var(--bg2);box-shadow:0 0 0 1.5px var(--line2);cursor:pointer}
@@ -900,7 +902,7 @@ function lightbox(list, i) {
 }
 /* ── poza de profil ── */
 function cropSquare(file, size) { return new Promise((res) => { const img = new Image(); img.onload = () => { const s0 = Math.min(img.width, img.height), c = document.createElement('canvas'); c.width = c.height = size; c.getContext('2d').drawImage(img, (img.width - s0) / 2, (img.height - s0) / 2, s0, s0, 0, 0, size, size); c.toBlob((b) => res(b), 'image/jpeg', 0.86); }; img.onerror = () => res(null); img.src = URL.createObjectURL(file); }); }
-function openAvatar() {
+function openAvatar(after) {
   const me = H.me;
   const el = sheet(`<div style="text-align:center"><h2 style="padding:0">Poza de profil</h2><p class="muted small">O vezi tu și echipa sălii, ca să te recunoască la recepție.</p>
     <div class="avatar" style="width:150px;height:150px;margin:16px auto;font-size:3rem;overflow:hidden">${me.avatar ? `<img src="${esc(avUrl(me.avatar))}" alt="" style="width:100%;height:100%;object-fit:cover">` : esc(me.name.split(' ').map((x) => x[0]).join('').slice(0, 2).toUpperCase())}</div>
@@ -912,6 +914,7 @@ function openAvatar() {
       const b = await cropSquare(f, window.GymDemo ? 320 : 600); if (!b) throw new Error('Poza nu a putut fi citită.');
       if (window.GymDemo) { const url = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); }); H = await api('/api/me/avatar', { method: 'POST', body: { file: url } }); }
       else H = await api('/api/me/avatar', { method: 'POST', raw: b, type: 'image/jpeg' });
+      if (after) { try { await after(); } catch {} }
       closeSheet(); toast('Poza de profil a fost salvată'); render();
     } catch (er) { $('#ave', el).textContent = er.message; }
   };
@@ -1222,7 +1225,7 @@ function openStudio(startTab) {
         <h4>Model</h4>${segs('pattern', PT.map((x, i) => [i, x[0].toUpperCase() + x.slice(1)]))}
         <h4>Motto pe card</h4><input class="input" id="mot" maxlength="34" placeholder="Scrie ce te motivează" value="${esc(L.motto || '')}">
         <div class="segs" style="margin-top:8px">${MOT.map((m) => `<button data-mot="${esc(m)}">${esc(m)}</button>`).join('')}</div>
-        <h4>Pe card apare</h4><div class="segs"><button data-k="useFig" data-v="false" class="${!L.useFig ? 'on' : ''}" ${me.avatar ? '' : 'disabled title="Pune întâi o poză de profil"'}>Poza mea</button><button data-k="useFig" data-v="true" class="${L.useFig ? 'on' : ''}">Figurina</button></div>`
+        <h4>Pe card apare</h4><div class="segs"><button data-k="useFig" data-v="false" class="${!L.useFig ? 'on' : ''}" >📷 Poza mea</button><button data-k="useFig" data-v="true" class="${L.useFig ? 'on' : ''}">Figurina</button></div>`
       : `${aiBox()}<div class="figpv" id="fpv">${me.aiChar && L.useAI ? `<img class="aich" src="${esc(avUrl(me.aiChar))}" alt="">` : GymFig.hero(L, rk)}</div>
         ${me.aiChar && L.useAI ? '<p class="muted small" style="margin:6px 0 0;text-align:center">Folosești caracterul AI. Setările de mai jos sunt pentru figurina desenată (tipul de corp contează și la următorul caracter AI).</p>' : ''}
         <h4>Stilul figurinei</h4>${segs('style', [[0, '⭐ Avatar'], [3, '📸 Foto']])}
@@ -1254,6 +1257,7 @@ function openStudio(startTab) {
     if (b.dataset.tab) { tb = b.dataset.tab; return draw(); }
     if (b.dataset.th) { const t = TH.find((x) => x.id === b.dataset.th); if (t.min > rk) return toast(`Tema ${t.name} se deblochează la rangul ${GymCore.RANKS[t.min].name}. Mai antrenează-te! 💪`); L.card = t.id; return draw(); }
     if (b.dataset.mot) { L.motto = b.dataset.mot; return draw(); }
+    if (b.dataset.k === 'useFig' && b.dataset.v === 'false' && !me.avatar) { toast('Alege o poză cu tine și apare pe card 📸'); return openAvatar(async () => { L.useFig = false; H = await api('/api/me/look', { method: 'PUT', body: L }); }); }
     if (b.dataset.k) { const k = b.dataset.k, v = b.dataset.v; L[k] = k === 'body' ? v : k === 'useFig' || k === 'useAI' ? v === 'true' : +v; if (k === 'body' && v === 'F' && !L.hair) L.hair = 2; return draw(); }
     if (b.id === 'aiNew') { return openAIChar(L); }
     if (b.id === 'aiDel') { if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = 'apasă iar ca să-l ștergi'; return; } await act('/api/me/aichar', {}, 'DELETE'); closeSheet(); toast('Caracterul AI a fost șters'); return render(); }
