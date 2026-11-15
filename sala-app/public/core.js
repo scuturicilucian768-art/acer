@@ -101,7 +101,7 @@
     ex_inclbar: ['pushH', 'chest'], ex_m_chestpress: ['pushH', 'chest'], ex_m_pecfly: ['chestIso', 'chest'], ex_m_incpress: ['pushH', 'chest'], ex_m_decpress: ['pushH', 'chest'], ex_bench: ['pushH', 'chest'], ex_dbpress: ['pushH', 'chest'], ex_pushup: ['pushH', 'chest'], ex_fly: ['chestIso', 'chest'], ex_dips: ['tri', 'arms'],
     ex_pullup: ['pullV', 'back'], ex_latpull: ['pullV', 'back'], ex_row: ['pullH', 'back'], ex_cablerow: ['pullH', 'back'], ex_m_row: ['pullH', 'back'],
     ex_ohp: ['pushV', 'shoulders'], ex_m_shpress: ['pushV', 'shoulders'], ex_lateral: ['delt', 'shoulders'], ex_m_reardelt: ['delt', 'shoulders'], ex_m_lateral: ['delt', 'shoulders'], ex_curl: ['bi', 'arms'], ex_triceps: ['tri', 'arms'],
-    ex_plank: ['core', 'core'], ex_crunch: ['core', 'core'], ex_legraise: ['core', 'core'], ex_bike: ['cardio', 'cardio'], ex_treadmill: ['cardio', 'cardio'], ex_rowerg: ['cardio', 'cardio'],
+    ex_plank: ['core', 'core'], ex_crunch: ['core', 'core'], ex_m_abbench: ['core', 'core'], ex_legraise: ['core', 'core'], ex_bike: ['cardio', 'cardio'], ex_treadmill: ['cardio', 'cardio'], ex_rowerg: ['cardio', 'cardio'],
   };
   const SPLITS = {
     full: [['Corp întreg A', ['quad', 'pushH', 'pullV', 'hinge', 'delt', 'core']], ['Corp întreg B', ['hinge', 'pushV', 'pullH', 'quad2', 'chestIso', 'core']], ['Corp întreg C', ['quad', 'pushH', 'pullH', 'glute', 'bi', 'tri']]],
@@ -111,7 +111,7 @@
   const FOCUS = { legs: ['glute', 'quad2'], chest: ['pushH', 'tri'], back: ['pullH', 'delt'], core: ['core', 'core'] };
   // ce evităm și ce adăugăm pentru fiecare zonă dureroasă
   const PAIN = {
-    spate: { avoid: ['ex_squat', 'ex_rdl', 'ex_legraise', 'ex_crunch', 'ex_rowerg'], heavyAvoid: ['ex_lunge', 'ex_ohp', 'ex_row', 'ex_smithsquat'], rehab: ['ex_catcow', 'ex_birddog', 'ex_deadbug', 'ex_bridge'], end: 'ex_childpose', name: 'spate' },
+    spate: { avoid: ['ex_squat', 'ex_rdl', 'ex_legraise', 'ex_crunch', 'ex_m_abbench', 'ex_rowerg'], heavyAvoid: ['ex_lunge', 'ex_ohp', 'ex_row', 'ex_smithsquat'], rehab: ['ex_catcow', 'ex_birddog', 'ex_deadbug', 'ex_bridge'], end: 'ex_childpose', name: 'spate' },
     gat: { avoid: [], heavyAvoid: ['ex_ohp', 'ex_pullup', 'ex_legraise'], rehab: ['ex_chintuck', 'ex_wallangel'], end: '', name: 'gât și umeri' },
     umar: { avoid: ['ex_ohp', 'ex_m_shpress', 'ex_dips', 'ex_pullup', 'ex_bench'], heavyAvoid: ['ex_lateral', 'ex_m_lateral', 'ex_fly', 'ex_dbpress'], rehab: ['ex_facepull', 'ex_wallangel'], end: '', name: 'umăr' },
     genunchi: { avoid: ['ex_squat', 'ex_smithsquat', 'ex_m_hacksquat', 'ex_lunge'], heavyAvoid: ['ex_legpress', 'ex_goblet', 'ex_treadmill'], rehab: ['ex_wallsit', 'ex_bridge'], end: '', name: 'genunchi' },
