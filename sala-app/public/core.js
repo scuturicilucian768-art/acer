@@ -310,7 +310,7 @@
       me: full, today: t, daily: { ...d, done: !!(m.challenges || {})[t] }, program, nextDay, nutrition, kcal: kcalTarget(m, t), weekly: weeklyGoals(m, t), calendar: cal,
       announcements: db.announcements.filter((a) => !a.until || a.until >= t).sort((a, b) => (b.pinned - a.pinned) || b.date.localeCompare(a.date)),
       bookings: db.bookings.filter((b) => b.memberId === m.id).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 20),
-      services: db.services, rewards: db.rewards, redemptions: db.redemptions.filter((r) => r.memberId === m.id).slice(-20).reverse(),
+      services: db.services, rewards: db.rewards.filter((x) => !x.hidden), redemptions: db.redemptions.filter((r) => r.memberId === m.id).slice(-20).reverse(),
       programs: db.programs.filter((p) => !p.owner || p.owner === m.id).map(({ days, ...p }) => ({ ...p, nDays: days.length })), plans: db.plans.filter((p) => p.active),
       aiChar: aiCharInfo(db, m, t, ctx), slotBk: myBookings(db, m, t), booking: bookPublic(bkCfg(db)), rateDue: rateDue(db, m, t, ctx.time ? ctx.time() : '00:00'),
       board: boardFor(db, m, t), crowd: crowdFor(db, t, ctx.time ? ctx.time() : '12:00'), water: (m.water || {})[t] || 0, chatUnread: (m.chat || []).filter((x) => x.from === 'g' && !x.read).length,
@@ -670,7 +670,7 @@
       }
       if ((r = /^\/api\/me\/booking\/(\w+)$/.exec(p)) && m === 'DELETE') { const b = db.bookings.find((x) => x.id === r[1] && x.memberId === me.id); if (b) b.status = 'anulat'; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/redeem' && m === 'POST') {
-        const rw = db.rewards.find((x) => x.id === body.rewardId); if (!rw) return no(400, 'Premiu inexistent.');
+        const rw = db.rewards.find((x) => x.id === body.rewardId && !x.hidden); if (!rw) return no(400, 'Premiu inexistent.');
         if (pointsOf(db, me, t).balance < rw.points) return no(400, 'Nu ai încă destule puncte.');
         db.redemptions.push({ id: ctx.uid('rd'), memberId: me.id, rewardId: rw.id, name: rw.name, points: rw.points, at: t, status: 'nou' });
         return ok(homeFor(db, me, t, ctx), 201);
@@ -898,7 +898,7 @@
       plans: ['pl', (b, x) => { x.name = clean(b.name, 60); x.price = num(b.price, 0, 1e6) || 0; x.days = num(b.days, 1, 3650) || 30; x.desc = clean(b.desc, 120); x.active = b.active !== false; if (!x.name) return 'Scrie numele.'; }],
       announcements: ['an', (b, x) => { x.title = clean(b.title, 100); x.body = text(b.body, 1500); x.type = ['program', 'noutate', 'oferta', 'eveniment'].includes(b.type) ? b.type : 'noutate'; x.date = isDate(b.date) ? b.date : x.date || ctx.today(); x.until = isDate(b.until) ? b.until : ''; x.pinned = !!b.pinned; if (!x.title || !x.body) return 'Completează titlul și textul.'; }],
       services: ['sv', (b, x) => { x.name = clean(b.name, 80); x.price = num(b.price, 0, 1e6) || 0; x.duration = num(b.duration, 10, 300) || 60; x.desc = clean(b.desc, 160); if (!x.name) return 'Scrie numele.'; }],
-      rewards: ['rw', (b, x) => { x.name = clean(b.name, 80); x.points = num(b.points, 1, 1e6) || 100; x.desc = clean(b.desc, 120); if (!x.name) return 'Scrie numele.'; }],
+      rewards: ['rw', (b, x) => { x.name = clean(b.name, 80); x.points = num(b.points, 1, 1e6) || 100; x.desc = clean(b.desc, 120); x.hidden = b.visible === undefined ? !!x.hidden : !(b.visible === true || b.visible === 'true'); if (!x.name) return 'Scrie numele.'; }],
       machines: ['ap', (b, x) => { x.name = clean(b.name, 90); x.short = clean(b.short, 60); x.photo = clean(b.photo, 200); x.ex = db.exercises.some((e) => e.id === b.ex) ? b.ex : ''; x.muscles = clean(b.muscles, 120); const ls = (v) => (Array.isArray(v) ? v : String(v || '').split('\n')).map((y) => clean(y, 220)).filter(Boolean).slice(0, 10); x.setup = ls(b.setup); x.mistakes = ls(b.mistakes); x.order = num(b.order, 0, 999) || 0; if (!x.name) return 'Scrie numele aparatului.'; }],
       exercises: ['ex', (b, x) => { x.name = clean(b.name, 80); x.muscle = clean(b.muscle, 40); x.equipment = clean(b.equipment, 40); x.level = clean(b.level, 20); x.steps = (Array.isArray(b.steps) ? b.steps : String(b.steps || '').split('\n')).map((y) => clean(y, 300)).filter(Boolean).slice(0, 12); x.tip = clean(b.tip, 300); x.video = /^https?:\/\//.test(b.video || '') ? clean(b.video, 400) : 'https://www.youtube.com/results?search_query=' + encodeURIComponent(x.name + ' executie corecta'); if (!x.name) return 'Scrie numele.'; }],
       programs: ['pr', (b, x) => { x.name = clean(b.name, 80); x.goal = clean(b.goal, 60); x.level = clean(b.level, 20); x.desc = text(b.desc, 500); x.days = (Array.isArray(b.days) ? b.days : []).slice(0, 7).map((d) => ({ name: clean(d.name, 60), items: (Array.isArray(d.items) ? d.items : []).slice(0, 20).filter((i) => db.exercises.some((e) => e.id === i.ex)).map((i) => ({ ex: i.ex, sets: num(i.sets, 1, 20) || 3, reps: clean(i.reps, 20) || '10', kg: num(i.kg, 0, 1000) || 0, rest: num(i.rest, 0, 600) || 90 })) })).filter((d) => d.name); x.daysPerWeek = x.days.length; if (!x.name || !x.days.length) return 'Scrie numele și cel puțin o zi.'; }],
@@ -907,7 +907,7 @@
     if ((r = /^\/api\/admin\/(plans|announcements|services|rewards|exercises|programs|nutrition|machines)(?:\/(\w+))?$/.exec(p))) {
       const [, key, id] = r, [pref, fill] = LISTS[key], list = (db[key] = db[key] || []);
       if (!id && m === 'GET') return ok({ [key]: key === 'nutrition' || key === 'programs' ? list.filter((y) => !y.owner) : list });
-      if (!id && m === 'POST') { const x = { id: ctx.uid(pref) }; const e = fill(body, x); if (e) return no(400, e); list.push(x); if (key === 'announcements' && body.notify) notify(db, ctx, targetMembers(db, t, 'active'), x.title, x.body.slice(0, 180), 'anunt'); return ok({ item: x }, 201); }
+      if (!id && m === 'POST') { const x = { id: ctx.uid(pref) }; const e = fill(body, x); if (e) return no(400, e); list.push(x); if (key === 'announcements' && body.notify) notify(db, ctx, targetMembers(db, t, 'active'), x.title, x.body.slice(0, 180), 'anunt'); if (key === 'rewards' && body.notify && !x.hidden) notify(db, ctx, targetMembers(db, t, 'active'), 'Premiu nou la sală 🎁', `${x.name} pentru ${x.points} de puncte${x.desc ? ' (' + x.desc + ')' : ''}. Strânge puncte venind la sală!`, 'premiu', '/app.html'); return ok({ item: x }, 201); }
       const x = list.find((y) => y.id === id); if (!x) return no(404, 'Nu există.');
       if (m === 'PUT') { const e = fill({ ...x, ...body }, x); return e ? no(400, e) : ok({ item: x }); }
       if (m === 'DELETE') { db[key] = list.filter((y) => y.id !== id); return ok({ ok: true }); }

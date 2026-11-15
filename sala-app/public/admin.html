@@ -656,13 +656,14 @@ async function pAnn() {
 }
 async function pRewards() {
   const { rewards } = await api('/api/admin/rewards'); O = await api('/api/admin/overview');
-  const F = [['name', 'Premiu'], ['points', 'Puncte necesare', 'number'], ['desc', 'Descriere']];
-  M().innerHTML = `<div class="ph"><div><h1>Premii pentru consecvență</h1><p>Membrii strâng puncte: antrenament +10, check-in +5, provocarea zilei +5, insignă +50.</p></div><button class="btn btn-acc" id="add">+ Premiu nou</button></div>
+  const F = [['name', 'Premiu'], ['points', 'Puncte necesare', 'number'], ['desc', 'Descriere'], ['visible', '👁️ Vizibil pentru membri', 'check'], ['notify', '🔔 Anunță membrii activi printr-o notificare', 'check']];
+  M().innerHTML = `<div class="ph"><div><h1>Premii pentru consecvență</h1><p>Membrii strâng puncte: antrenament +10, check-in +5, provocarea zilei +5, insignă +50. Adaugi premii oricând; le poți pregăti ascunse și le arăți când vrei.</p></div><button class="btn btn-acc" id="add">+ Premiu nou</button></div>
     <div class="cols"><div class="card"><h3>De acordat</h3>${O.redemptions.map((r) => `<div class="alert"><span class="av">🎁</span><div class="grow"><b>${esc(r.member)}</b><br><small>${esc(r.name)} · ${r.points} puncte · ${fdate(r.at)}</small></div><button class="btn btn-sm btn-acc" data-r="${r.id}" data-s="acordat">✓ Acordat</button><button class="btn btn-sm btn-red" data-r="${r.id}" data-s="refuzat">Refuză</button></div>`).join('') || '<p class="muted">Nicio cerere.</p>'}</div>
-    <div class="card"><h3>Premii disponibile</h3>${rewards.map((r) => `<div class="alert"><div class="grow"><b>${esc(r.name)}</b><br><small>${r.points} puncte · ${esc(r.desc || '')}</small></div><button class="btn btn-sm" data-rw="${r.id}">Editează</button></div>`).join('')}</div></div>`;
+    <div class="card"><h3>Premii</h3>${rewards.length ? rewards.map((r) => `<div class="alert" style="${r.hidden ? 'opacity:.6' : ''}"><div class="grow"><b>${esc(r.name)}</b> ${r.hidden ? '<span class="chip">ascuns</span>' : '<span class="chip ok">vizibil</span>'}<br><small>${r.points} puncte · ${esc(r.desc || '')}</small></div><button class="btn btn-sm" data-vis="${r.id}">${r.hidden ? '👁️ Arată' : 'Ascunde'}</button><button class="btn btn-sm" data-rw="${r.id}">Editează</button></div>`).join('') : '<p class="muted">Niciun premiu încă. Apasă „+ Premiu nou”.</p>'}</div></div>`;
+  $$('[data-vis]').forEach((b) => (b.onclick = async () => { const r = rewards.find((x) => x.id === b.dataset.vis); await api('/api/admin/rewards/' + r.id, { method: 'PUT', body: { ...r, visible: !!r.hidden } }); toast(r.hidden ? 'Premiul e vizibil pentru membri ✅' : 'Premiul e ascuns'); pRewards(); }));
   $$('[data-r]').forEach((b) => (b.onclick = async () => { await api('/api/admin/redemptions/' + b.dataset.r, { method: 'PUT', body: { status: b.dataset.s } }); pRewards(); }));
-  $('#add').onclick = () => simpleForm('Premiu nou', F, {}, '/api/admin/rewards', pRewards);
-  $$('[data-rw]').forEach((b) => (b.onclick = () => simpleForm('Editează premiul', F, rewards.find((r) => r.id === b.dataset.rw), '/api/admin/rewards', pRewards)));
+  $('#add').onclick = () => simpleForm('Premiu nou', F, { visible: true, notify: true }, '/api/admin/rewards', pRewards);
+  $$('[data-rw]').forEach((b) => (b.onclick = () => { const r = rewards.find((x) => x.id === b.dataset.rw); simpleForm('Editează premiul', F.filter((f) => f[0] !== 'notify'), { ...r, visible: !r.hidden }, '/api/admin/rewards', pRewards); }));
 }
 
 /* ───────── SETĂRI ───────── */
