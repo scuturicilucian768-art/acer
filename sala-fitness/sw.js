@@ -1,8 +1,8 @@
 // Service worker: aplicația pornește repede, merge și cu semnal slab, și primește notificări push.
 // Căile sunt relative la locul aplicației, ca să meargă și într-un subfolder.
-const C = 'gym-d3cba28e';
+const C = 'gym-619452f1';
 const B = new URL('./', self.location).pathname;
-const SHELL = ['app.html', 'app.2c3905a2.css', 'common.e54266c5.js', 'diet.7d846a6d.js', 'core.da4acf56.js', 'robo-kb.75d77752.js', 'robo.dd82a5df.js', 'seed.0f2e7dc7.js', 'env.d6392d2f.js', 'fig.c637786b.js', 'vision.cb2683f3.js', 'qr.40840928.js', 'img/icon-192.png'].map((x) => B + x);
+const SHELL = ['app.html', 'app.2c3905a2.css', 'common.e54266c5.js', 'diet.7d846a6d.js', 'core.a132bf3d.js', 'robo-kb.75d77752.js', 'robo.dd82a5df.js', 'seed.e19e8840.js', 'env.d6392d2f.js', 'fig.93d4e8b2.js', 'vision.cb2683f3.js', 'qr.40840928.js', 'img/icon-192.png'].map((x) => B + x);
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(C).then((c) => c.addAll(SHELL)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x.startsWith('gym-') && x !== C).map((x) => caches.delete(x))))); self.clients.claim(); });
 self.addEventListener('fetch', (e) => {
