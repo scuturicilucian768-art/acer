@@ -296,6 +296,25 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .cam::after{content:"";position:absolute;inset:18%;border:3px solid var(--acc);border-radius:18px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
 .or{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:.8rem;font-weight:700;margin:16px 0 4px}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line2)}
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(92px + env(safe-area-inset-bottom));z-index:49;height:58px;min-width:58px;padding:0 18px 0 16px;border-radius:29px;border:0;background:#25D366;color:#06210f;display:flex;align-items:center;gap:8px;font-weight:900;font-size:.95rem;box-shadow:0 10px 26px -6px rgba(37,211,102,.55),0 4px 12px rgba(0,0,0,.45);cursor:pointer;transition:transform .2s,box-shadow .2s}
+.fab span{font-size:1.5rem;line-height:1}
+.fab:active{transform:scale(.94)}
+.fab:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.fab.mini b{display:none}
+.fab.mini{padding:0;justify-content:center;width:58px}
+@media (min-width:600px){.fab{right:calc(50% - 268px + 8px)}}
+.mm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 6px}
+.mm-grid button{display:flex;align-items:center;gap:10px;padding:14px 12px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-weight:800;font-size:.95rem;text-align:left;cursor:pointer;min-width:0}
+.mm-grid button span{font-size:1.6rem;flex:none}
+.mm-grid button small{display:block;font-weight:600;color:var(--muted);font-size:.75rem;margin-top:2px}
+.mm-grid button.now{border-color:#25D366;background:color-mix(in srgb,#25D366 12%,var(--card))}
+.mm-card{padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--line);margin:12px 0}
+.mm-card ul{margin:10px 0 0;padding-left:20px;line-height:1.6}
+.mm-mac{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}
+.mm-mac div{padding:8px 4px;border-radius:12px;background:var(--card2);text-align:center}
+.mm-mac b{display:block;font-size:1.05rem}
+.mm-mac small{color:var(--muted);font-size:.72rem}
+.mm-tip{display:flex;gap:10px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,#25D366 10%,transparent);border:1px solid color-mix(in srgb,#25D366 35%,transparent);font-size:.88rem;line-height:1.45;margin-bottom:12px}
 .ig-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;border-radius:14px;background:var(--card2);margin:12px 0 16px}
 .ig-tabs button{padding:11px 8px;border-radius:10px;border:0;background:none;color:var(--muted);font-weight:800;font-size:.95rem;cursor:pointer}
 .ig-tabs button.on{background:var(--acc);color:var(--acc-ink)}
@@ -570,10 +589,11 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
     <button data-t="food" data-i="food">Nutriție</button>
     <button data-t="me" data-i="user">Profil</button>
   </nav>
+  <button class="fab" id="fabMeal" type="button" aria-label="Ce mănânc? Sugestie de masă"><span aria-hidden="true">🍽️</span><b>Ce mănânc?</b></button>
 </div>
 <script src="robo-kb.75d77752.js"></script>
 <script src="robo.dd82a5df.js"></script>
-<script src="diet.e2c419a4.js"></script>
+<script src="diet.7d846a6d.js"></script>
 <script src="core.fbcf0875.js"></script>
 <script src="seed.262589b2.js"></script>
 <script src="env.d6392d2f.js"></script>
@@ -655,6 +675,8 @@ async function boot() {
   try { H = await api('/api/me'); } catch (e) { if (e.status === 401) { hideSplash(t0); return showLogin(); } throw e; }
   { const xr = await api('/api/exercises'); EX = xr.exercises; MACH = xr.machines || []; }
   $('#login').classList.add('hide'); $('#shell').classList.remove('hide');
+  $('#fabMeal').onclick = openMealIdea;
+  addEventListener('scroll', () => $('#fabMeal').classList.toggle('mini', scrollY > 80), { passive: true });
   const h = location.hash.slice(1);
   go(TABS.includes(h) ? h : 'home'); hideSplash(t0);
   if (/^ci-\d{4}$/.test(h)) doCheckin(h.slice(3));
@@ -1854,6 +1876,38 @@ addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredIns
 const SHARE_IC = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 const PLUS_IC = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
 const DOTS_IC = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+/* ───────── butonul „Ce mănânc?” ───────── */
+const MOM = [['bf', '🍳', 'Mic dejun', 'dimineața'], ['pranz', '🍽️', 'Prânz', 'la amiază'], ['pre', '⚡', 'Înainte de sală', 'cu 1–2 ore înainte'], ['post', '💪', 'După antrenament', 'în 1–2 ore după'], ['cina', '🌙', 'Cină', 'seara'], ['gustare', '🍎', 'Gustare', 'între mese']];
+function momentNow() { const h = new Date().getHours(); return h < 11 ? 'bf' : h < 15 ? 'pranz' : h < 18 ? 'gustare' : 'cina'; }
+function openMealIdea() {
+  const el = sheet('<div id="mm"></div>'), root = $('#mm', el), now = momentNow();
+  const P = (H.me && H.me.food) || {}, n = H.nutrition, w = (H.weights || []).slice(-1)[0];
+  const info = { sex: H.me.sex, kcal: n && n.kcal ? n.kcal : 0, kg: w ? w.kg : null };
+  let cur = null, seed = 0, avoid = [];
+  const pick = () => {
+    root.innerHTML = `<h2>🍽️ Ce mănânc?</h2><p class="muted" style="margin:0">Alege momentul și îți propun o masă potrivită${P.diet || (P.allergies || []).length || (P.dislikes || []).length ? ', după preferințele tale' : ''}.</p>
+      <div class="mm-grid">${MOM.map(([k, e, t, d]) => `<button data-m="${k}" class="${k === now ? 'now' : ''}"><span>${e}</span><div>${t}<small>${k === now ? 'acum' : d}</small></div></button>`).join('')}</div>
+      ${!P.diet && !(P.likes || []).length ? '<p class="muted small" style="margin:8px 0 0">💡 Completează chestionarul de la Nutriție și sugestiile țin cont de ce-ți place și de ce nu mănânci.</p>' : ''}`;
+    $$('[data-m]', root).forEach((b) => (b.onclick = () => { cur = b.dataset.m; seed = 0; avoid = []; show(); }));
+  };
+  const show = () => {
+    let m = GymDiet.suggest(P, info, cur, seed, avoid);
+    if (!m) { avoid = []; m = GymDiet.suggest(P, info, cur, seed, avoid); }
+    const [, e, t] = MOM.find((x) => x[0] === cur);
+    if (!m) { root.innerHTML = `<h2>${e} ${t}</h2><p class="muted">Nu am găsit o variantă potrivită cu preferințele tale.</p><button class="btn btn-ghost btn-block" id="mmB">‹ Alt moment</button>`; $('#mmB', root).onclick = pick; return; }
+    const items = String(m.items).split(/,\s*/).map((x) => x.charAt(0).toUpperCase() + x.slice(1));
+    root.innerHTML = `<button class="ghost" id="mmB" type="button" style="background:none;border:0;color:var(--muted);padding:0;font-weight:700;cursor:pointer">‹ Alt moment</button>
+      <h2 style="margin-top:8px">${e} ${t}</h2>
+      <div class="mm-card"><b>Propunerea mea</b><ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+        <div class="mm-mac"><div><b>${m.kcal}</b><small>kcal</small></div><div><b>${m.p} g</b><small>proteine</small></div><div><b>${m.c} g</b><small>carbohidrați</small></div><div><b>${m.f} g</b><small>grăsimi</small></div></div></div>
+      <div class="mm-tip"><span>💡</span><span>${esc(m.tip)}</span></div>
+      <button class="btn btn-acc btn-block" id="mmA" style="padding:14px">🔄 Altă variantă</button>
+      <p class="muted small" style="text-align:center;margin:10px 0 0">Cantitățile sunt calculate pentru ${info.kcal ? `dieta ta de ~${info.kcal} kcal pe zi` : 'o zi obișnuită'}. Sunt orientative, nu sfat medical.</p>`;
+    $('#mmB', root).onclick = pick;
+    $('#mmA', root).onclick = () => { avoid = [...new Set([...avoid, ...(m.k || [])])]; seed += 1; show(); };
+  };
+  pick();
+}
 function openInstallGuide(force) {
   const ua = navigator.userAgent, ios = /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document);
   const inApp = /FBAN|FBAV|FB_IAB|Instagram|Messenger|Line\/|TikTok|Snapchat/i.test(ua);

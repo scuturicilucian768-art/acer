@@ -204,5 +204,27 @@
     best.prev = [...new Set([...keysOf(old), ...(old.prev || [])])].slice(-8);
     return best;
   }
-  return { generate, target, swapMeal, KCALS, LIKES, DIETS, ALLERGIES, FOODS: F };
+  /* o sugestie de masă pentru un moment al zilei (butonul „Ce mănânc?”), după preferințe și caloriile zilei */
+  const MOMENTS = {
+    bf: { name: 'Mic dejun', type: 'bf', share: 0.25, tip: 'Proteine + carbohidrați lenți te țin sătul până la prânz. Bea și un pahar mare de apă.' },
+    pranz: { name: 'Prânz', type: 'main', share: 0.35, tip: 'Cea mai consistentă masă a zilei: jumătate din farfurie legume, un sfert proteină, un sfert garnitură.' },
+    pre: { name: 'Înainte de sală', type: 'snack', share: 0.13, c: 1.3, f: 0.5, tip: 'Mănânc-o cu 60–90 de minute înainte de antrenament. Ceva ușor, cu carbohidrați, puțină grăsime, ca să ai energie fără să te simți greu.' },
+    post: { name: 'După antrenament', type: 'main', share: 0.3, p: 1.25, f: 0.6, tip: 'În primele 1–2 ore după sală: proteine pentru mușchi și carbohidrați ca să-ți refaci energia.' },
+    cina: { name: 'Cină', type: 'main', share: 0.25, c: 0.7, tip: 'Seara, mai puțini carbohidrați și mai multe legume. Ideal cu 2–3 ore înainte de culcare.' },
+    gustare: { name: 'Gustare', type: 'snack', share: 0.12, tip: 'O gustare cu proteine te ajută să nu ajungi lihnit la masa următoare.' },
+  };
+  function suggest(P, info, moment, seed, avoid) {
+    const M = MOMENTS[moment] || MOMENTS.pranz, T0 = target(P || {}, info || {}), sh = M.share;
+    const T = { kcal: T0.kcal * sh, p: T0.p * sh * (M.p || 1), c: T0.c * sh * (M.c || 1), f: T0.f * sh * (M.f || 1) };
+    const Q = { ...(P || {}), _avoid: avoid || [] };
+    let best = null;
+    for (let a = 0; a < 5 && !best; a++) {
+      const m = buildMeal(M.type, T, a > 2 ? { ...Q, _avoid: [] } : Q, new Set(a < 3 ? avoid || [] : []), (seed | 0) + a * 3, M.name, '');
+      if (m && m.items) best = m; else if (m) (Q._avoid = Q._avoid || []).push(...(m._parts || []).map((x) => x[0]));
+    }
+    if (!best) return null;
+    best.k = (best._parts || []).map((x) => x[0]); delete best._parts; best.tip = M.tip; best.moment = moment;
+    return best;
+  }
+  return { generate, target, swapMeal, suggest, MOMENTS, KCALS, LIKES, DIETS, ALLERGIES, FOODS: F };
 });
