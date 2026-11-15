@@ -8,7 +8,7 @@
   const add = (d, n) => { const x = new Date(d + 'T12:00:00Z'); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
   const diff = (a, b) => Math.round((Date.parse(a + 'T12:00:00Z') - Date.parse(b + 'T12:00:00Z')) / 864e5);
   const isDate = (d) => /^\d{4}-\d{2}-\d{2}$/.test(String(d || ''));
-  const phoneKey = (p) => String(p || '').replace(/\D/g, '').replace(/^40/, '0').replace(/^(?!0)/, '0');
+  const phoneKey = (p) => { let d = String(p || '').replace(/\D/g, ''); if (d.startsWith('0040')) d = '0' + d.slice(4); else if (d.startsWith('40') && d.length === 11) d = '0' + d.slice(2); else if (d.length === 9 && !d.startsWith('0')) d = '0' + d; return d; };
   const ok = (data, status = 200, extra) => Object.assign({ status, data }, extra || {});
   const no = (status, error) => ({ status, data: { error } });
   const monthOf = (d) => d.slice(0, 7);
@@ -412,7 +412,7 @@
   }
   function memberInput(body, m) {
     if (body.name !== undefined) { const n = clean(body.name, 80); if (n.length < 2) return 'Scrie numele.'; m.name = n; }
-    if (body.phone !== undefined) { const p = clean(body.phone, 20); if (phoneKey(p).length < 10) return 'Numărul de telefon nu e corect.'; m.phone = p; }
+    if (body.phone !== undefined) { const p = clean(body.phone, 20); const k = phoneKey(p); if (k.length < 10 || k.length > 15) return 'Scrie numărul de telefon de 10 cifre, de exemplu 0757 339 860.'; m.phone = p; }
     if (body.email !== undefined) m.email = clean(body.email, 120);
     if (body.birth !== undefined) m.birth = isDate(body.birth) ? body.birth : '';
     if (body.sex !== undefined) m.sex = body.sex === 'F' ? 'F' : body.sex === 'M' ? 'M' : '';

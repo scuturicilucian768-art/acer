@@ -365,9 +365,9 @@
   const P2 = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
   /* avatarele ilustrate (fată / băiat): culori pe zone (măști), accesorii desenate peste, insigna rangului */
   const AV = {
-    F: { k: 'f', w: 253, h: 703, bust: '7 25 240 240', head: { cx: 130, top: 50, eye: 104, fw: 86 },
+    F: { k: 'f', w: 253, h: 703, bust: '7 25 240 240', logo: [148, 226, 64], head: { cx: 130, top: 50, eye: 104, fw: 86 },
       avg: { hair: 0.139, top: 0.166, bot: 0.182, shoe: 0.264 }, skin: [0.849, 0.596, 0.471] },
-    M: { k: 'm', w: 551, h: 685, bust: '93 -26 250 250', head: { cx: 226, top: 4, eye: 47, fw: 96 },
+    M: { k: 'm', w: 551, h: 685, bust: '93 -26 250 250', logo: [222, 178, 104], head: { cx: 226, top: 4, eye: 47, fw: 96 },
       avg: { hair: 0.129, top: 0.166, bot: 0.255, shoe: 0.29 }, skin: [0.818, 0.548, 0.428] },
   };
   const AV_OPT = {
@@ -411,8 +411,8 @@
     return '';
   }
   const AVP = {
-    F: { k: 'f', w: 239, h: 676, bust: '18 0 205 205', photo: 1, head: { cx: 127, top: 32, eye: 77, fw: 64 }, avg: { hair: 0.133, top: 0.161, bot: 0.121, shoe: 0.211 }, skin: [0.593, 0.436, 0.342] },
-    M: { k: 'm', w: 545, h: 701, bust: '112 -6 220 220', photo: 1, head: { cx: 221, top: 16, eye: 68, fw: 82 }, avg: { hair: 0.126, top: 0.109, bot: 0.081, shoe: 0.276 }, skin: [0.558, 0.389, 0.314] },
+    F: { k: 'f', w: 239, h: 676, bust: '18 0 205 205', photo: 1, logo: [141, 196, 60], head: { cx: 127, top: 32, eye: 77, fw: 64 }, avg: { hair: 0.133, top: 0.161, bot: 0.121, shoe: 0.211 }, skin: [0.593, 0.436, 0.342] },
+    M: { k: 'm', w: 545, h: 701, bust: '112 -6 220 220', photo: 1, logo: [214, 198, 96], head: { cx: 221, top: 16, eye: 68, fw: 82 }, avg: { hair: 0.126, top: 0.109, bot: 0.081, shoe: 0.276 }, skin: [0.558, 0.389, 0.314] },
   };
   function heroAvatar(L, rank, o, photo) {
     const a = (photo ? AVP : AV)[L.body === 'F' ? 'F' : 'M'], r = Math.max(0, Math.min(4, rank | 0)), id = 'av' + Math.random().toString(36).slice(2, 7);
@@ -424,12 +424,13 @@
     const pickC = (arr, i) => arr[i | 0] || null;
     const sk = pickC(AV_OPT.skin, L.avSkin); if (sk) zone('skin', sk, skinMatrix(sk, a.skin));
     for (const [z, key, B] of [['hair', 'avHair', 0.9], ['top', 'avTop', 0.82], ['bot', 'avBot', 0.82], ['shoe', 'avShoe', 0.85]]) { const c = pickC(AV_OPT[z], L[key]); if (c) zone(z, c, tintMatrix(c, a.avg[z], B)); }
+    const [lx, ly, lw] = a.logo, lh = lw * 0.89, logo = `<image href="img/logo-shirt.webp" x="${lx - lw / 2}" y="${ly - lh / 2}" width="${lw}" height="${lh}" opacity="${a.photo ? 0.9 : 1}"/>`;
     const acc = avAcc(a, L.avAcc | 0, pickC(AV_OPT.top, L.avTop));
     const vb = o.bust ? a.bust : `${-a.w * 0.06} ${-a.h * 0.03} ${a.w * 1.12} ${a.h * 1.06}`;
     const sh = o.bust ? '' : `<ellipse cx="${a.w / 2}" cy="${a.h - 4}" rx="${a.w * 0.36}" ry="${a.h * 0.018}" fill="#000" opacity=".35"/>`;
     const bs = Math.min(a.w * 0.2, a.h * 0.12), badge = !o.bust && r > 0 ? `<g transform="translate(${a.w - bs} ${a.h * 0.02}) scale(${(bs / 100).toFixed(3)})">${rankBadge(r, 100).replace('<svg ', '<svg x="0" y="0" ')}</g>` : '';
     const h = o.size ? (o.bust ? o.size : Math.round(o.size * 154 / 120)) : 0;
-    return `<svg class="hero av${o.still ? ' still' : ''}" viewBox="${vb}" ${o.size ? `width="${o.size}" height="${h}"` : ''} preserveAspectRatio="xMidYMax meet" role="img" aria-label="${o.label || 'Avatarul tău'}" ${o.style ? `style="${o.style}"` : ''}><defs>${defs.join('')}</defs>${sh}<g class="avb"><image href="${base}" width="${a.w}" height="${a.h}"/>${layers.join('')}${acc}</g>${badge}</svg>`;
+    return `<svg class="hero av${o.still ? ' still' : ''}" viewBox="${vb}" ${o.size ? `width="${o.size}" height="${h}"` : ''} preserveAspectRatio="xMidYMax meet" role="img" aria-label="${o.label || 'Avatarul tău'}" ${o.style ? `style="${o.style}"` : ''}><defs>${defs.join('')}</defs>${sh}<g class="avb"><image href="${base}" width="${a.w}" height="${a.h}"/>${layers.join('')}${logo}${acc}</g>${badge}</svg>`;
   }
   function hero(L, rank, o = {}) {
     L = L || {}; o = o || {};
