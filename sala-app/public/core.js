@@ -97,7 +97,7 @@
   /* ---------- generatorul de program ---------- */
   // rolul fiecărui exercițiu în antrenament: [slot, regiune]
   const EXMETA = {
-    ex_squat: ['quad', 'legs'], ex_smithsquat: ['quad', 'legs'], ex_m_hacksquat: ['quad', 'legs'], ex_goblet: ['quad', 'legs'], ex_legpress: ['quad', 'legs'], ex_lunge: ['quad2', 'legs'], ex_rdl: ['hinge', 'legs'], ex_m_legcurl: ['hinge', 'legs'], ex_hipthrust: ['glute', 'legs'],
+    ex_squat: ['quad', 'legs'], ex_smithsquat: ['quad', 'legs'], ex_m_hacksquat: ['quad', 'legs'], ex_goblet: ['quad', 'legs'], ex_legpress: ['quad', 'legs'], ex_lunge: ['quad2', 'legs'], ex_rdl: ['hinge', 'legs'], ex_m_legcurl: ['hinge', 'legs'], ex_hipthrust: ['glute', 'legs'], ex_m_glute: ['glute', 'legs'],
     ex_inclbar: ['pushH', 'chest'], ex_m_chestpress: ['pushH', 'chest'], ex_m_pecfly: ['chestIso', 'chest'], ex_m_incpress: ['pushH', 'chest'], ex_m_decpress: ['pushH', 'chest'], ex_bench: ['pushH', 'chest'], ex_dbpress: ['pushH', 'chest'], ex_pushup: ['pushH', 'chest'], ex_fly: ['chestIso', 'chest'], ex_dips: ['tri', 'arms'],
     ex_pullup: ['pullV', 'back'], ex_latpull: ['pullV', 'back'], ex_row: ['pullH', 'back'], ex_cablerow: ['pullH', 'back'], ex_m_row: ['pullH', 'back'],
     ex_ohp: ['pushV', 'shoulders'], ex_m_shpress: ['pushV', 'shoulders'], ex_lateral: ['delt', 'shoulders'], ex_m_reardelt: ['delt', 'shoulders'], ex_m_lateral: ['delt', 'shoulders'], ex_curl: ['bi', 'arms'], ex_triceps: ['tri', 'arms'],
