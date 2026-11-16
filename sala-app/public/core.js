@@ -76,6 +76,26 @@
     const inM = (d) => d && d.slice(0, 7) === mo;
     return (m.workouts || []).filter((w) => inM(w.date)).length * 10 + (m.checkins || []).filter(inM).length * 5 + Object.keys(m.challenges || {}).filter((d) => m.challenges[d] && inM(d)).length * 5;
   }
+  /* ---------- clanuri: echipe de prieteni care strâng puncte împreună ---------- */
+  const CLAN_MAX = 15, CLAN_EMO = ['🔥', '💪', '🦁', '🐺', '⚡', '🏆', '👑', '🦅', '🐉', '🚀', '⭐', '🥊'];
+  const clanList = (db) => (db.clans = db.clans || []);
+  const clanOfM = (db, m) => (m && m.clan ? clanList(db).find((c) => c.id === m.clan) || null : null);
+  const clanMembers = (db, c) => db.members.filter((x) => x.clan === c.id);
+  function clanCode(db, ctx) { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; for (;;) { let s = ''; for (let i = 0; i < 6; i++) s += A[Math.floor(ctx.rand() * A.length)]; if (!clanList(db).some((c) => c.code === s)) return s; } }
+  function clanBoard(db, t) {
+    const mo = monthOf(t);
+    const rows = clanList(db).map((c) => { const ms = clanMembers(db, c); return { id: c.id, name: c.name, emoji: c.emoji, n: ms.length, pts: ms.reduce((a, x) => a + monthPts(x, mo), 0) }; }).filter((c) => c.n > 0).sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
+    rows.forEach((x, i) => (x.rank = i + 1)); return rows;
+  }
+  function clanSummary(db, m, t) { const c = clanOfM(db, m); if (!c) return null; const r = clanBoard(db, t).find((x) => x.id === c.id); return { id: c.id, name: c.name, emoji: c.emoji, n: r ? r.n : 1, pts: r ? r.pts : 0, rank: r ? r.rank : null, of: clanBoard(db, t).length }; }
+  function clanFull(db, m, t) {
+    const c = clanOfM(db, m), board = clanBoard(db, t), mo = monthOf(t);
+    if (!c) return { clan: null, board: board.slice(0, 10), emojis: CLAN_EMO };
+    const ms = clanMembers(db, c); if (!ms.some((x) => x.id === c.owner) && ms[0]) c.owner = ms[0].id;
+    const rows = ms.map((x) => ({ id: x.id, name: shortName(x.name), pts: monthPts(x, mo), streak: streak(x, t), here: !!(x.checkins || []).includes(t), owner: x.id === c.owner, me: x.id === m.id })).sort((a, b) => b.pts - a.pts);
+    const r = board.find((x) => x.id === c.id) || {};
+    return { clan: { id: c.id, name: c.name, emoji: c.emoji, code: c.code, owner: c.owner === m.id, pts: r.pts || 0, rank: r.rank || null, of: board.length, max: CLAN_MAX, shoutedToday: (c.shout || {})[m.id] === t }, members: rows, board: board.slice(0, 10), emojis: CLAN_EMO };
+  }
   function boardFor(db, me, t) {
     const mo = monthOf(t);
     const rows = db.members.filter((x) => !x.hideBoard || x.id === me.id).map((x) => ({ id: x.id, name: shortName(x.name), pts: monthPts(x, mo), streak: streak(x, t), hidden: !!x.hideBoard, rk: rankOf(pointsOf(db, x, t).earned).idx })).filter((x) => x.pts > 0 || x.id === me.id).sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
@@ -313,7 +333,7 @@
       services: db.services, rewards: db.rewards.filter((x) => !x.hidden), redemptions: db.redemptions.filter((r) => r.memberId === m.id).slice(-20).reverse(),
       programs: db.programs.filter((p) => !p.owner || p.owner === m.id).map(({ days, ...p }) => ({ ...p, nDays: days.length })), plans: db.plans.filter((p) => p.active),
       aiChar: aiCharInfo(db, m, t, ctx), slotBk: myBookings(db, m, t), booking: bookPublic(bkCfg(db)), rateDue: rateDue(db, m, t, ctx.time ? ctx.time() : '00:00'),
-      board: boardFor(db, m, t), crowd: crowdFor(db, t, ctx.time ? ctx.time() : '12:00'), water: (m.water || {})[t] || 0, chatUnread: (m.chat || []).filter((x) => x.from === 'g' && !x.read).length,
+      board: boardFor(db, m, t), clan: clanSummary(db, m, t), waterRem: m.waterRem || { on: false, every: 2 }, crowd: crowdFor(db, t, ctx.time ? ctx.time() : '12:00'), water: (m.water || {})[t] || 0, chatUnread: (m.chat || []).filter((x) => x.from === 'g' && !x.read).length,
       memberCode: 'GYM:' + m.id, checkinTime: (m.ciAt || {})[t] || null,
       nutritionPlans: db.nutrition.filter((n) => !n.owner || n.owner === m.id).map(({ meals, ...n }) => n), unread: (m.notifs || []).filter((n) => !n.read).length, checkedInToday: (m.checkins || []).includes(t),
     };
@@ -505,6 +525,45 @@
         return ok({ ...homeFor(db, me, t, ctx), files });
       }
       if (p === '/api/me' && m === 'PUT') { if (body.hideBoard !== undefined) me.hideBoard = !!body.hideBoard; const e = memberInput({ ...body, phone: undefined }, me); return e ? no(400, e) : ok(homeFor(db, me, t, ctx)); }
+      if (p === '/api/me/water-rem' && m === 'PUT') { me.waterRem = { on: !!body.on, every: [2, 3].includes(+body.every) ? +body.every : 2 }; if (!me.waterRem.on) delete me.waterAt; return ok(homeFor(db, me, t, ctx)); }
+      if (p === '/api/me/clan' && m === 'GET') return ok(clanFull(db, me, t));
+      if (p === '/api/me/clan' && m === 'POST') {
+        if (clanOfM(db, me)) return no(400, 'Ești deja într-un clan. Ieși din el ca să faci altul.');
+        const name = clean(body.name, 24); if (name.length < 3) return no(400, 'Numele clanului trebuie să aibă cel puțin 3 caractere.');
+        if (clanList(db).some((c) => c.name.toLowerCase() === name.toLowerCase())) return no(400, 'Există deja un clan cu numele ăsta. Alege altul.');
+        const c = { id: ctx.uid('cl'), name, emoji: CLAN_EMO.includes(body.emoji) ? body.emoji : '🔥', code: clanCode(db, ctx), owner: me.id, at: ctx.nowISO(), shout: {} };
+        clanList(db).push(c); me.clan = c.id; return ok(clanFull(db, me, t));
+      }
+      if (p === '/api/me/clan' && m === 'PUT') {
+        const c = clanOfM(db, me); if (!c) return no(404, 'Nu ești într-un clan.'); if (c.owner !== me.id) return no(403, 'Doar șeful clanului poate schimba numele.');
+        const name = clean(body.name, 24); if (name.length < 3) return no(400, 'Numele clanului trebuie să aibă cel puțin 3 caractere.');
+        if (clanList(db).some((x) => x.id !== c.id && x.name.toLowerCase() === name.toLowerCase())) return no(400, 'Există deja un clan cu numele ăsta.');
+        c.name = name; if (CLAN_EMO.includes(body.emoji)) c.emoji = body.emoji; return ok(clanFull(db, me, t));
+      }
+      if (p === '/api/me/clan/join' && m === 'POST') {
+        const c = clanList(db).find((x) => x.code === String(body.code || '').trim().toUpperCase()); if (!c) return no(404, 'Codul clanului nu e corect.');
+        if (me.clan === c.id) return ok(clanFull(db, me, t));
+        if (clanOfM(db, me)) return no(400, 'Ești deja într-un clan. Ieși din el ca să intri în altul.');
+        const ms = clanMembers(db, c); if (ms.length >= CLAN_MAX) return no(400, `Clanul e plin (maxim ${CLAN_MAX} membri).`);
+        me.clan = c.id; notify(db, ctx, ms, `${c.emoji} ${c.name}: membru nou`, `${shortName(me.name)} a intrat în clan. Hai la sală împreună!`, 'clan', '/app.html#clan');
+        return ok(clanFull(db, me, t));
+      }
+      if (p === '/api/me/clan/leave' && m === 'POST') {
+        const c = clanOfM(db, me); delete me.clan; if (c) { const rest = clanMembers(db, c); if (!rest.length) db.clans = clanList(db).filter((x) => x.id !== c.id); else if (c.owner === me.id) c.owner = rest[0].id; }
+        return ok(clanFull(db, me, t));
+      }
+      if (p === '/api/me/clan/kick' && m === 'POST') {
+        const c = clanOfM(db, me); if (!c || c.owner !== me.id) return no(403, 'Doar șeful clanului poate scoate membri.');
+        const x = db.members.find((y) => y.id === body.id && y.clan === c.id); if (!x || x.id === me.id) return no(404, 'Membrul nu e în clan.');
+        delete x.clan; return ok(clanFull(db, me, t));
+      }
+      if (p === '/api/me/clan/shout' && m === 'POST') {
+        const c = clanOfM(db, me); if (!c) return no(404, 'Nu ești într-un clan.'); c.shout = c.shout || {};
+        if (c.shout[me.id] === t) return no(429, 'Ai strigat deja echipa azi. Mâine din nou!');
+        c.shout[me.id] = t; const others = clanMembers(db, c).filter((x) => x.id !== me.id && !(x.checkins || []).includes(t));
+        notify(db, ctx, others, `${c.emoji} ${shortName(me.name)} te cheamă la sală!`, `Clanul ${c.name} are nevoie de puncte azi. Vii? 💪`, 'clan', '/app.html#clan');
+        return ok({ ...clanFull(db, me, t), sent: others.length });
+      }
       if (p === '/api/me/water' && m === 'POST') { me.water = me.water || {}; me.water[t] = num(body.n, 0, 20) || 0; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/coach' && m === 'POST') {
         const a = coachInput(body), cp = coachProfile(a); cp.at = ctx.nowISO();
@@ -821,6 +880,8 @@
       if (Array.isArray(body.hours)) st.hours = body.hours.slice(0, 7).map((h) => ({ d: clean(h.d, 40), h: clean(h.h, 40) })).filter((h) => h.d);
       return ok({ settings: st });
     }
+    if (p === A + '/clans' && m === 'GET') return ok({ clans: clanBoard(db, t).map((c) => ({ ...c, code: (clanList(db).find((x) => x.id === c.id) || {}).code, members: clanMembers(db, c).map((x) => shortName(x.name)) })) });
+    if ((r = /^\/api\/admin\/clans\/(\w+)$/.exec(p)) && m === 'DELETE') { const c = clanList(db).find((x) => x.id === r[1]); if (!c) return no(404, 'Clanul nu există.'); db.members.forEach((x) => { if (x.clan === c.id) delete x.clan; }); db.clans = clanList(db).filter((x) => x.id !== c.id); return ok({ ok: true }); }
     if (p === A + '/checkin-fixed' && m === 'POST') { db.settings.checkinFixed = fixedCode(ctx); return ok({ code: db.settings.checkinFixed }); }
     if (p === A + '/checkin-code' && m === 'POST') { db.settings.checkinCode = String(1000 + Math.floor(ctx.rand() * 9000)); db.settings.checkinDate = t; return ok({ code: db.settings.checkinCode }); }
     if (p === A + '/password' && m === 'PUT') {
@@ -948,6 +1009,15 @@
     // reamintire cu o oră înainte de ora rezervată
     if (db.slotBk && db.slotBk.length && ctx.time) { const c = bkCfg(db), nowM = toMin(ctx.time()); for (const b of db.slotBk) { if (b.status !== 'ok' || b.date !== t || b.askR) continue; const after = nowM - (toMin(b.time) + c.dur); if (after >= 30 && after < 180) { b.askR = true; dirty = true; const mem = db.members.find((x) => x.id === b.memberId); if (mem) notify(db, ctx, [mem], 'Cum a fost antrenamentul? ⭐', `Spune-ne în 5 secunde cum a fost ora de la ${b.time}${c.coach ? ' cu ' + c.coach : ''}. Ne ajută să fim mai buni.`, 'evaluare', '/app.html'); } } }
     if (db.slotBk && db.slotBk.length && ctx.time) { const nowM = toMin(ctx.time()); for (const b of db.slotBk) { if (b.status !== 'ok' || b.date !== t || b.rem) continue; const left = toMin(b.time) - nowM; if (left <= 60 && left > 0) { b.rem = true; dirty = true; const mem = db.members.find((x) => x.id === b.memberId); if (mem) notify(db, ctx, [mem], 'Ne vedem într-o oră 💪', `Ai rezervare azi la ${b.time}. Dacă nu mai poți veni, anulează din aplicație, ca să eliberezi locul.`, 'programare', '/app.html'); } } }
+    // amintire să bea apă, la 2 sau 3 ore, între 9 și 21 (doar dacă n-a ajuns la 8 pahare)
+    if (ctx.push && hour >= 9 && hour < 21) for (const m of db.members) {
+      const wr = m.waterRem; if (!wr || !wr.on || !(m.push || []).length) continue;
+      const w = (m.water || {})[t] || 0; if (w >= 8) continue;
+      const last = m.waterAt && m.waterAt.slice(0, 10) === t ? +m.waterAt.slice(11, 13) : null;
+      if (last !== null && hour - last < (wr.every || 2)) continue;
+      m.waterAt = t + 'T' + String(hour).padStart(2, '0'); dirty = true;
+      ctx.push(m, { title: 'E timpul pentru un pahar de apă 💧', body: w ? `Ai băut ${w} din 8 pahare azi. Încă unul acum?` : 'N-ai notat niciun pahar azi. Bea unul acum și bifează-l în aplicație.', url: '/app.html#food', tag: 'apa' });
+    }
     // motivația zilei, ca notificare, la ora aleasă
     st.dailySent = st.dailySent || '';
     if (hour >= (st.dailyHour || 8) && st.dailySent !== t) {
