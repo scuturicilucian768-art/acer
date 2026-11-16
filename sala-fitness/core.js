@@ -691,7 +691,7 @@
     if (p === A + '/overview' && m === 'GET') {
       const rows = db.members.map((x) => memberRow(db, x, t));
       return ok({
-        stats: stats(db, t), checkinCode: db.settings.checkinCode, checkinFixed: db.settings.checkinFixed || '', settings: db.settings, aiImg: !!ctx.aiImg, aiMonth: db.members.reduce((n, x) => n + (x.aiUse || []).filter((d) => String(d).slice(0, 7) === t.slice(0, 7)).length, 0),
+        stats: stats(db, t), checkinCode: db.settings.checkinCode, checkinFixed: db.settings.checkinFixed || (db.settings.checkinFixed = fixedCode(ctx)), settings: db.settings, aiImg: !!ctx.aiImg, aiMonth: db.members.reduce((n, x) => n + (x.aiUse || []).filter((d) => String(d).slice(0, 7) === t.slice(0, 7)).length, 0),
         expiring: rows.filter((x) => x.state === 'expiring').sort((a, b) => a.daysLeft - b.daysLeft),
         expired: rows.filter((x) => x.state === 'expired' && x.daysLeft >= -60).sort((a, b) => b.daysLeft - a.daysLeft),
         idle7: rows.filter((x) => (x.state === 'active' || x.state === 'expiring') && x.idle !== null && x.idle >= 7 && x.idle <= 14).sort((a, b) => b.idle - a.idle),
