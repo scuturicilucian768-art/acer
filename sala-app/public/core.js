@@ -268,7 +268,7 @@
   function mealsInput(arr) { return (Array.isArray(arr) ? arr : []).slice(0, 8).map((y) => { const p = num(y.p, 0, 500) || 0, c = num(y.c, 0, 800) || 0, f = num(y.f, 0, 400) || 0, k = num(y.kcal, 0, 5000); return { name: clean(y.name, 40), time: clean(y.time, 10), items: text(y.items, 400), p, c, f, kcal: k || Math.round(p * 4 + c * 4 + f * 9) }; }).filter((y) => y.name); }
 
   /* ---------- vederi ---------- */
-  const pubSettings = (s) => { const { checkinCode, checkinDate, dailySent, ...r } = s; return r; };
+  const pubSettings = (s) => { const { checkinCode, checkinDate, checkinFixed, dailySent, ...r } = s; return r; };
   function memberRow(db, m, t) {
     const s = subOf(db, m, t), la = lastActive(m);
     return { id: m.id, name: m.name, avatar: m.avatar || '', phone: m.phone, tags: m.tags || [], plan: s.plan ? s.plan.name : '', state: s.state, end: s.end, daysLeft: s.daysLeft, lastActive: la, idle: la ? diff(t, la) : null, createdAt: m.createdAt, visits: trainDays(m).size, rk: rankOf(pointsOf(db, m, t).earned).idx, pushOn: (m.push || []).length > 0, ciToday: (m.ciAt || {})[t] || null, isNew: !!m.isNew, selfSignup: !!m.selfSignup };
@@ -565,7 +565,7 @@
       }
       if (p === '/api/me/challenge' && m === 'POST') { me.challenges = me.challenges || {}; me.challenges[t] = !!body.done; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/checkin' && m === 'POST') {
-        if (String(body.code || '').trim() !== String(db.settings.checkinCode)) return no(400, 'Codul nu e corect. Îl găsești la recepție.');
+        const cc = String(body.code || '').trim().toUpperCase(); if (cc !== String(db.settings.checkinCode) && !(db.settings.checkinFixed && cc === db.settings.checkinFixed)) return no(400, 'Codul nu e corect. Îl găsești la recepție.');
         me.checkins = me.checkins || []; if (!me.checkins.includes(t)) { me.checkins.push(t); me.ciAt = me.ciAt || {}; me.ciAt[t] = ctx.time ? ctx.time() : ''; }
         return ok(homeFor(db, me, t, ctx));
       }
@@ -691,7 +691,7 @@
     if (p === A + '/overview' && m === 'GET') {
       const rows = db.members.map((x) => memberRow(db, x, t));
       return ok({
-        stats: stats(db, t), checkinCode: db.settings.checkinCode, settings: db.settings, aiImg: !!ctx.aiImg, aiMonth: db.members.reduce((n, x) => n + (x.aiUse || []).filter((d) => String(d).slice(0, 7) === t.slice(0, 7)).length, 0),
+        stats: stats(db, t), checkinCode: db.settings.checkinCode, checkinFixed: db.settings.checkinFixed || '', settings: db.settings, aiImg: !!ctx.aiImg, aiMonth: db.members.reduce((n, x) => n + (x.aiUse || []).filter((d) => String(d).slice(0, 7) === t.slice(0, 7)).length, 0),
         expiring: rows.filter((x) => x.state === 'expiring').sort((a, b) => a.daysLeft - b.daysLeft),
         expired: rows.filter((x) => x.state === 'expired' && x.daysLeft >= -60).sort((a, b) => b.daysLeft - a.daysLeft),
         idle7: rows.filter((x) => (x.state === 'active' || x.state === 'expiring') && x.idle !== null && x.idle >= 7 && x.idle <= 14).sort((a, b) => b.idle - a.idle),
@@ -821,6 +821,7 @@
       if (Array.isArray(body.hours)) st.hours = body.hours.slice(0, 7).map((h) => ({ d: clean(h.d, 40), h: clean(h.h, 40) })).filter((h) => h.d);
       return ok({ settings: st });
     }
+    if (p === A + '/checkin-fixed' && m === 'POST') { db.settings.checkinFixed = fixedCode(ctx); return ok({ code: db.settings.checkinFixed }); }
     if (p === A + '/checkin-code' && m === 'POST') { db.settings.checkinCode = String(1000 + Math.floor(ctx.rand() * 9000)); db.settings.checkinDate = t; return ok({ code: db.settings.checkinCode }); }
     if (p === A + '/password' && m === 'PUT') {
       if (!ctx.check(String(body.old || ''), db.admin)) return no(400, 'Parola actuală e greșită.');
@@ -937,10 +938,13 @@
 
   /* ---------- sarcini automate (pe server, la fiecare minut) ---------- */
   const IDLE_DEF = { 7: 'Nu te-am mai văzut de o săptămână. Hai azi, chiar și pentru 30 de minute. Fiecare antrenament contează!', 14: 'Au trecut două săptămâni de la ultimul antrenament. Abonamentul tău e încă activ, nu-l lăsa să treacă degeaba. Te așteptăm!' };
+  /* codul fix (6 caractere) de pe afișul tipărit: nu se schimbă zilnic; check-in tot o dată pe zi */
+  function fixedCode(ctx) { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let c = ''; for (let i = 0; i < 6; i++) c += A[Math.floor(ctx.rand() * A.length)]; return c; }
   function jobs(db, ctx) {
     const t = ctx.today(), hour = ctx.hour(), st = db.settings; let dirty = false;
     // cod nou de check-in în fiecare zi
     if (st.checkinDate !== t) { st.checkinCode = String(1000 + Math.floor(ctx.rand() * 9000)); st.checkinDate = t; dirty = true; }
+    if (!st.checkinFixed) { st.checkinFixed = fixedCode(ctx); dirty = true; }
     // reamintire cu o oră înainte de ora rezervată
     if (db.slotBk && db.slotBk.length && ctx.time) { const c = bkCfg(db), nowM = toMin(ctx.time()); for (const b of db.slotBk) { if (b.status !== 'ok' || b.date !== t || b.askR) continue; const after = nowM - (toMin(b.time) + c.dur); if (after >= 30 && after < 180) { b.askR = true; dirty = true; const mem = db.members.find((x) => x.id === b.memberId); if (mem) notify(db, ctx, [mem], 'Cum a fost antrenamentul? ⭐', `Spune-ne în 5 secunde cum a fost ora de la ${b.time}${c.coach ? ' cu ' + c.coach : ''}. Ne ajută să fim mai buni.`, 'evaluare', '/app.html'); } } }
     if (db.slotBk && db.slotBk.length && ctx.time) { const nowM = toMin(ctx.time()); for (const b of db.slotBk) { if (b.status !== 'ok' || b.date !== t || b.rem) continue; const left = toMin(b.time) - nowM; if (left <= 60 && left > 0) { b.rem = true; dirty = true; const mem = db.members.find((x) => x.id === b.memberId); if (mem) notify(db, ctx, [mem], 'Ne vedem într-o oră 💪', `Ai rezervare azi la ${b.time}. Dacă nu mai poți veni, anulează din aplicație, ca să eliberezi locul.`, 'programare', '/app.html'); } } }

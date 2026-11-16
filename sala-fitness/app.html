@@ -607,7 +607,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 <script src="robo-kb.75d77752.js"></script>
 <script src="robo.dd82a5df.js"></script>
 <script src="diet.7d846a6d.js"></script>
-<script src="core.593356f6.js"></script>
+<script src="core.7c076dde.js"></script>
 <script src="seed.797f4e4c.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
@@ -693,7 +693,7 @@ async function boot() {
   setTimeout(() => $('#fabMeal').classList.add('mini'), 5000); addEventListener('scroll', () => { if (scrollY > 60) $('#fabMeal').classList.add('mini'); }, { passive: true });
   const h = location.hash.slice(1);
   go(TABS.includes(h) ? h : 'home'); hideSplash(t0);
-  if (/^ci-\d{4}$/.test(h)) doCheckin(h.slice(3));
+  if (/^ci-(\d{4}|[A-Z0-9]{6})$/i.test(h)) doCheckin(h.slice(3));
   if (h === 'chat') openChat();
   if (/^ex-\w+$/.test(h)) openExFromQR(h.slice(3));
   if (/^ap-\w+$/.test(h)) openMachFromQR(h.slice(3));
@@ -753,7 +753,7 @@ function go(t) {
   render(true); scrollTo(0, 0);
 }
 $$('.tabs button').forEach((b) => (b.onclick = () => go(b.dataset.t)));
-addEventListener('hashchange', () => { const h = location.hash.slice(1); if (!H) return; if (/^ci-\d{4}$/.test(h)) return doCheckin(h.slice(3)); if (h === 'chat') return openChat(); if (/^ex-\w+$/.test(h)) return openExFromQR(h.slice(3)); if (/^ap-\w+$/.test(h)) return openMachFromQR(h.slice(3)); if (TABS.includes(h) && h !== tab) go(h); });
+addEventListener('hashchange', () => { const h = location.hash.slice(1); if (!H) return; if (/^ci-(\d{4}|[A-Z0-9]{6})$/i.test(h)) return doCheckin(h.slice(3)); if (h === 'chat') return openChat(); if (/^ex-\w+$/.test(h)) return openExFromQR(h.slice(3)); if (/^ap-\w+$/.test(h)) return openMachFromQR(h.slice(3)); if (TABS.includes(h) && h !== tab) go(h); });
 $('#bell').onclick = openNotifs; $('#chatB').onclick = () => openChat();
 function render(anim) {
   const v = $('#view'); v.className = 'wrap' + (anim ? ' stagger' : '');
@@ -994,7 +994,7 @@ function openCheckin() {
       camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       $('#camBox', el).innerHTML = '<div class="cam"><video playsinline muted autoplay></video></div>';
       const vid = $('video', el); vid.srcObject = camStream; const det = new BarcodeDetector({ formats: ['qr_code'] });
-      const scan = async () => { if (!camStream) return; try { const r = await det.detect(vid); const m = r[0] && /(?:ci-)?(\d{4})\s*$/.exec(r[0].rawValue); if (m) { if (await doCheckin(m[1])) return; } } catch {} setTimeout(scan, 350); };
+      const scan = async () => { if (!camStream) return; try { const r = await det.detect(vid); const m = r[0] && (/#ci-([A-Za-z0-9]{4,6})\s*$/.exec(r[0].rawValue) || /^\s*(\d{4})\s*$/.exec(r[0].rawValue)); if (m) { if (await doCheckin(m[1])) return; } } catch {} setTimeout(scan, 350); };
       scan();
     } catch { $('#camBox', el).innerHTML = '<p class="err">Nu am acces la cameră. Scrie codul mai jos.</p>'; }
   };

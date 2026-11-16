@@ -88,7 +88,14 @@ body{min-height:100vh}
 .lab .lq svg{width:170px;height:170px}
 .lab b{font:800 1rem var(--fd)}
 .lab small{color:#444;font-size:.72rem;line-height:1.3}
-@media print{body.printing>*:not(.printsheet){display:none!important}.printsheet{position:static}.no-print{display:none!important}.ps-grid{padding:0}@page{margin:10mm}}
+.poster{max-width:720px;margin:20px auto;padding:34px;border:3px solid #111;border-radius:28px;display:grid;gap:26px;font-family:var(--fd),sans-serif;color:#111;background:#fff}
+.poster .pt{display:flex;align-items:center;gap:18px;justify-content:center}.poster .pt img{width:96px;height:96px;border-radius:50%}.poster .pt b{display:block;font-size:2rem;font-weight:900;line-height:1}.poster .pt span{font-size:1.1rem;color:#555;font-weight:700}
+.poster .pq{display:grid;grid-template-columns:52px 220px 1fr;gap:20px;align-items:center;border:2px solid #ddd;border-radius:22px;padding:20px}
+.poster .pn{width:52px;height:52px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;font-weight:900;font-size:1.6rem}
+.poster .pqr svg{width:220px;height:220px;display:block}.poster h2{font-size:2.2rem;font-weight:900;margin:0 0 6px}.poster p{font-size:1.1rem;line-height:1.45;margin:0 0 8px}.poster small{color:#666;font-weight:700;letter-spacing:.06em}
+.poster .pf{text-align:center;font-weight:700;color:#444}
+@media(max-width:600px){.poster .pq{grid-template-columns:1fr;justify-items:center;text-align:center}}
+@media print{:root,html{color-scheme:light!important}html,body.printing{background:#fff!important}body.printing::before,body.printing::after{display:none!important}.poster{margin:0 auto;min-height:268mm;align-content:space-between;padding:12mm}.poster .pq{grid-template-columns:52px 250px 1fr}.poster .pqr svg{width:250px;height:250px}body.printing>*:not(.printsheet){display:none!important}.printsheet{position:static}.no-print{display:none!important}.ps-grid{padding:0}@page{margin:10mm}}
 @media(max-width:700px){.ps-grid{grid-template-columns:1fr 1fr}}
 .main.stagger>*{animation:rise .45s cubic-bezier(.2,.9,.3,1) both}
 .kpi b{font-variant-numeric:tabular-nums}
@@ -181,7 +188,7 @@ body{min-height:100vh}
   </div>
 </div>
 <script src="diet.7d846a6d.js"></script>
-<script src="core.593356f6.js"></script>
+<script src="core.7c076dde.js"></script>
 <script src="seed.797f4e4c.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
@@ -709,6 +716,8 @@ async function pSettings() {
 }
 
 /* ───────── utilitare noi ───────── */
+const ciFixUrl = () => new URL('app.html', location.href).href.split('#')[0] + '#ci-' + (O ? O.checkinFixed : '');
+const appUrl = () => new URL('./', location.href).href;
 const ciUrl = () => new URL('app.html', location.href).href.split('#')[0] + '#ci-' + (O ? O.checkinCode : '');
 function updBadges() { if (!O) return; const c = O.chatUnread || 0; $('#chb').textContent = c || ''; $('#chb').classList.toggle('hide', !c); }
 function askText(title, label, val = '', danger) {
@@ -719,6 +728,18 @@ function askText(title, label, val = '', danger) {
     $('#atx', el).onkeydown = (e) => { if (e.key === 'Enter') fin($('#atx', el).value); };
     const w = $('#sheet'); $('.sheet-bg', w).onclick = () => fin(null); $('.sheet-x', w).onclick = () => fin(null);
   });
+}
+function printPoster() {
+  if (!O || !O.checkinFixed) return toast('Codul fix nu e gata încă. Reîncarcă pagina.', 'bad');
+  const d = document.createElement('div'); d.className = 'printsheet';
+  d.innerHTML = `<div class="ps-bar no-print"><b>Afiș A4</b><span class="muted small" style="margin-left:8px">Tipărește sau „Salvează ca PDF” · color sau alb-negru</span><span class="grow"></span><button class="btn btn-acc" id="pp">Tipărește</button><button class="btn" id="pc">Închide</button></div>
+    <div class="poster"><div class="pt"><img src="img/logo.jpg" alt=""><div><b>${esc(S().name)}</b><span>Aplicația membrilor</span></div></div>
+      <div class="pq"><div class="pn">1</div><div class="pqr">${QR.svg(ciFixUrl(), { size: 300 })}</div><div><h2>Check-in</h2><p>Scanează când intri în sală.<br>Primești <b>+5 puncte</b> și urci în clasament.</p><small>Cod: ${esc(O.checkinFixed)}</small></div></div>
+      <div class="pq"><div class="pn">2</div><div class="pqr">${QR.svg(appUrl(), { size: 300 })}</div><div><h2>Nu ai aplicația?</h2><p>Scanează și instaleaz-o gratuit pe telefon:<br>antrenamente, progres, nutriție, premii.</p><small>${esc(appUrl().replace(/^https?:\/\//, '').replace(/\/$/, ''))}</small></div></div>
+      <div class="pf">Scanezi cu camera telefonului: nu trebuie nicio aplicație de QR.</div></div>`;
+  document.body.appendChild(d); document.body.classList.add('printing');
+  const close = () => { d.remove(); document.body.classList.remove('printing'); };
+  $('#pc', d).onclick = close; $('#pp', d).onclick = () => { try { window.print(); } catch { toast('Tipărirea nu e disponibilă aici.', 'bad'); } };
 }
 function showFull() {
   const d = document.createElement('div'); d.className = 'fs'; d.setAttribute('role', 'dialog');
@@ -743,7 +764,9 @@ async function pDesk() {
   const canScan = 'BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
   M().innerHTML = `<div class="ph"><div><h1>Recepție</h1><p>Check-in pentru membri: codul QR de pe ecran, cardul din aplicație sau căutare după nume.</p></div><span class="live">în timp real</span></div>
     <div class="desk"><div class="card" style="text-align:center"><h3>Codul QR de azi</h3><p class="muted small" style="margin:4px 0 0">Membrii îl scanează cu camera telefonului și intră direct în aplicație cu check-in făcut.</p><div class="qrbox" style="margin:16px auto">${QR.svg(ciUrl(), { size: 260 })}</div><div class="bigcode">${esc(O.checkinCode)}</div><p class="muted small">sau scriu codul în aplicație · se schimbă singur în fiecare zi</p>
-      <div class="row" style="justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-acc" id="fs2">${IC('tv', 18)} Afișează pe ecran</button><button class="btn" id="nc2">${IC('timer', 18)} Cod nou</button></div></div>
+      <div class="row" style="justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-acc" id="fs2">${IC('tv', 18)} Afișează pe ecran</button><button class="btn" id="nc2">${IC('timer', 18)} Cod nou</button></div>
+      <div style="border-top:1px solid var(--line);margin-top:18px;padding-top:16px;text-align:left"><h3>Afiș pentru perete</h3><p class="muted small" style="margin:4px 0 12px">O foaie A4 cu două coduri QR: sus <b>check-in</b> (cod fix, nu trebuie retipărit zilnic) și jos <b>descarcă aplicația</b>. Check-in-ul tot o singură dată pe zi se poate face.</p>
+        <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-acc" id="pst">${IC('download', 18)} Tipărește afișul</button><button class="btn btn-sm" id="pstN">Schimbă codul fix</button></div><p class="muted small" style="margin:8px 0 0">Cod fix: <b>${esc(O.checkinFixed || '—')}</b>. Dacă cineva îl fotografiază și face check-in de acasă, apasă „Schimbă codul fix” și tipărește afișul din nou.</p></div></div>
       <div><div class="card"><h3>Check-in manual</h3><p class="muted small" style="margin:4px 0 12px">Caută membrul sau scanează cardul lui din aplicație.</p><div class="search" style="position:relative"><span style="position:absolute;left:14px;top:13px;color:var(--faint)">${IC('search', 18)}</span><input class="input" id="dq" placeholder="Nume sau telefon…" style="padding-left:44px" autocomplete="off"></div><div id="dres" class="list" style="margin-top:10px;gap:0"></div>
         ${canScan ? `<button class="btn btn-ghost btn-block" id="scan" style="margin-top:10px">${IC('scan', 18)} Scanează cardul membrului</button><div id="camB"></div>` : ''}</div>
         <div class="card" style="margin-top:14px"><div class="row"><h3 class="grow">Azi la sală</h3><span class="chip acc" id="tdn"></span></div><div id="tdl"></div></div></div></div>`;
@@ -756,6 +779,8 @@ async function pDesk() {
     if (st !== 'expired' && st !== 'none' && !r.already) confetti();
     O = await api('/api/admin/overview'); drawToday(O); $('#dq').value = ''; $('#dres').innerHTML = '';
   };
+  $('#pst').onclick = printPoster;
+  $('#pstN').onclick = async () => { if (!(await ask('Schimbi codul fix?', 'Afișul tipărit acum nu va mai merge pentru check-in. Va trebui să tipărești și să lipești afișul nou.', 'Schimbă codul', { danger: true }))) return; const r = await api('/api/admin/checkin-fixed', { method: 'POST', body: {} }); O.checkinFixed = r.code; toast('Cod fix nou: ' + r.code); go('desk'); };
   let h; $('#dq').oninput = (e) => { clearTimeout(h); const q = e.target.value.trim(); if (!q) { $('#dres').innerHTML = ''; return; } h = setTimeout(async () => { const { members } = await api('/api/admin/members?q=' + encodeURIComponent(q)); $('#dres').innerHTML = members.slice(0, 6).map((r) => `<div class="alert">${avatarHtml(r.name, r.avatar)}<div class="grow"><b>${esc(r.name)}</b><br><small>${esc(r.phone)} · ${r.end ? 'expiră ' + fdate(r.end) : 'fără abonament'}</small></div>${stateChip(r)}<button class="btn btn-sm btn-acc" data-ci="${r.id}">${IC('check', 16)} Check-in</button></div>`).join('') || '<p class="muted">Niciun membru găsit.</p>'; $$('[data-ci]').forEach((b) => (b.onclick = () => doCI(b.dataset.ci))); }, 180); };
   $('#fs2').onclick = showFull;
   $('#nc2').onclick = async () => { if (!(await ask('Generezi un cod nou?', 'Codul vechi nu mai merge. Membrii vor folosi noul cod.', 'Cod nou', { icon: 'timer' }))) return; await api('/api/admin/checkin-code', { method: 'POST', body: {} }); pDesk(); };
