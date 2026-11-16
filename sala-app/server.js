@@ -98,20 +98,25 @@ const ctx = { ...baseCtx, push: sendPush, aiImg: !!process.env.OPENAI_API_KEY, g
 
 /* ---------- sesiuni (cookie semnat) ---------- */
 function sign(o) { const b = b64u(JSON.stringify(o)); return b + '.' + crypto.createHmac('sha256', db.secret).update(b).digest('base64url'); }
+/* sesiunea ține minte o amprentă a parolei: dacă parola se schimbă (sau membrul e șters), sesiunile vechi nu mai merg */
+function passOf(s) { if (!s) return null; if (s.role === 'admin') return db.admin || null; const m = (db.members || []).find((x) => x.id === s.id); return m ? m.pass || '' : null; }
+function pvOf(s) { const h = passOf(s); return h === null ? null : crypto.createHash('sha256').update(String(h)).digest('base64url').slice(0, 12); }
 function readSession(req) {
   const m = /(?:^|;\s*)gid=([^;]+)/.exec(req.headers.cookie || ''); if (!m) return null;
   const [b, sig] = m[1].split('.'); const exp = crypto.createHmac('sha256', db.secret).update(b || '').digest('base64url');
   if (!sig || sig.length !== exp.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(exp))) return null;
-  try { const s = JSON.parse(Buffer.from(b, 'base64url').toString()); return s.exp > Date.now() ? s : null; } catch { return null; }
+  try { const s = JSON.parse(Buffer.from(b, 'base64url').toString()); if (!(s.exp > Date.now())) return null; const pv = pvOf(s); if (pv === null || (s.pv && s.pv !== pv)) return null; return s; } catch { return null; }
 }
 function setCookie(req, res, s) {
   const secure = (req.headers['x-forwarded-proto'] || '') === 'https' ? '; Secure' : '';
-  const days = 365, v = s ? sign({ role: s.role, id: s.id, iat: Date.now(), exp: Date.now() + days * 864e5 }) : '';
+  const days = 365, v = s ? sign({ role: s.role, id: s.id, pv: pvOf(s), iat: Date.now(), exp: Date.now() + days * 864e5 }) : '';
   res.setHeader('Set-Cookie', `gid=${v}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${s ? days * 86400 : 0}${secure}`);
 }
 const buckets = new Map();
 function limited(req, key, max, ms) {
-  const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim(), k = key + ip, n = Date.now(), b = buckets.get(k) || { c: 0, t: n + ms };
+  const xf = String(req.headers['x-forwarded-for'] || '').split(',').map((x) => x.trim()).filter(Boolean); // ultima adresă e cea pusă de Railway (prima o poate falsifica oricine)
+  if (buckets.size > 20000) buckets.clear();
+  const ip = xf.length ? xf[xf.length - 1] : req.socket.remoteAddress || '', k = key + ip, n = Date.now(), b = buckets.get(k) || { c: 0, t: n + ms };
   if (n > b.t) { b.c = 0; b.t = n + ms; } b.c++; buckets.set(k, b); return b.c > max;
 }
 

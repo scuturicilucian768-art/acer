@@ -346,7 +346,7 @@
     const c = db.booking = db.booking || {};
     if (c.on === undefined) c.on = true;
     if (!c.cap) c.cap = 5; if (!c.dur) c.dur = 60; if (!c.ahead) c.ahead = 7; if (c.cancelH === undefined) c.cancelH = 2; if (!c.perDay) c.perDay = 1;
-    if (c.needSub === undefined) c.needSub = true; if (c.title === undefined) c.title = 'Antrenament cu antrenor'; if (c.coach === undefined) c.coach = '';
+    if (c.needSub === undefined) c.needSub = true; if (c.title === undefined || c.title === 'Antrenament cu antrenor') c.title = 'Rezervă-ți ora la sală'; if (c.coach === undefined) c.coach = '';
     if (!Array.isArray(c.hours) || c.hours.length !== 7) c.hours = [0, 1, 2, 3, 4, 5, 6].map((d) => ({ d, on: d !== 0, from: d === 6 ? '09:00' : '08:00', to: d === 6 ? '14:00' : '21:00' }));
     c.capOv = c.capOv || {}; c.closed = c.closed || {}; if (!Array.isArray(c.blocks)) c.blocks = []; c.dayCap = c.dayCap || {}; c.hours.forEach((h) => { if (!h.cap) h.cap = c.cap; }); db.slotBk = db.slotBk || [];
     return c;
@@ -561,7 +561,7 @@
       if (p === '/api/me/password' && m === 'PUT') {
         if (!ctx.check(String(body.old || ''), me.pass)) return no(400, 'Parola actuală nu e corectă.');
         if (String(body.new || '').length < 4) return no(400, 'Parola nouă trebuie să aibă minim 4 caractere.');
-        me.pass = ctx.hash(String(body.new)); return ok({ ok: true });
+        me.pass = ctx.hash(String(body.new)); return ok({ ok: true }, 200, { session: { role: 'member', id: me.id } });
       }
       if (p === '/api/me/challenge' && m === 'POST') { me.challenges = me.challenges || {}; me.challenges[t] = !!body.done; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/checkin' && m === 'POST') {
@@ -825,7 +825,7 @@
     if (p === A + '/password' && m === 'PUT') {
       if (!ctx.check(String(body.old || ''), db.admin)) return no(400, 'Parola actuală e greșită.');
       if (String(body.new || '').length < 6) return no(400, 'Minim 6 caractere.');
-      db.admin = ctx.hash(String(body.new)); return ok({ ok: true });
+      db.admin = ctx.hash(String(body.new)); return ok({ ok: true }, 200, { session: { role: 'admin' } });
     }
     if (p === A + '/notify' && m === 'POST') {
       const title = clean(body.title, 80), b = text(body.body, 500);

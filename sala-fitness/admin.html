@@ -181,7 +181,7 @@ body{min-height:100vh}
   </div>
 </div>
 <script src="diet.7d846a6d.js"></script>
-<script src="core.470de57b.js"></script>
+<script src="core.593356f6.js"></script>
 <script src="seed.797f4e4c.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
@@ -205,6 +205,7 @@ async function boot() {
   $('#login').classList.add('hide'); $('#app').classList.remove('hide'); $('#gn').textContent = S().name;
   go(location.hash.slice(1) || 'dash');
 }
+addEventListener('hashchange', () => { const h = location.hash.slice(1); if (h && h !== page && TITLES[h] && !$('#app').classList.contains('hide')) go(h); });
 function showSetup() {
   $('#app').classList.add('hide'); const L = $('#login'); L.classList.remove('hide');
   L.innerHTML = `<div class="login"><form class="card" id="sf" style="max-width:460px"><img src="img/logo.jpg" alt="" style="width:120px;height:120px;border-radius:50%;display:block;margin-bottom:12px"><h1 style="font-size:1.8rem">Bun venit!</h1><p class="muted" style="margin:6px 0 20px">Configurează sala în 1 minut. Restul (prețuri, program, culori) le schimbi oricând din Setări.</p>
@@ -263,7 +264,7 @@ async function pDash() {
       <div class="card"><h3>😴 N-au mai venit</h3><p class="muted" style="font-size:.82rem;margin:4px 0">Au abonament activ, dar lipsesc de 7+ zile</p>${O.idle7.map((r) => al(r, 'idle')).join('')}${O.idle14.slice(0, 6).map((r) => al(r, 'idle')).join('')}${!O.idle7.length && !O.idle14.length ? '<p class="muted">Toți vin regulat. 🔥</p>' : ''}${O.idle7.length + O.idle14.length ? `<button class="btn btn-sm btn-ghost" id="nIdle" style="margin-top:10px">🔔 Trimite-le tuturor un mesaj</button>` : ''}</div>
     </div>
     <div class="cols">
-      <div class="card"><h3>Vizite în ultimele 14 zile</h3>${barChart(s.visits14.map((x) => ({ v: x.n, l: String(+x.date.slice(8)) })), { label: 'Vizite' })}</div>
+      <div class="card"><h3>Zilele cele mai aglomerate</h3><p class="muted small" style="margin:2px 0 8px">Vizite pe zile ale săptămânii, în ultimele 14 zile</p>${(() => { const W = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'], c = [0, 0, 0, 0, 0, 0, 0]; s.visits14.forEach((x) => { c[(new Date(x.date + 'T12:00:00').getDay() + 6) % 7] += x.n; }); return barChart(c.map((v, i) => ({ v, l: W[i] })), { label: 'Vizite' }); })()}</div>
       <div class="card"><h3>Azi</h3>
         <div class="alert"><span class="av">${IC('users', 18)}</span><div class="grow"><b>${O.todayVisits.length} ${O.todayVisits.length === 1 ? 'membru a venit' : 'membri au venit'} azi</b><br><small>${O.todayVisits.slice(0, 4).map((x) => esc(x.name.split(' ')[0]) + (x.ciToday ? ' ' + x.ciToday : '')).join(' · ') || 'încă nimeni'}</small></div><button class="btn btn-sm" data-go="desk">Vezi</button></div>
         <div class="alert"><span class="av">${IC('spark', 18)}</span><div class="grow"><b>Motivația zilei</b><br><small>„${esc(O.daily.quote)}”</small></div></div>

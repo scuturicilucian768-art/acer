@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>FET</title>
+<title>Fitness Empire Telciu</title>
+<meta name="description" content="Aplicația membrilor Fitness Empire Telciu: abonament, check-in, antrenamente, aparatele sălii, progres, nutriție și premii.">
 <meta name="theme-color" content="#0A0A0C">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="img/icon-192.png">
@@ -18,7 +19,7 @@
 <link rel="stylesheet" href="app.2c3905a2.css">
 <style>
 body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--acc) 9%,transparent),transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
-.wrap{max-width:560px;margin:0 auto;padding:0 16px calc(120px + env(safe-area-inset-bottom))}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px calc(170px + env(safe-area-inset-bottom))}
 /* splash */
 #splash{position:fixed;inset:0;z-index:500;background:var(--bg);display:grid;place-content:center;justify-items:center;gap:16px;transition:opacity .45s,visibility .45s}
 #splash.out{opacity:0;visibility:hidden}
@@ -606,7 +607,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 <script src="robo-kb.75d77752.js"></script>
 <script src="robo.dd82a5df.js"></script>
 <script src="diet.7d846a6d.js"></script>
-<script src="core.470de57b.js"></script>
+<script src="core.593356f6.js"></script>
 <script src="seed.797f4e4c.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
@@ -688,7 +689,8 @@ async function boot() {
   { const xr = await api('/api/exercises'); EX = xr.exercises; MACH = xr.machines || []; }
   $('#login').classList.add('hide'); $('#shell').classList.remove('hide');
   $('#fabMeal').onclick = openMealIdea;
-  addEventListener('scroll', () => $('#fabMeal').classList.toggle('mini', scrollY > 80), { passive: true });
+  /* eticheta „Ce mănânc?” apare câteva secunde, apoi butonul rămâne un cerc mic, ca să nu acopere conținutul */
+  setTimeout(() => $('#fabMeal').classList.add('mini'), 5000); addEventListener('scroll', () => { if (scrollY > 60) $('#fabMeal').classList.add('mini'); }, { passive: true });
   const h = location.hash.slice(1);
   go(TABS.includes(h) ? h : 'home'); hideSplash(t0);
   if (/^ci-\d{4}$/.test(h)) doCheckin(h.slice(3));
