@@ -624,7 +624,7 @@
       }
       if (p === '/api/me/challenge' && m === 'POST') { me.challenges = me.challenges || {}; me.challenges[t] = !!body.done; return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/checkin' && m === 'POST') {
-        const cc = String(body.code || '').trim().toUpperCase(); if (cc !== String(db.settings.checkinCode) && !(db.settings.checkinFixed && cc === db.settings.checkinFixed)) return no(400, 'Codul nu e corect. Îl găsești la recepție.');
+        if (db.settings.checkinFixedV !== 1) { db.settings.checkinFixed = '5HHBBG'; db.settings.checkinFixedV = 1; } const cc = String(body.code || '').trim().toUpperCase(); if (cc !== String(db.settings.checkinCode) && !(db.settings.checkinFixed && cc === db.settings.checkinFixed)) return no(400, 'Codul nu e corect. Îl găsești la recepție.');
         me.checkins = me.checkins || []; if (!me.checkins.includes(t)) { me.checkins.push(t); me.ciAt = me.ciAt || {}; me.ciAt[t] = ctx.time ? ctx.time() : ''; }
         return ok(homeFor(db, me, t, ctx));
       }
@@ -750,7 +750,7 @@
     if (p === A + '/overview' && m === 'GET') {
       const rows = db.members.map((x) => memberRow(db, x, t));
       return ok({
-        stats: stats(db, t), checkinCode: db.settings.checkinCode, checkinFixed: db.settings.checkinFixed || (db.settings.checkinFixed = fixedCode(ctx)), settings: db.settings, aiImg: !!ctx.aiImg, aiMonth: db.members.reduce((n, x) => n + (x.aiUse || []).filter((d) => String(d).slice(0, 7) === t.slice(0, 7)).length, 0),
+        stats: stats(db, t), checkinCode: db.settings.checkinCode, checkinFixed: (db.settings.checkinFixedV !== 1 && ((db.settings.checkinFixed = '5HHBBG'), (db.settings.checkinFixedV = 1)), db.settings.checkinFixed || (db.settings.checkinFixed = fixedCode(ctx))), settings: db.settings, aiImg: !!ctx.aiImg, aiMonth: db.members.reduce((n, x) => n + (x.aiUse || []).filter((d) => String(d).slice(0, 7) === t.slice(0, 7)).length, 0),
         expiring: rows.filter((x) => x.state === 'expiring').sort((a, b) => a.daysLeft - b.daysLeft),
         expired: rows.filter((x) => x.state === 'expired' && x.daysLeft >= -60).sort((a, b) => b.daysLeft - a.daysLeft),
         idle7: rows.filter((x) => (x.state === 'active' || x.state === 'expiring') && x.idle !== null && x.idle >= 7 && x.idle <= 14).sort((a, b) => b.idle - a.idle),
@@ -1005,6 +1005,7 @@
     const t = ctx.today(), hour = ctx.hour(), st = db.settings; let dirty = false;
     // cod nou de check-in în fiecare zi
     if (st.checkinDate !== t) { st.checkinCode = String(1000 + Math.floor(ctx.rand() * 9000)); st.checkinDate = t; dirty = true; }
+    if (st.checkinFixedV !== 1) { st.checkinFixed = '5HHBBG'; st.checkinFixedV = 1; dirty = true; } // codul de pe afișul tipărit trimis sălii
     if (!st.checkinFixed) { st.checkinFixed = fixedCode(ctx); dirty = true; }
     // reamintire cu o oră înainte de ora rezervată
     if (db.slotBk && db.slotBk.length && ctx.time) { const c = bkCfg(db), nowM = toMin(ctx.time()); for (const b of db.slotBk) { if (b.status !== 'ok' || b.date !== t || b.askR) continue; const after = nowM - (toMin(b.time) + c.dur); if (after >= 30 && after < 180) { b.askR = true; dirty = true; const mem = db.members.find((x) => x.id === b.memberId); if (mem) notify(db, ctx, [mem], 'Cum a fost antrenamentul? ⭐', `Spune-ne în 5 secunde cum a fost ora de la ${b.time}${c.coach ? ' cu ' + c.coach : ''}. Ne ajută să fim mai buni.`, 'evaluare', '/app.html'); } } }
