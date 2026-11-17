@@ -120,13 +120,20 @@
     ex_squat: ['quad', 'legs'], ex_smithsquat: ['quad', 'legs'], ex_sissy: ['quad2', 'legs'], ex_m_legext: ['quad2', 'legs'], ex_m_hacksquat: ['quad', 'legs'], ex_goblet: ['quad', 'legs'], ex_legpress: ['quad', 'legs'], ex_lunge: ['quad2', 'legs'], ex_rdl: ['hinge', 'legs'], ex_hyper: ['hinge', 'legs'], ex_m_legcurl: ['hinge', 'legs'], ex_hipthrust: ['glute', 'legs'], ex_m_glute: ['glute', 'legs'], ex_m_abduct: ['glute', 'legs'], ex_m_adduct: ['quad2', 'legs'],
     ex_inclbar: ['pushH', 'chest'], ex_m_chestpress: ['pushH', 'chest'], ex_m_pecfly: ['chestIso', 'chest'], ex_m_incpress: ['pushH', 'chest'], ex_m_decpress: ['pushH', 'chest'], ex_bench: ['pushH', 'chest'], ex_dbpress: ['pushH', 'chest'], ex_pushup: ['pushH', 'chest'], ex_fly: ['chestIso', 'chest'], ex_dips: ['tri', 'arms'],
     ex_pullup: ['pullV', 'back'], ex_latpull: ['pullV', 'back'], ex_row: ['pullH', 'back'], ex_cablerow: ['pullH', 'back'], ex_m_row: ['pullH', 'back'],
-    ex_ohp: ['pushV', 'shoulders'], ex_m_shpress: ['pushV', 'shoulders'], ex_lateral: ['delt', 'shoulders'], ex_m_reardelt: ['delt', 'shoulders'], ex_m_lateral: ['delt', 'shoulders'], ex_curl: ['bi', 'arms'], ex_preacher: ['bi', 'arms'], ex_triceps: ['tri', 'arms'], ex_m_triceps: ['tri', 'arms'],
+    ex_ohp: ['pushV', 'shoulders'], ex_m_shpress: ['pushV', 'shoulders'], ex_lateral: ['delt', 'shoulders'], ex_m_reardelt: ['rear', 'shoulders'], ex_m_lateral: ['delt', 'shoulders'], ex_curl: ['bi', 'arms'], ex_preacher: ['bi', 'arms'], ex_triceps: ['tri', 'arms'], ex_m_triceps: ['tri', 'arms'],
     ex_plank: ['core', 'core'], ex_crunch: ['core', 'core'], ex_m_abbench: ['core', 'core'], ex_legraise: ['core', 'core'], ex_bike: ['cardio', 'cardio'], ex_treadmill: ['cardio', 'cardio'], ex_rowerg: ['cardio', 'cardio'],
   };
   const SPLITS = {
     full: [['Corp întreg A', ['quad', 'pushH', 'pullV', 'hinge', 'delt', 'core']], ['Corp întreg B', ['hinge', 'pushV', 'pullH', 'quad2', 'chestIso', 'core']], ['Corp întreg C', ['quad', 'pushH', 'pullH', 'glute', 'bi', 'tri']]],
     upper: ['Partea de sus', ['pushH', 'pullV', 'pushV', 'pullH', 'bi', 'tri', 'delt']], lower: ['Picioare și abdomen', ['quad', 'hinge', 'quad2', 'glute', 'core', 'core']],
     push: ['Împins: piept, umeri, triceps', ['pushH', 'pushV', 'chestIso', 'delt', 'tri']], pull: ['Tras: spate și biceps', ['pullV', 'pullH', 'pullH', 'bi', 'core']], legs: ['Picioare și fesieri', ['quad', 'hinge', 'quad2', 'glute', 'core']],
+  };
+  // programele clasice cerute de sală: Robo alege singur exercițiile din aparatele sălii
+  const NAMED = {
+    ppl: { name: 'Push Pull Legs', min: 3, days: [['Push: piept, umeri, triceps', ['pushH', 'pushV', 'chestIso', 'pushH', 'delt', 'tri']], ['Pull: spate, biceps', ['pullV', 'pullH', 'pullV', 'pullH', 'rear', 'bi']], ['Legs: picioare și fesieri', ['quad', 'hinge', 'quad2', 'glute', 'quad', 'core']]] },
+    bro: { name: 'Bro Split', min: 5, days: [['Piept', ['pushH', 'pushH', 'chestIso', 'pushH', 'chestIso', 'tri']], ['Spate', ['pullV', 'pullH', 'pullV', 'pullH', 'rear', 'core']], ['Umeri', ['pushV', 'delt', 'rear', 'pushV', 'delt', 'core']], ['Brațe', ['bi', 'tri', 'bi', 'tri', 'bi', 'tri']], ['Picioare', ['quad', 'hinge', 'quad2', 'quad', 'glute', 'core']]] },
+    ul: { name: 'Upper Lower', min: 2, days: [['Upper: partea de sus', ['pushH', 'pullV', 'pushV', 'pullH', 'bi', 'tri', 'delt']], ['Lower: picioare și abdomen', ['quad', 'hinge', 'quad2', 'glute', 'core', 'core']]] },
+    fem: { name: 'Legs · Abs/Upper · Booty', min: 3, days: [['Legs', ['quad', 'quad2', 'hinge', 'quad', 'glute', 'core']], ['Abs / Upper body', ['core', 'pullV', 'pushH', 'core', 'pullH', 'delt', 'tri']], ['Fesieri / Booty', ['glute', 'hinge', 'glute', 'quad2', 'glute', 'core']]] },
   };
   const FOCUS = { legs: ['glute', 'quad2'], chest: ['pushH', 'tri'], back: ['pullH', 'delt'], core: ['core', 'core'] };
   // ce evităm și ce adăugăm pentru fiecare zonă dureroasă
@@ -151,10 +158,11 @@
     const pool = db.exercises.filter(fits), bySlot = {};
     const hasM = new Set((db.machines || []).map((x) => x.ex));
     for (const e of pool.slice().sort((a, b) => hasM.has(b.id) - hasM.has(a.id))) { const k = EXMETA[e.id][0]; (bySlot[k] = bySlot[k] || []).push(e); }
-    const alt = { quad2: 'quad', glute: 'hinge', chestIso: 'pushH', pullV: 'pullH', delt: 'pushV', tri: 'pushH', bi: 'pullH', hinge: 'glute', pushV: 'pushH' };
+    const alt = { rear: 'delt', quad2: 'quad', glute: 'hinge', chestIso: 'pushH', pullV: 'pullH', delt: 'pushV', tri: 'pushH', bi: 'pullH', hinge: 'glute', pushV: 'pushH' };
     const pick = (slot, i, used) => { let list = bySlot[slot] || bySlot[alt[slot]] || []; const fresh = list.filter((e) => !used.has(e.id)); if (fresh.length) list = fresh; const mm = list.filter((e) => hasM.has(e.id)); if (mm.length) list = mm; return list.length ? list[i % list.length] : null; };
-    let plan;
-    if (days === 2) plan = [SPLITS.full[0], SPLITS.full[1]];
+    let plan; const named = NAMED[b.split] || null;
+    if (named) { const n = Math.max(days, named.min); plan = Array.from({ length: n }, (_, k) => named.days[k % named.days.length]); }
+    else if (days === 2) plan = [SPLITS.full[0], SPLITS.full[1]];
     else if (days === 3) plan = goal === 'masa' && level !== 'incepator' ? [SPLITS.push, SPLITS.pull, SPLITS.legs] : SPLITS.full;
     else if (days === 4) plan = [SPLITS.upper, SPLITS.lower, SPLITS.upper, SPLITS.lower];
     else if (days === 5) plan = [SPLITS.push, SPLITS.pull, SPLITS.legs, SPLITS.upper, SPLITS.lower];
@@ -183,7 +191,8 @@
     });
     const GL = { slabire: 'Slăbire', masa: 'Masă musculară', forta: 'Forță', tonifiere: 'Tonifiere', sanatate: 'Sănătate și energie', recuperare: 'Fără dureri' }, LV = { incepator: 'începător', mediu: 'mediu', avansat: 'avansat' };
     const id = 'pr_my_' + me.id;
-    const prog = { id, owner: me.id, name: 'Programul meu personal', goal: GL[goal], level: LV[level], daysPerWeek: days, desc: `${days} antrenamente pe săptămână, ~${minutes} min, ${home ? 'acasă' : 'la sală'}. ${sets} serii × ${R[1]} repetări, pauză ${R[2]} s.${focus ? ' Accent pe zona aleasă.' : ''}${rehabPool.length ? ' Fiecare zi începe cu exerciții blânde pentru ' + (pains.map((p) => PAIN[p].name).join(', ') || 'spate și postură') + '.' : ''}`, days: outDays, generated: b };
+    me.genA = { goal, days, level, place: home ? 'acasa' : 'sala', minutes, focus, split: named ? b.split : '' };
+    const prog = { id, owner: me.id, name: named ? named.name : 'Programul meu personal', goal: GL[goal], level: LV[level], daysPerWeek: named ? plan.length : days, desc: `${named ? plan.length : days} antrenamente pe săptămână, ~${minutes} min, ${home ? 'acasă' : 'la sală'}. ${sets} serii × ${R[1]} repetări, pauză ${R[2]} s.${focus ? ' Accent pe zona aleasă.' : ''}${rehabPool.length ? ' Fiecare zi începe cu exerciții blânde pentru ' + (pains.map((p) => PAIN[p].name).join(', ') || 'spate și postură') + '.' : ''}`, days: outDays, generated: b };
     db.programs = db.programs.filter((x) => x.id !== id); db.programs.push(prog); me.programId = id;
     return prog;
   }
@@ -308,7 +317,7 @@
   }
   function memberFull(db, m, t) {
     const { pass, push, ...r } = m;
-    return { ...r, pushOn: (push || []).length > 0, subscription: subOf(db, m, t), streak: streak(m, t), maxStreak: maxStreak(m), weekCount: weekCount(m, t), points: pointsOf(db, m, t), badges: badgesOf(m, t), lastActive: lastActive(m), rank: rankOf(pointsOf(db, m, t).earned) };
+    return { ...r, genA: m.genA || null, pushOn: (push || []).length > 0, subscription: subOf(db, m, t), streak: streak(m, t), maxStreak: maxStreak(m), weekCount: weekCount(m, t), points: pointsOf(db, m, t), badges: badgesOf(m, t), lastActive: lastActive(m), rank: rankOf(pointsOf(db, m, t).earned) };
   }
   /* ---------- caracterul AI din poză ---------- */
   const AI_STYLES = ['3D animat', 'Supererou', 'Anime', 'Realist'];
@@ -1059,5 +1068,5 @@
     }
     return dirty;
   }
-  return { route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile, roboBrief, aiCharInfo, AI_STYLES };
+  return { route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile, roboBrief, generateProgram, aiCharInfo, AI_STYLES };
 });
