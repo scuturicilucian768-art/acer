@@ -188,7 +188,7 @@ body{min-height:100vh}
   </div>
 </div>
 <script src="diet.7d846a6d.js"></script>
-<script src="core.16f1a6d7.js"></script>
+<script src="core.966749fe.js"></script>
 <script src="seed.797f4e4c.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
@@ -880,8 +880,12 @@ async function pMachines() {
   const L = machines.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
   M().innerHTML = `<div class="ph"><div><h1>Aparatele sălii</h1><p>Aparatele reale de la sală, cu poză și explicații. Membrii le văd la Antrenament, iar Robo face programe doar cu ele (plus gantere, bară și greutatea corpului).</p></div><div class="row" style="gap:8px"><button class="btn" id="mQR">🏷️ Etichete QR</button><button class="btn btn-acc" id="mAdd">+ Aparat</button></div></div>
     <label class="row card" style="gap:10px;cursor:pointer;margin-bottom:14px"><input type="checkbox" id="onlyG" ${st.onlyGym !== false ? 'checked' : ''} style="width:20px;height:20px"><span><b>Robo dă doar exerciții cu aparatele din listă</b><br><small class="muted">Exercițiile la aparate pe care sala nu le are nu mai apar în programele făcute de Robo.</small></span></label>
+    <div class="card" style="margin-bottom:14px"><b>Puncte doar pentru antrenamente făcute cu adevărat</b><p class="muted small" style="margin:4px 0 10px">Fiecare serie se bifează după ce e făcută (minim 35 s între serii, cu repetările scrise). Punctele vin doar dacă antrenamentul durează cel puțin timpul de mai jos și 60% din serii sunt bifate. Altfel antrenamentul se salvează, dar fără puncte.</p>
+      <div class="row" style="gap:10px;flex-wrap:wrap;align-items:center"><label class="muted small" for="woMin">Durata minimă (minute)</label><input class="input" id="woMin" type="number" min="0" max="120" value="${st.woMin === undefined ? 40 : st.woMin}" style="width:90px"><label class="row" style="gap:8px;cursor:pointer"><input type="checkbox" id="woCi" ${st.woCheckin !== false ? 'checked' : ''} style="width:18px;height:18px"><span class="small">Cere și check-in la sală în ziua respectivă</span></label></div></div>
     <div class="mgrid">${L.map((m) => `<button class="card mrow" data-me="${m.id}"><img src="${esc(galUrl(m.photo || ''))}" alt=""><span class="grow"><b>${esc(m.short || m.name)}</b><br><small class="muted">${esc(m.name)}</small><br><small>${esc(m.muscles || '')}</small>${m.ex ? '' : '<br><small style="color:var(--amber)">⚠️ fără exercițiu legat</small>'}</span></button>`).join('') || '<p class="muted">Niciun aparat încă. Apasă „+ Aparat”.</p>'}</div>`;
   $('#mQR').onclick = () => { progTab = 'qr'; go('programs'); };
+  $('#woMin').onchange = async (e) => { await api('/api/admin/settings', { method: 'PUT', body: { woMin: e.target.value } }); toast('Durata minimă salvată'); };
+  $('#woCi').onchange = async (e) => { await api('/api/admin/settings', { method: 'PUT', body: { woCheckin: e.target.checked } }); toast(e.target.checked ? 'Punctele cer check-in la sală' : 'Punctele nu mai cer check-in'); };
   $('#onlyG').onchange = async (e) => { await api('/api/admin/settings', { method: 'PUT', body: { onlyGym: e.target.checked } }); toast(e.target.checked ? 'Robo folosește doar aparatele sălii' : 'Robo poate folosi toate exercițiile'); };
   $('#mAdd').onclick = () => editMachine(null, exercises);
   $$('[data-me]').forEach((b) => (b.onclick = () => editMachine(L.find((x) => x.id === b.dataset.me), exercises)));

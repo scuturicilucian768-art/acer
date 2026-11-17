@@ -311,6 +311,9 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .clemos{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.clemos button{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line2);background:var(--card);font-size:1.3rem;cursor:pointer}.clemos button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 18%,var(--card))}
 .clkick{border:0;background:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:4px 6px}
 .cfbox{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:16px}.cfbox .card{max-width:380px;width:100%}
+.wrules{margin-top:12px;padding:12px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);display:grid;gap:8px}.wg{font-weight:800;font-size:.92rem}.wg.ok{color:var(--acc)}.bar-p.thin{height:6px;margin:0}
+.wci{border:1px dashed var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent);color:var(--ink);border-radius:12px;padding:10px;font-weight:800;cursor:pointer}
+.wnop{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:rgba(255,170,60,.12);border:1px solid rgba(255,170,60,.4);text-align:left;font-size:.92rem}
 .mm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 6px}
 .mm-grid button{display:flex;align-items:center;gap:10px;padding:14px 12px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-weight:800;font-size:.95rem;text-align:left;cursor:pointer;min-width:0}
 .mm-grid button span{font-size:1.6rem;flex:none}
@@ -1768,20 +1771,32 @@ function startWorkout(prog, dayIdx) {
   const day = prog.days[dayIdx];
   WO = { prog, dayIdx, day, start: Date.now(), ex: day.items.map((it) => { const prev = lastFor(it.ex), cardio = /min/.test(it.reps); return { it, cardio, sets: Array.from({ length: cardio ? 1 : it.sets }, (_, k) => ({ kg: prev && prev[k] ? prev[k].kg : it.kg || '', reps: prev && prev[k] ? prev[k].reps : parseInt(it.reps) || '', done: false })) }; }) };
   const el = document.createElement('div'); el.className = 'wo'; el.id = 'wo'; document.body.appendChild(el); document.body.classList.add('noscroll');
-  drawWO(); WO.tick = setInterval(() => { const t = $('#wtm'); if (t) t.textContent = mmss((Date.now() - WO.start) / 1000); }, 1000);
+  drawWO(); WO.tick = setInterval(woClock, 1000);
+  api('/api/me/workout/start', { method: 'POST', body: { programId: prog.id, dayIdx } }).then((r) => { if (!WO) return; WO.ws = r.wo; WO.start = Date.now() - r.wo.elapsed * 1000; drawWO(); }).catch(() => toast('Nu am putut porni cronometrul pe server. Verifică internetul.', 'bad'));
+}
+function woClock() {
+  if (!WO) return; const s = (Date.now() - WO.start) / 1000, t = $('#wtm'); if (t) t.textContent = mmss(s);
+  const g = $('#wgoal'); if (g && WO.ws) { const min = WO.ws.minSec, okT = s >= min; g.innerHTML = okT ? '✅ Timpul minim atins' : `⏱️ Punctele vin după ${mmss(min)} · mai ai ${mmss(min - s)}`; g.classList.toggle('ok', okT); const bar = $('#wgbar'); if (bar) bar.style.width = Math.min(100, (s / Math.max(1, min)) * 100) + '%'; }
 }
 const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 function drawWO() {
   const el = $('#wo'), doneSets = WO.ex.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0), all = WO.ex.reduce((a, e) => a + e.sets.length, 0);
   el.innerHTML = `<div class="wo-top"><button class="iconbtn" id="wx" aria-label="Închide">${IC('x', 20)}</button><div class="grow"><b>${esc(WO.day.name)}</b><div class="muted" style="font-size:.8rem">${doneSets}/${all} serii</div></div><span class="tm" id="wtm">${mmss((Date.now() - WO.start) / 1000)}</span></div>
-    <div style="padding:0 16px"><div class="bar-p" style="margin-top:12px"><i style="width:${(doneSets / all) * 100}%"></i></div></div>
+    <div style="padding:0 16px"><div class="bar-p" style="margin-top:12px"><i style="width:${(doneSets / all) * 100}%"></i></div>
+      ${WO.ws ? `<div class="wrules"><div id="wgoal" class="wg">⏱️ Punctele vin după ${mmss(WO.ws.minSec)}</div><div class="bar-p thin"><i id="wgbar" style="width:0"></i></div><small class="muted">Bifezi seria după ce o faci (minim ${WO.ws.gap} s între serii) · ${WO.ws.needTicks} serii bifate pentru puncte${WO.ws.needCheckin ? '' : ' · ✅ check-in făcut'}</small>${WO.ws.needCheckin ? '<button class="wci" id="wci">📍 Fă check-in la sală ca să primești puncte</button>' : ''}</div>` : ''}</div>
     ${WO.ex.map((e, i) => { const x = exById(e.it.ex), allDone = e.sets.every((s) => s.done); return `<div class="wex ${allDone ? 'all' : ''}"><div class="row"><span class="th">${thumb(x)}</span><div class="grow"><b>${esc(x.name)}</b><div class="muted" style="font-size:.82rem">Țintă: ${e.it.sets} × ${esc(e.it.reps)}${e.it.kg ? ` · ${e.it.kg} kg` : e.it.kgTxt ? ` · ${esc(e.it.kgTxt)}` : ''}${e.it.rest ? ` · pauză ${e.it.rest}s` : ''}</div>${e.it.note ? `<div style="font-size:.8rem;color:var(--acc);margin-top:2px">📝 ${esc(e.it.note)}</div>` : ''}</div>${x.free ? '' : `<button class="btn btn-sm btn-ghost" data-how="${x.id}">Cum?</button>`}</div>
       <div class="sets">${e.cardio ? `<div class="set ${e.sets[0].done ? 'done' : ''}" style="grid-template-columns:1fr 48px"><span class="muted">${esc(e.it.reps)}</span><button class="ck" data-e="${i}" data-s="0" aria-label="Făcut">${IC('check', 22)}</button></div>` : `<div class="set"><span></span><span class="lb">KG</span><span class="lb">REPETĂRI</span><span></span></div>` + e.sets.map((s, k) => `<div class="set ${s.done ? 'done' : ''}"><span class="no">${k + 1}</span><input inputmode="decimal" value="${s.kg}" data-e="${i}" data-s="${k}" data-f="kg" aria-label="Kilograme seria ${k + 1}"><input inputmode="numeric" value="${s.reps}" data-e="${i}" data-s="${k}" data-f="reps" aria-label="Repetări seria ${k + 1}"><button class="ck" data-e="${i}" data-s="${k}" aria-label="Serie făcută">${IC('check', 22)}</button></div>`).join('')}</div></div>`; }).join('')}
     <div class="wo-end"><button class="btn btn-acc btn-block" id="wfin" style="padding:16px;font-size:1.05rem">${IC('trophy', 20)} Termină antrenamentul</button></div>`;
   $('#wx').onclick = async () => { if (doneSets && !(await ask('Ieși din antrenament?', 'Seriile bifate nu se salvează.', 'Ieși', { danger: true, icon: 'x' }))) return; endWO(); };
   $$('[data-how]', el).forEach((b) => (b.onclick = () => { if (/^free:/.test(b.dataset.how)) { toast('Exercițiu scris de tine: nu are ghid în aplicație.'); return; } openEx(b.dataset.how); }));
   $$('input[data-f]', el).forEach((inp) => (inp.onchange = () => { WO.ex[inp.dataset.e].sets[inp.dataset.s][inp.dataset.f] = inp.value; }));
-  $$('.ck', el).forEach((b) => (b.onclick = () => { const e = WO.ex[b.dataset.e], s = e.sets[b.dataset.s]; s.done = !s.done; if (s.done && navigator.vibrate) navigator.vibrate(30); if (s.done && e.it.rest && !e.cardio) restTimer(e.it.rest); const y = el.scrollTop; drawWO(); el.scrollTop = y; }));
+  $$('.ck', el).forEach((b) => (b.onclick = async () => {
+    const e = WO.ex[b.dataset.e], s = e.sets[b.dataset.s], key = b.dataset.e + '-' + b.dataset.s, want = !s.done;
+    if (want && !e.cardio && !(parseInt(s.reps) > 0)) return toast('Scrie câte repetări ai făcut, apoi bifează seria.', 'bad');
+    if (WO.ws) { if (b.disabled) return; b.disabled = true; try { const r = await api('/api/me/workout/tick', { method: 'POST', body: { woId: WO.ws.id, key, done: want, reps: s.reps, cardioMin: e.cardio ? parseInt(e.it.reps) || 0 : 0 } }); WO.ws = r.wo; } catch (er) { b.disabled = false; return toast(er.message, 'bad'); } }
+    s.done = want; if (s.done && navigator.vibrate) navigator.vibrate(30); if (s.done && e.it.rest && !e.cardio) restTimer(e.it.rest); const y = el.scrollTop; drawWO(); el.scrollTop = y; woClock();
+  }));
+  if ($('#wci', el)) $('#wci', el).onclick = () => openCheckin();
   $('#wfin').onclick = finishWO;
 }
 function restTimer(sec) {
@@ -1799,12 +1814,16 @@ async function finishWO() {
   // recorduri noi față de istoric
   const prevBest = {}; for (const w of H.me.workouts || []) for (const s of w.sets || []) prevBest[s.ex] = Math.max(prevBest[s.ex] || 0, e1rm(s.kg, s.reps));
   const recs = []; const seen = new Set(); for (const s of sets) { const v = e1rm(Number(s.kg), Number(s.reps)); if (v && prevBest[s.ex] && v > prevBest[s.ex] + 0.01 && !seen.has(s.ex)) { seen.add(s.ex); recs.push(`${exById(s.ex).name}: ${s.kg} kg × ${s.reps}`); } }
-  try { H = await api('/api/me/workout', { method: 'POST', body: { programId: WO.prog.id, dayIdx: WO.dayIdx, title: name, duration: minutes, sets } }); } catch (e) { return toast(e.message, 'bad'); }
-  endWO(); confetti(); render();
+  if (WO.ws) {
+    const el2 = (Date.now() - WO.start) / 1000, ticks = WO.ws.ticks.length, why = el2 < WO.ws.minSec ? `Punctele vin după ${Math.round(WO.ws.minSec / 60)} de minute de antrenament (acum: ${mmss(el2)}).` : ticks < WO.ws.needTicks ? `Ai bifat ${ticks} serii din minimum ${WO.ws.needTicks}.` : WO.ws.needCheckin ? 'Nu ai făcut check-in azi la sală.' : '';
+    if (why && !(await ask('Termini fără puncte?', why + ' Antrenamentul se salvează în istoric, dar nu primești punctele.', 'Termină oricum', { icon: 'x' }))) return;
+  }
+  let R; try { R = await api('/api/me/workout', { method: 'POST', body: { programId: WO.prog.id, dayIdx: WO.dayIdx, title: name, duration: minutes, sets, woId: WO.ws ? WO.ws.id : '' } }); H = R; } catch (e) { return toast(e.message, 'bad'); }
+  endWO(); if (R.woValid !== false) confetti(); render();
   sheet(`<div style="text-align:center"><div style="color:var(--amber);display:grid;place-items:center">${IC('trophy', 60)}</div><h2 style="padding:0;margin-top:8px">Antrenament terminat!</h2><p class="muted">${esc(name)}</p>
     <div class="g3" style="margin:18px 0"><div class="st"><b>${minutes}</b><small>minute</small></div><div class="st"><b>${sets.length}</b><small>serii</small></div><div class="st"><b>${vol ? Math.round(vol).toLocaleString('ro-RO') : '–'}</b><small>kg ridicate</small></div></div>
     ${recs.length ? `<div class="pr" style="text-align:left;margin-bottom:14px"><span style="color:var(--amber)">${IC('medal', 28)}</span><div class="grow"><b>${recs.length === 1 ? 'Record nou!' : recs.length + ' recorduri noi!'}</b><div class="muted small">${recs.map(esc).join('<br>')}</div></div></div>` : ''}
-    <p><b class="acc">+10 puncte</b> · ${IC('flame', 16)} ${H.me.streak} ${H.me.streak === 1 ? 'zi' : 'zile'} la rând</p><button class="btn btn-acc btn-block" onclick="closeSheet()">Super!</button></div>`);
+    ${R.woValid === false ? `<div class="wnop">Salvat în istoric, <b>fără puncte</b>: ${esc(R.woWhy)}</div>` : `<p><b class="acc">+10 puncte</b> · ${IC('flame', 16)} ${H.me.streak} ${H.me.streak === 1 ? 'zi' : 'zile'} la rând</p>`}<button class="btn btn-acc btn-block" onclick="closeSheet()">${R.woValid === false ? 'Am înțeles' : 'Super!'}</button></div>`);
 }
 
 /* ───────── PROGRES ───────── */

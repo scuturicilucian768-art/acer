@@ -27,7 +27,24 @@
   function lastActive(m) { const all = [...(m.checkins || []), ...(m.workouts || []).map((w) => w.date)].sort(); return all[all.length - 1] || null; }
   function streak(m, t) { const s = activeDays(m); let d = s.has(t) ? t : add(t, -1), n = 0; while (s.has(d)) { n++; d = add(d, -1); } return n; }
   function maxStreak(m) { const days = [...activeDays(m)].sort(); let best = 0, cur = 0, prev = null; for (const d of days) { cur = prev && diff(d, prev) === 1 ? cur + 1 : 1; best = Math.max(best, cur); prev = d; } return best; }
-  function trainDays(m) { return new Set([...(m.checkins || []), ...(m.workouts || []).map((w) => w.date)]); }
+  const okW = (w) => w.valid !== false; // antrenamentele făcute prea repede se salvează, dar nu dau puncte
+  const WO_GAP = 35; // secunde minime între două serii bifate (o serie + pauză reală)
+  function woRules(db) { const st = db.settings; return { min: st.woMin === undefined ? 40 : st.woMin, checkin: st.woCheckin !== false }; }
+  function woState(db, m, t, ctx) {
+    const w = m.wo; if (!w) return null; const R = woRules(db), el = Math.floor((Date.parse(ctx.nowISO()) - w.at) / 1000);
+    return { id: w.id, elapsed: el, minSec: R.min * 60, needTicks: Math.max(3, Math.ceil(w.planned * 0.6)), ticks: w.ticks.map((x) => x.key), gap: WO_GAP, needCheckin: R.checkin && !(m.checkins || []).includes(t) };
+  }
+  function woCheck(db, m, t, ctx, w) {
+    const R = woRules(db);
+    if (!w) return { ok: false, why: 'Antrenamentul nu a fost pornit din aplicație.' };
+    const el = (Date.parse(ctx.nowISO()) - w.at) / 6e4, need = Math.max(3, Math.ceil(w.planned * 0.6));
+    if (el < R.min) return { ok: false, why: `A durat ${Math.max(1, Math.round(el))} min. Punctele se dau de la ${R.min} min.` };
+    if (w.ticks.length < need) return { ok: false, why: `Ai bifat ${w.ticks.length} serii din minimum ${need}.` };
+    if (R.checkin && !(m.checkins || []).includes(t)) return { ok: false, why: 'Nu ai făcut check-in azi la sală (scanează afișul de la intrare).' };
+    if ((m.workouts || []).some((x) => x.date === t && x.valid !== false)) return { ok: false, why: 'Ai primit deja punctele pentru un antrenament azi.' };
+    return { ok: true };
+  }
+  function trainDays(m) { return new Set([...(m.checkins || []), ...(m.workouts || []).filter(okW).map((w) => w.date)]); }
   function weekCount(m, t) { const mon = mondayOf(t); return [...trainDays(m)].filter((d) => d >= mon && d <= t).length; }
   function goalWeeks(m) { const g = m.weekGoal || 3, by = {}; for (const d of trainDays(m)) { const k = mondayOf(d); by[k] = (by[k] || 0) + 1; } return Object.values(by).filter((n) => n >= g).length; }
   const BADGES = [
@@ -46,7 +63,7 @@
   ];
   function badgesOf(m, t) { return BADGES.map(([id, icon, name, desc, fn]) => ({ id, icon, name, desc, earned: !!fn(m, t) })); }
   function pointsOf(db, m, t) {
-    const earned = (m.workouts || []).length * 10 + (m.checkins || []).length * 5 + Object.values(m.challenges || {}).filter(Boolean).length * 5 + badgesOf(m, t).filter((b) => b.earned).length * 50;
+    const earned = (m.workouts || []).filter(okW).length * 10 + (m.checkins || []).length * 5 + Object.values(m.challenges || {}).filter(Boolean).length * 5 + badgesOf(m, t).filter((b) => b.earned).length * 50;
     const spent = db.redemptions.filter((r) => r.memberId === m.id && r.status !== 'refuzat').reduce((a, r) => a + r.points, 0);
     return { earned, spent, balance: Math.max(0, earned - spent) };
   }
@@ -74,7 +91,7 @@
   const shortName = (n) => { const p = String(n || '').trim().split(/\s+/); return p[0] + (p[1] ? ' ' + p[1][0] + '.' : ''); };
   function monthPts(m, mo) {
     const inM = (d) => d && d.slice(0, 7) === mo;
-    return (m.workouts || []).filter((w) => inM(w.date)).length * 10 + (m.checkins || []).filter(inM).length * 5 + Object.keys(m.challenges || {}).filter((d) => m.challenges[d] && inM(d)).length * 5;
+    return (m.workouts || []).filter((w) => okW(w) && inM(w.date)).length * 10 + (m.checkins || []).filter(inM).length * 5 + Object.keys(m.challenges || {}).filter((d) => m.challenges[d] && inM(d)).length * 5;
   }
   /* ---------- clanuri: echipe de prieteni care strâng puncte împreună ---------- */
   const CLAN_MAX = 15, CLAN_EMO = ['🔥', '💪', '🦁', '🐺', '⚡', '🏆', '👑', '🦅', '🐉', '🚀', '⭐', '🥊'];
@@ -342,7 +359,7 @@
       services: db.services, rewards: db.rewards.filter((x) => !x.hidden), redemptions: db.redemptions.filter((r) => r.memberId === m.id).slice(-20).reverse(),
       programs: db.programs.filter((p) => !p.owner || p.owner === m.id).map(({ days, ...p }) => ({ ...p, nDays: days.length })), plans: db.plans.filter((p) => p.active),
       aiChar: aiCharInfo(db, m, t, ctx), slotBk: myBookings(db, m, t), booking: bookPublic(bkCfg(db)), rateDue: rateDue(db, m, t, ctx.time ? ctx.time() : '00:00'),
-      board: boardFor(db, m, t), clan: clanSummary(db, m, t), waterRem: m.waterRem || { on: false, every: 2 }, crowd: crowdFor(db, t, ctx.time ? ctx.time() : '12:00'), water: (m.water || {})[t] || 0, chatUnread: (m.chat || []).filter((x) => x.from === 'g' && !x.read).length,
+      board: boardFor(db, m, t), clan: clanSummary(db, m, t), wo: woState(db, m, t, ctx), woRules: woRules(db), waterRem: m.waterRem || { on: false, every: 2 }, crowd: crowdFor(db, t, ctx.time ? ctx.time() : '12:00'), water: (m.water || {})[t] || 0, chatUnread: (m.chat || []).filter((x) => x.from === 'g' && !x.read).length,
       memberCode: 'GYM:' + m.id, checkinTime: (m.ciAt || {})[t] || null,
       nutritionPlans: db.nutrition.filter((n) => !n.owner || n.owner === m.id).map(({ meals, ...n }) => n), unread: (m.notifs || []).filter((n) => !n.read).length, checkedInToday: (m.checkins || []).includes(t),
     };
@@ -637,13 +654,33 @@
         me.checkins = me.checkins || []; if (!me.checkins.includes(t)) { me.checkins.push(t); me.ciAt = me.ciAt || {}; me.ciAt[t] = ctx.time ? ctx.time() : ''; }
         return ok(homeFor(db, me, t, ctx));
       }
+      if (p === '/api/me/workout/start' && m === 'POST') {
+        const prog = db.programs.find((x) => x.id === body.programId); const day = prog && prog.days[num(body.dayIdx, 0, 20) || 0];
+        const planned = day ? day.items.reduce((a, it) => a + (/min/.test(String(it.reps)) ? 1 : +it.sets || 1), 0) : 0;
+        me.wo = { id: ctx.uid('ws'), at: Date.parse(ctx.nowISO()), programId: prog ? prog.id : '', dayIdx: num(body.dayIdx, 0, 20) || 0, planned, ticks: [] };
+        return ok({ wo: woState(db, me, t, ctx) });
+      }
+      if (p === '/api/me/workout/tick' && m === 'POST') {
+        const w = me.wo; if (!w || w.id !== body.woId) return no(409, 'Antrenamentul nu mai e activ. Închide-l și pornește-l din nou.');
+        const key = clean(body.key, 90); if (!key) return no(400, 'Seria lipsește.');
+        if (body.done === false) { w.ticks = w.ticks.filter((x) => x.key !== key); return ok({ wo: woState(db, me, t, ctx) }); }
+        if (w.ticks.some((x) => x.key === key)) return ok({ wo: woState(db, me, t, ctx) });
+        const now = Date.parse(ctx.nowISO()), last = w.ticks.length ? w.ticks[w.ticks.length - 1].at : w.at, cardio = num(body.cardioMin, 0, 120) || 0;
+        if (!cardio && !(num(body.reps, 0, 500) > 0)) return no(400, 'Scrie câte repetări ai făcut, apoi bifează seria.');
+        const need = cardio ? Math.round(cardio * 60 * 0.8) : WO_GAP;
+        if (now - last < need * 1000) { const left = Math.ceil(need - (now - last) / 1000); return no(429, cardio ? `Cardio-ul durează ${cardio} minute. Mai ai ${Math.ceil(left / 60)} min până îl poți bifa.` : `Prea repede! Fă seria, apoi bifeaz-o. Mai poți bifa în ${left} s.`); }
+        w.ticks.push({ key, at: now }); return ok({ wo: woState(db, me, t, ctx) });
+      }
       if (p === '/api/me/workout' && m === 'POST') {
         const prog = db.programs.find((x) => x.id === body.programId);
         const sets = (Array.isArray(body.sets) ? body.sets : []).slice(0, 200).map((x) => ({ ex: clean(x.ex, 70), set: num(x.set, 1, 20), reps: num(x.reps, 0, 500), kg: num(x.kg, 0, 1000) })).filter((x) => x.ex);
         me.workouts = me.workouts || [];
-        me.workouts.push({ id: ctx.uid('wo'), date: isDate(body.date) ? body.date : t, programId: prog ? prog.id : '', dayIdx: num(body.dayIdx, 0, 20) || 0, title: clean(body.title, 80), duration: num(body.duration, 0, 600) || 0, sets, note: clean(body.note, 300) });
+        const live = me.wo && me.wo.id === body.woId ? me.wo : null, v = woCheck(db, me, t, ctx, live);
+        const dur = live ? Math.max(1, Math.round((Date.parse(ctx.nowISO()) - live.at) / 6e4)) : num(body.duration, 0, 600) || 0;
+        me.workouts.push({ id: ctx.uid('wo'), date: t, programId: prog ? prog.id : '', dayIdx: num(body.dayIdx, 0, 20) || 0, title: clean(body.title, 80), duration: dur, sets, note: clean(body.note, 300), valid: v.ok, why: v.ok ? '' : v.why });
+        delete me.wo;
         me.workouts.sort((a, b) => a.date.localeCompare(b.date));
-        return ok(homeFor(db, me, t, ctx), 201);
+        return ok({ ...homeFor(db, me, t, ctx), woValid: v.ok, woWhy: v.ok ? '' : v.why }, 201);
       }
       if ((r = /^\/api\/me\/workout\/(\w+)$/.exec(p)) && m === 'DELETE') { me.workouts = (me.workouts || []).filter((w) => w.id !== r[1]); return ok(homeFor(db, me, t, ctx)); }
       if (p === '/api/me/weight' && m === 'POST') {
@@ -883,6 +920,8 @@
       if (body.signup !== undefined) st.signup = body.signup === true || body.signup === 'true';
       if (body.aiChar !== undefined) st.aiChar = body.aiChar === true || body.aiChar === 'true';
       if (body.aiPer !== undefined) st.aiPer = num(body.aiPer, 1, 20) || 3;
+      if (body.woMin !== undefined) st.woMin = Math.max(0, Math.min(120, Math.round(+body.woMin) || 0));
+      if (body.woCheckin !== undefined) st.woCheckin = body.woCheckin === true || body.woCheckin === 'true';
       if (body.idleHour !== undefined) st.idleHour = num(body.idleHour, 6, 22) || 17;
       if (body.idleText7 !== undefined) st.idleText7 = text(body.idleText7, 400);
       if (body.idleText14 !== undefined) st.idleText14 = text(body.idleText14, 400);
