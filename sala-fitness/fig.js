@@ -195,12 +195,13 @@
   }
   // imagini desenate cu AI: caracterul aplicației, poziția de start (stânga) și de final (dreapta)
   const EXIMG = {
+    ex_treadmill: { m: ['img/ex/treadmill-m-a.webp', 'img/ex/treadmill-m-b.webp'] },
     ex_latpull: { m: 'https://d8j0ntlcm91z4.cloudfront.net/user_3M1MBjmoHMu9SEKdAZouFyk7UeN/hf_20261119_210242_374ba6e2-a48f-493b-ab2d-0fc1e2e89dc0.png' },
   };
   function exImg(ex) { const x = EXIMG[ex.id]; if (!x) return ''; return (CH && CH.F ? x.f || x.m : x.m || x.f) || ''; }
   function figure(ex, o = {}) {
     const im = exImg(ex);
-    if (im) return `<div class="fig exai${o.still ? ' still' : ''}" role="img" aria-label="Exemplu: ${String(ex.name || '').replace(/"/g, '')}" style="--u:url('${im}');${o.style || ''}"><i class="a"></i><i class="b"></i></div>`;
+    if (im) { const two = Array.isArray(im); return `<div class="fig exai${two ? ' two' : ''}${o.still ? ' still' : ''}" role="img" aria-label="Exemplu: ${String(ex.name || '').replace(/"/g, '')}" style="--u:url('${two ? im[0] : im}');--v:url('${two ? im[1] : im}');${o.style || ''}"><i class="a"></i><i class="b"></i></div>`; }
     const pat = patFor(ex), id = 'f' + Math.random().toString(36).slice(2, 8);
     return `<svg class="fig${o.still ? ' still' : ''}" viewBox="0 0 200 200" data-fig="${id}" data-pat="${EXPAT[ex.id] || ''}" role="img" aria-label="Animație: ${String(ex.name || '').replace(/"/g, '')}" style="${o.style || ''}"><defs><linearGradient id="fg" x1="0" x2="1"><stop offset="0" stop-color="var(--acc)"/><stop offset="1" stop-color="var(--fig, #EDEDF2)"/></linearGradient></defs><g>${drawFig(pat, 0.35)}</g>${headEl(frame(pat, 0.35).h)}</svg>`;
   }
