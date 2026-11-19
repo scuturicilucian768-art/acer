@@ -269,9 +269,9 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .fig.exai{position:relative;display:block;aspect-ratio:3/4;max-height:300px;margin:0 auto;border-radius:16px;overflow:hidden;background:#fff}
 .stage .fig.exai{height:min(320px,96vw);width:auto;max-height:none}
 .fig.exai i{position:absolute;inset:0;background:var(--u) no-repeat;background-size:200% 100%}
-.fig.exai .a{background-position:0 0}.fig.exai .b{background-position:100% 0;animation:exaiB 2.8s ease-in-out infinite}
-.fig.exai.still .b{display:none}
-@keyframes exaiB{0%,30%{opacity:0}45%,80%{opacity:1}95%,100%{opacity:0}}
+.fig.exai .a{background-position:0 0}.fig.exai .b{background-position:100% 0;animation:exaiB 1.8s ease-in-out infinite alternate}
+.fig.exai.still .b{animation-duration:2.4s}
+@keyframes exaiB{0%,15%{opacity:0}85%,100%{opacity:1}}
 @media (prefers-reduced-motion:reduce){.fig.exai .b{animation:none;opacity:0}}
 .th .fig.exai{height:100%;width:auto;aspect-ratio:3/4;border-radius:10px}.exg .fig.exai{width:75%;aspect-ratio:3/4}
 .mtab{width:100%;border-collapse:collapse;font-size:.9rem}
