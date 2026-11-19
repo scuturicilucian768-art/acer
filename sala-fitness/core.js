@@ -271,7 +271,17 @@
   function roboCtx(db, m, t, ctx) {
     const h = homeFor(db, m, t, ctx), w = (m.weights || []).slice(-1)[0];
     const exName = (id) => (db.exercises.find((e) => e.id === id) || { name: String(id).replace(/^free:/, '') }).name;
-    return { me: h.me, first: String(m.name || '').split(' ')[0], S: db.settings, plans: db.plans.filter((x) => x.active), services: db.services, exercises: db.exercises, exName, program: h.program, nextDay: h.nextDay, crowd: h.crowd, board: h.board, kcal: h.kcal, kg: w ? w.kg : null, coach: m.coach || null, fdate: (d) => String(d).split('-').reverse().join('.'), seed: (m.robo || []).length };
+    return { me: h.me, first: String(m.name || '').split(' ')[0], S: db.settings, plans: db.plans.filter((x) => x.active), services: db.services, exercises: db.exercises, exName, program: h.program, nextDay: h.nextDay, crowd: h.crowd, board: h.board, kcal: h.kcal, kg: w ? w.kg : null, coach: m.coach || null, fdate: (d) => String(d).split('-').reverse().join('.'), seed: (m.robo || []).length,
+      machines: (db.machines || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0)), workouts: m.workouts || [], checkedIn: (m.checkins || []).includes(t), alts: (id) => roboAlts(db, id) };
+  }
+  function roboAlts(db, id) {
+    const me0 = EXMETA[id], x = db.exercises.find((e) => e.id === id), have = new Set((db.machines || []).map((y) => y.ex).filter(Boolean));
+    if (!x) return [];
+    const ok = (e) => e.id !== id && e.muscle !== 'Recuperare' && (e.equipment !== 'Aparat' || !have.size || have.has(e.id) || e.muscle === 'Cardio');
+    if (x.muscle === 'Cardio') return db.exercises.filter((e) => e.muscle === 'Cardio' && ok(e)).slice(0, 3);
+    const same = db.exercises.filter((e) => ok(e) && me0 && EXMETA[e.id] && EXMETA[e.id][0] === me0[0]);
+    const grp = db.exercises.filter((e) => ok(e) && !same.includes(e) && (me0 && EXMETA[e.id] ? EXMETA[e.id][1] === me0[1] : e.muscle === x.muscle));
+    return [...same, ...grp].slice(0, 3);
   }
   // text scurt cu datele sălii și ale membrului, pentru asistentul AI (dacă serverul are cheie)
   function roboBrief(db, m, t, ctx) {
@@ -690,7 +700,7 @@
       }
       if (p === '/api/me/measure' && m === 'POST') {
         const x = { date: isDate(body.date) ? body.date : t }; let any = false;
-        for (const k of ['chest', 'waist', 'hips', 'arm', 'thigh', 'bodyFat']) { const v = num(body[k], 1, 300); if (v) { x[k] = v; any = true; } }
+        for (const k of ['chest', 'arm', 'waist', 'hips', 'thigh', 'calf', 'bodyFat']) { if (body[k] === undefined || body[k] === null || String(body[k]).trim() === '') continue; const v = num(body[k], 1, 300); if (v) { x[k] = v; any = true; } }
         if (!any) return no(400, 'Completează cel puțin o măsurătoare.');
         me.measures = (me.measures || []).filter((w) => w.date !== x.date); me.measures.push(x); me.measures.sort((a, b) => a.date.localeCompare(b.date));
         return ok(homeFor(db, me, t, ctx));
@@ -1107,5 +1117,5 @@
     }
     return dirty;
   }
-  return { route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile, roboBrief, generateProgram, aiCharInfo, AI_STYLES };
+  return { EXMETA, route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile, roboBrief, generateProgram, aiCharInfo, AI_STYLES };
 });

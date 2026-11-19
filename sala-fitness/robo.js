@@ -125,13 +125,68 @@
     if (has(t, /calori|kcal|cat (sa )?mananc|cata mancare/)) return R(C.kcal ? `După datele tale, ținta ta e în jur de ${C.kcal} kcal pe zi${C.me.goal ? ` (obiectiv: ${C.me.goal})` : ''}. Țin cont de greutate, înălțime, vârstă și antrenamente.\n\nCântărește-te o dată pe săptămână, la aceeași oră. Dacă greutatea nu se mișcă 2–3 săptămâni, ajustează cu 150–200 kcal.` : 'Ca să-ți calculez caloriile, am nevoie de greutate, înălțime și data nașterii. Completează-le în Profil și în Progres (greutatea), apoi întreabă-mă din nou.\n\nOrientativ: pentru slăbit, cu 300–500 kcal sub necesar. Pentru masă, cu 200–300 kcal peste.', [{ l: 'Nutriție', a: 'tab:food' }]);
     if (has(t, /creatin/)) return R('Creatina monohidrat e cel mai studiat supliment și e sigur pentru oamenii sănătoși: 3–5 g pe zi, în fiecare zi, oricând. Ajută la forță și la refacere.\n\nPoate apărea 1–2 kg de apă în mușchi la început, e normal. Dacă ai probleme cu rinichii, întreabă întâi medicul.');
     if (has(t, /suplimente|bcaa|pre ?workout|preworkout|vitamin|arzator|fat burner|steroiz|anabolic/)) return has(t, /steroiz|anabolic/) ? R('Nu recomand steroizi sau alte substanțe de felul ăsta. Au riscuri serioase pentru inimă, ficat și hormoni, și sunt interzise fără prescripție. Rezultate foarte bune se obțin și natural, cu antrenament constant, mâncare bună și somn.') : R('Suplimentele sunt doar 5% din rezultat. Baza e mâncarea, somnul și antrenamentul.\n\nCe merită, eventual:\n• Proteină din pudră, dacă nu ajungi la proteine din mâncare\n• Creatină, 3–5 g pe zi\n• Vitamina D iarna (întreabă medicul)\n\nArzătoarele de grăsimi și BCAA-urile nu fac mare lucru. Pre-workout-ul are multă cafeină: nu-l lua seara.');
-    if (has(t, /inainte de (antrenament|sala)|ce (sa )?manan.*inainte/)) return R('Cu 1–3 ore înainte de antrenament: o masă cu carbohidrați și ceva proteine. De exemplu: orez cu pui, ovăz cu iaurt, o banană cu brânză de vaci, pâine integrală cu ouă.\n\nDacă mănânci cu puțin timp înainte, alege ceva ușor, ca o banană. Și bea apă!');
-    if (has(t, /dupa (antrenament|sala)|ce (sa )?manan.*dupa/)) return R('După antrenament, în următoarele 1–2 ore: proteine plus carbohidrați. De exemplu: pui cu cartofi, ton cu paste, omletă cu pâine, iaurt grecesc cu fructe și ovăz.\n\nNu trebuie să fie în 30 de minute exact. Contează mai mult ce mănânci în toată ziua.');
+    if (has(t, /inainte de (antrenament|sala)|ce (sa )?manan.*inainte/)) return R('Cu 1–3 ore înainte de antrenament: o masă cu carbohidrați și ceva proteine. De exemplu: orez cu pui, ovăz cu iaurt, o banană cu brânză de vaci, pâine integrală cu ouă.\n\nDacă mănânci cu puțin timp înainte, alege ceva ușor, ca o banană. Și bea apă!', [{ l: '⚡ Arată-mi o masă înainte de sală', a: 'meal:pre' }], ['Ce mănânc după sală?']);
+    if (has(t, /dupa (antrenament|sala)|ce (sa )?manan.*dupa/)) return R('După antrenament, în următoarele 1–2 ore: proteine plus carbohidrați. De exemplu: pui cu cartofi, ton cu paste, omletă cu pâine, iaurt grecesc cu fructe și ovăz.\n\nNu trebuie să fie în 30 de minute exact. Contează mai mult ce mănânci în toată ziua.', [{ l: '💪 Arată-mi o masă după sală', a: 'meal:post' }], ['Câte proteine îmi trebuie?']);
     if (has(t, /\bapa\b|hidrat|cata apa|cate litri/)) return R('Bea în jur de 30–35 ml de apă pe kilogram pe zi, plus încă 0,5–1 l în zilele de antrenament. Un semn bun: urina deschisă la culoare.\n\nÎn aplicație, la Nutriție, poți bifa paharele de apă. 💧', [{ l: 'Nutriție', a: 'tab:food' }]);
     if (has(t, /alcool|bere|vin\b|petrecere/)) return R('Alcoolul încetinește refacerea, strică somnul și are multe calorii (o bere are cam 200 kcal). Ocazional nu strică tot progresul, dar seara de după antrenament e cel mai prost moment.\n\nDacă bei, bea și apă și nu sări peste mesele cu proteine.');
     if (has(t, /slab|slabesc|slabire|kilograme in minus|dau jos|grasime|cum slabesc/)) return R('Pentru slăbit, rețeta e simplă, chiar dacă nu e ușoară:\n• Mănânci cu 300–500 kcal sub necesar\n• Proteine la fiecare masă: te țin sătul și păstrează mușchii\n• Antrenament de forță de 3 ori pe săptămână, plus 20–30 minute de cardio\n• 8–10 mii de pași pe zi\n• Somn 7–8 ore\n\nUn ritm sănătos e 0,5–1 kg pe săptămână. Mai repede de atât pierzi și mușchi.', [{ l: 'Câte calorii am nevoie?', a: 'say:Câte calorii să mănânc?' }]);
     if (has(t, /masa musculara|sa cresc|sa pun (masa|kilograme|muschi)|mai mare|volum|sa ma ingras/)) return R('Pentru masă musculară:\n• Mănânci cu 200–300 kcal peste necesar\n• 1,6–2 g de proteine pe kilogram pe zi\n• Antrenament cu greutăți, 6–12 repetări, și crești greutatea treptat\n• Somn 7–9 ore\n• Răbdare: un începător pune cam 0,5–1 kg de mușchi pe lună\n\nNotează greutățile în aplicație, ca să vezi progresul.', [{ l: 'Fă-mi programul pentru masă', a: 'plan' }]);
     if (has(t, /ce (sa )?manan|mancare|dieta|alimentati|meniu|retet|mic dejun|cina|seara (sa )?manan/)) return R('Câteva reguli simple:\n• Proteine la fiecare masă (carne, ouă, pește, lactate, leguminoase)\n• Legume la prânz și la cină\n• Carbohidrați mai ales în jurul antrenamentului (orez, cartofi, ovăz, paste)\n• Puține dulciuri și sucuri\n• Nu contează ora la care mănânci, ci cât mănânci în total pe zi\n\nÎn tab-ul Nutriție ai un plan cu mese gata făcute.', [{ l: 'Planul alimentar', a: 'tab:food' }], ['Câte proteine?', 'Ce mănânc înainte de sală?']);
+    return null;
+  }
+
+  /* ---------- ajutor practic la sală: aparatul, aparat ocupat, data trecută, prima zi ---------- */
+  const todayEx = (C) => { const p = C.program; if (!p) return []; const d = p.days[C.nextDay] || p.days[0]; return d ? d.items.map((i) => C.exercises.find((e) => e.id === i.ex)).filter(Boolean) : []; };
+  const machOf = (C, id) => (C.machines || []).find((m) => m.ex === id);
+  const MA = (m) => ({ l: '📷 Arată aparatul', a: 'mach:' + m.id });
+  function gymHelp(t, C) {
+    const ex = findExercise(t, C);
+    // aparatul e ocupat
+    if (has(t, /ocupat|e luat|nu e liber|nu-i liber|e cineva la|sta cineva|asteapta cineva|e plin la|stau la coada|e prins/)) {
+      const e = ex || null;
+      if (!e) {
+        const tx = todayEx(C).filter((x) => x.muscle !== 'Cardio');
+        return R(`Nu-i bai, ${C.first}! Spune-mi la ce exercițiu e ocupat și îți dau ceva pentru aceiași mușchi.${tx.length ? ' Alege din antrenamentul de azi:' : ''}`, [], tx.slice(0, 4).map((x) => `E ocupat la ${x.name.toLowerCase()}`));
+      }
+      const alts = C.alts ? C.alts(e.id) : [];
+      if (!alts.length) return R(`Pentru ${e.name} nu am altă variantă în sală pentru aceiași mușchi. Fă mai întâi următorul exercițiu din plan și te întorci după. De obicei se eliberează în 5 minute.`, EXA(C, e.id));
+      const L = alts.map((a) => { const m = machOf(C, a.id); return `• ${a.name}${m && !a.name.includes(m.short || m.name) ? ` (${m.short || m.name})` : ''}`; });
+      const m0 = machOf(C, alts[0].id);
+      return R(`Dacă e ocupat la „${e.name}”, lucrezi aceiași mușchi cu:\n${L.join('\n')}\n\nÎn antrenament ai butonul „🔄 E ocupat” lângă exercițiu: schimbi doar pentru azi, iar programul tău rămâne la fel pentru data viitoare. Sau îl muți la final și îl faci când se eliberează.`, [...(m0 ? [MA(m0)] : []), ...EXA(C, alts[0].id)].slice(0, 3));
+    }
+    // data trecută
+    if (has(t, /data trecuta|ultima (data|oara|serie|sedinta)|cu cat am (lucrat|facut|ridicat)|cat am (ridicat|facut|pus)|ce greutate am (avut|pus|folosit)|cate kg am (avut|pus|ridicat)|ultimul antrenament/)) {
+      const W = (C.workouts || []).slice().reverse();
+      if (ex) {
+        const hist = []; for (const w of W) { const s = (w.sets || []).filter((x) => x.ex === ex.id); if (s.length) hist.push({ date: w.date, s }); if (hist.length >= 2) break; }
+        if (!hist.length) return R(`N-ai făcut încă ${ex.name.toLowerCase()} în aplicație, ${C.first}. Începe cu o greutate cu care faci toate repetările curat și notează-o. Data viitoare ți-o arăt eu.`, EXA(C, ex.id));
+        const fmt = (h) => h.s.map((x) => `${x.kg ? x.kg + ' kg × ' : ''}${x.reps}`).join(' · ');
+        const best = hist[0].s.reduce((a, x) => ((+x.kg || 0) > (+a.kg || 0) ? x : a), hist[0].s[0]);
+        return R(`${ex.name}, data trecută (${C.fdate(hist[0].date)}):\n${fmt(hist[0])}${hist[1] ? `\n\nÎnainte de asta (${C.fdate(hist[1].date)}):\n${fmt(hist[1])}` : ''}\n\n${best && best.kg ? `💡 Dacă ai terminat ușor toate seriile, încearcă azi ${Math.round((+best.kg + 2.5) * 10) / 10} kg. Dacă a fost greu, rămâi la ${best.kg} kg și mai adaugă o repetare.` : 'Încearcă azi o repetare în plus pe fiecare serie.'}\n\nÎn antrenament, butonul „🕘 Data trecută” îți pune automat valorile.`, EXA(C, ex.id));
+      }
+      const w = W[0]; if (!w) return R(`Încă n-ai niciun antrenament salvat, ${C.first}. Hai să facem primul! 💪`, [{ l: 'Începe antrenamentul', a: 'start' }]);
+      const by = {}; for (const s of w.sets || []) (by[s.ex] = by[s.ex] || []).push(s);
+      return R(`Ultimul tău antrenament: ${w.title || 'antrenament'}, ${C.fdate(w.date)}${w.duration ? `, ${w.duration} minute` : ''}.\n${Object.entries(by).map(([id, s]) => `• ${C.exName(id)}: ${s.map((x) => `${x.kg ? x.kg + '×' : ''}${x.reps}`).join(', ')}`).join('\n')}\n\nÎntreabă-mă de un exercițiu anume, de exemplu „cu cât am lucrat data trecută la presa?”`, [{ l: 'Antrenamentul de azi', a: 'tab:train' }]);
+    }
+    // care e aparatul pentru exercițiul ăsta
+    if (has(t, /aparat|masina|unde (e|este|gasesc|fac)|la ce (aparat|masina)|cum regle|reglez|cum arata/) && !has(t, /\bpret|cost|abonament/)) {
+      if (ex) {
+        const m = machOf(C, ex.id);
+        if (m) return R(`${ex.name} se face la aparatul ${m.short || m.name}${m.short && m.name && m.short !== m.name ? ` (${m.name})` : ''}.${(m.setup || []).length ? `\n\nPrimul reglaj: ${m.setup[0]}${m.setup[1] ? `\nApoi: ${m.setup[1]}` : ''}` : ''}${m.muscles ? `\n\nLucrează: ${m.muscles}.` : ''}\n\nPoți scana și codul QR de pe aparat: se deschide direct fișa lui.`, [MA(m), ...EXA(C, ex.id, '▶ Vezi mișcarea')]);
+        const sim = (C.alts ? C.alts(ex.id) : []).map((a) => machOf(C, a.id)).find(Boolean);
+        return R(`${ex.name} nu se face la un aparat anume: ai nevoie de ${String(ex.equipment || 'echipament liber').toLowerCase()}.${sim ? `\n\nDacă vrei aparat pentru aceiași mușchi: ${sim.short || sim.name}.` : ''}`, [...EXA(C, ex.id, '▶ Vezi mișcarea'), ...(sim ? [MA(sim)] : [])]);
+      }
+      const tx = todayEx(C).map((x) => [x, machOf(C, x.id)]).filter(([, m]) => m);
+      if (tx.length && has(t, /azi|antrenament|program/)) return R(`Aparatele de azi:\n${tx.map(([x, m]) => `• ${x.name}: ${m.short || m.name}`).join('\n')}`, tx.slice(0, 3).map(([, m]) => ({ l: '📷 ' + (m.short || m.name), a: 'mach:' + m.id })));
+      if ((C.machines || []).length && has(t, /ce aparate|aparatele|lista|toate/)) return R(`Sala are ${C.machines.length} aparate în aplicație. Le găsești la Antrenament → Aparatele sălii, fiecare cu poză, reglaje și greșeli de evitat.`, [{ l: 'Vezi aparatele', a: 'tab:train' }]);
+      if (has(t, /aparat/)) return R('Spune-mi exercițiul și îți arăt aparatul din sală, cu poza și primul reglaj. De exemplu: „la ce aparat fac ramat?”', [], tx.slice(0, 3).map(([x]) => `La ce aparat fac ${x.name.toLowerCase()}?`));
+    }
+    // prima zi la sală
+    if (has(t, /prima (mea )?(zi|data|sedinta|oara)|primul (meu )?antrenament|cu ce (sa )?incep|de unde (sa )?incep|sunt nou|nou la sala|incepator total|n am mai fost/)) {
+      const p = C.program, d = p ? p.days[C.nextDay] || p.days[0] : null;
+      if (!p) return R(`Bun venit, ${C.first}! 🎉 Ca să-ți fac planul potrivit, îți pun 3 întrebări scurte:\n1. Câte zile pe săptămână poți veni?\n2. Ai mai făcut sală înainte?\n3. Ce vrei: să slăbești, să te tonifiezi sau să pui masă?\n\nDurează un minut și primești programul făcut din aparatele sălii.`, [{ l: 'Fă-mi programul', a: 'plan' }], ['Ce mănânc înainte de sală?']);
+      return R(`Bun venit, ${C.first}! 🎉 Ai deja planul „${p.name}”. Prima ședință e ${d.name}:\n${d.items.slice(0, 6).map((i) => `• ${C.exName(i.ex)}: ${i.sets} × ${i.reps}`).join('\n')}\n\nAzi învățăm mișcările, nu ridicăm greu:\n• 5 minute încălzire pe bandă sau bicicletă\n• Greutăți ușoare, cu care faci toate repetările curat\n• Apasă „Cum?” la fiecare exercițiu și vezi mișcarea făcută de figurina ta\n• Dacă un aparat e ocupat, apasă „🔄 E ocupat” și îți dau altceva\n${C.checkedIn ? '' : '\nNu uita: scanează afișul de la intrare pentru check-in. 📍'}`, [{ l: '▶ Începe prima ședință', a: 'start' }, ...(C.checkedIn ? [] : [{ l: 'Check-in', a: 'checkin' }])], ['Ce mănânc înainte de sală?', 'Câte serii să fac?']);
+    }
     return null;
   }
 
@@ -193,6 +248,7 @@
     if (has(t, /^(multumesc|mersi|ms|merci|mulțumesc|mersii|thanks|thank you)\b|\bmultumesc frumos/)) return R(pick(['Cu drag! 💪 Spor la antrenament!', 'Oricând! Ne vedem la sală. 😎', 'Cu plăcere! Și nu uita de check-in. 😉'], seed));
     if (has(t, /^(pa|la revedere|noapte buna|bye|ciao|o zi buna)\b/)) return R(pick(['Pa! Odihnește-te bine, mâine continuăm. 🌙', 'Pa, pa! Te aștept la următorul antrenament. 💪'], seed));
 
+    const gh = gymHelp(t, C); if (gh) return gh;
     if (has(t, /febra|ma dor (muschii|toti)|carcei|antrenez cu febra/)) return training(t, C);
     if (has(t, /\bdoare|durere|dureri|junghi|lombar|hernie|sciatic|tendinit|accident|entors|luxat|ma jeneaza|disconfort/)) return pain(t, C);
     const top = topicScore(t);

@@ -119,7 +119,10 @@
   const L = (a, b, w, c, extra = '') => `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`;
   function drawFig(pat, t) {
     const f = frame(pat, t), ink = 'var(--fig, #EDEDF2)', far = 'var(--fig2, #55555F)', acc = 'var(--acc)', hi = pat.hi;
-    const cl = (part) => (hi.includes(part) ? acc : ink), out = [];
+    const cl = (part) => (hi.includes(part) ? acc : ink), out = [], C = pat.plain ? null : CH;
+    // segment de corp: simplu (siluetă) sau „caracter” cu contur și haine; mușchii lucrați primesc o aură verde
+    const B = (a, b, w, col, cc, on) => (C ? (on ? L(a, b, w + 7, acc, 'opacity=".5"') : '') + L(a, b, w + 3, '#101014') + L(a, b, w, cc) : L(a, b, w, col));
+    const dk = (c) => shade(c, -0.38);
     // echipament static
     if (pat.bench) { const [x, y, w, h] = pat.bench; out.push(pat.incline ? `<path d="M${x} ${y}L${x + 18} ${y - 50}L${x + 26} ${y - 46}L${x + 14} ${y + 4}H${x + w}V${y + 8}H${x}z" fill="#2B2B33"/><path d="M${x + 10} ${y + 8}v${h - 8}M${x + w - 10} ${y + 8}v${h - 8}" stroke="#2B2B33" stroke-width="5"/>` : `<rect x="${x}" y="${y}" width="${w}" height="8" rx="4" fill="#2B2B33"/><path d="M${x + 10} ${y + 8}v${h - 8}M${x + w - 10} ${y + 8}v${h - 8}" stroke="#2B2B33" stroke-width="5"/>`); }
     if (pat.eq === 'mpress') out.push(`<path d="M24 192L34 14H54L48 192Z" fill="#24242B"/><path d="M${P2(f.p[0] - 4, f.p[1] + 4)}L${P2(f.h[0] - 18, f.h[1] - 22)}" stroke="#2F6B45" stroke-width="13" stroke-linecap="round"/><path d="M${P2(f.p[0] - 6, f.p[1] + 7)}H${(f.p[0] + 28).toFixed(1)}" stroke="#2F6B45" stroke-width="10" stroke-linecap="round"/><path d="M${P2(f.p[0] + 4, f.p[1] + 12)}L${P2(f.p[0] - 4, 192)}" stroke="#2B2B33" stroke-width="7"/><rect x="34" y="150" width="14" height="30" rx="3" fill="var(--acc)" opacity=".8"/>`, L(pat.piv, f.w, 6, '#6A6A75'), `<circle cx="${pat.piv[0]}" cy="${pat.piv[1]}" r="6" fill="#55555F"/><circle cx="${f.w[0].toFixed(1)}" cy="${f.w[1].toFixed(1)}" r="5" fill="#9A9AA8"/>`);
@@ -141,27 +144,31 @@
     if (pat.eq === 'floor') out.push('<path d="M20 163H185" stroke="#2B2B33" stroke-width="3" stroke-linecap="round"/>');
     if (pat.cable) { const w = f.w || f.wr; out.push(L(pat.cable, w, 2, '#6A6A75', 'stroke-dasharray="1 0"')); out.push(`<circle cx="${pat.cable[0]}" cy="${pat.cable[1]}" r="5" fill="#55555F"/>`); }
     if (pat.front) {
-      out.push(L(f.p, [f.p[0] - 8, f.p[1]], 12, ink), L(f.p, [f.p[0] + 8, f.p[1]], 12, ink));
-      out.push(L([f.p[0] - 8, f.p[1]], f.kl, 12, cl('legs')), L(f.kl, f.al, 11, cl('legs')), L([f.p[0] + 8, f.p[1]], f.kr, 12, cl('legs')), L(f.kr, f.ar, 11, cl('legs')));
-      out.push(L(f.n, f.p, 20, ink), L(f.sl, f.sr, 14, cl('shoulder')));
-      out.push(L(f.sl, f.el, 10, cl('shoulder')), L(f.el, f.wl, 9, ink), L(f.sr, f.er, 10, cl('shoulder')), L(f.er, f.wr, 9, ink));
-      out.push(`<circle cx="${f.h[0]}" cy="${f.h[1]}" r="12" fill="${ink}"/>`);
+      const lg = hi.includes('legs') || hi.includes('glute'), sh2 = hi.includes('shoulder');
+      out.push(B(f.p, [f.p[0] - 8, f.p[1]], 12, ink, C && C.bot), B(f.p, [f.p[0] + 8, f.p[1]], 12, ink, C && C.bot));
+      out.push(B([f.p[0] - 8, f.p[1]], f.kl, 12, cl('legs'), C && C.bot, lg), B(f.kl, f.al, 11, cl('legs'), C && (C.F ? C.bot : C.skin), lg), B([f.p[0] + 8, f.p[1]], f.kr, 12, cl('legs'), C && C.bot, lg), B(f.kr, f.ar, 11, cl('legs'), C && (C.F ? C.bot : C.skin), lg));
+      if (C) [f.al, f.ar].forEach((a) => out.push(`<ellipse cx="${a[0].toFixed(1)}" cy="${(a[1] + 3).toFixed(1)}" rx="7.5" ry="4.5" fill="${C.shoe}" stroke="#101014" stroke-width="1.6"/>`));
+      out.push(B(f.n, f.p, 20, ink, C && C.top, hi.includes('core')), B(f.sl, f.sr, 14, cl('shoulder'), C && C.top, sh2));
+      out.push(B(f.sl, f.el, 10, cl('shoulder'), C && (C.F ? C.skin : C.top), sh2), B(f.el, f.wl, 9, ink, C && C.skin), B(f.sr, f.er, 10, cl('shoulder'), C && (C.F ? C.skin : C.top), sh2), B(f.er, f.wr, 9, ink, C && C.skin));
+      if (!C) out.push(`<circle cx="${f.h[0]}" cy="${f.h[1]}" r="12" fill="${ink}"/>`);
       if (pat.eq !== 'none' && pat.eq !== 'abd' && pat.eq !== 'add') [f.wl, f.wr].forEach((w) => out.push(db(w)));
       return out.join('');
     }
     // membrele din spate (mai închise)
     const fk = f.fk || [f.k[0] - 5, f.k[1]], fa = f.fa || [f.a[0] - 5, f.a[1]];
-    out.push(L(f.p, fk, 12, far), L(fk, fa, 11, far));
-    if (f.fe) out.push(L(f.s, f.fe, 9, far), L(f.fe, f.fw, 8, far));
+    const shinC = C && (C.F ? C.bot : C.skin), thHi = hi.includes('legs') || hi.includes('glute') || hi.includes('hams');
+    out.push(B(f.p, fk, 12, far, C && dk(C.bot)), B(fk, fa, 11, far, C && dk(shinC)));
+    if (f.fe) out.push(B(f.s, f.fe, 9, far, C && dk(C.skin)), B(f.fe, f.fw, 8, far, C && dk(C.skin)));
     // trunchi și picioare
     const toe = [fa, f.a].map((a) => [a[0] + 12, a[1] + 1]);
-    out.push(L(fa, toe[0], 8, far));
-    out.push(L(f.p, f.k, 13, hi.includes('legs') || hi.includes('glute') || hi.includes('hams') ? acc : ink), L(f.k, f.a, 11, cl('legs')), L(f.a, toe[1], 8, ink));
-    out.push(L(f.s, f.p, 18, hi.includes('core') || hi.includes('back') ? acc : hi.includes('chest') ? `url(#fg)` : ink));
+    out.push(B(fa, toe[0], 8, far, C && dk(C.shoe)));
+    out.push(B(f.p, f.k, 13, thHi ? acc : ink, C && C.bot, thHi), B(f.k, f.a, 11, cl('legs'), shinC, hi.includes('legs')), B(f.a, toe[1], 8, ink, C && C.shoe));
+    out.push(B(f.s, f.p, 18, hi.includes('core') || hi.includes('back') ? acc : hi.includes('chest') ? `url(#fg)` : ink, C && C.top, hi.includes('core') || hi.includes('back') || hi.includes('chest')));
+    if (C && !C.F) out.push(L([f.p[0] + (f.s[0] - f.p[0]) * 0.08, f.p[1] + (f.s[1] - f.p[1]) * 0.08], f.p, 18, C.bot));
     // cap
-    out.push(`<circle cx="${f.h[0].toFixed(1)}" cy="${f.h[1].toFixed(1)}" r="11.5" fill="${ink}"/>`);
+    if (!C) out.push(`<circle cx="${f.h[0].toFixed(1)}" cy="${f.h[1].toFixed(1)}" r="11.5" fill="${ink}"/>`);
     // braț
-    out.push(L(f.s, f.e, 10, hi.includes('arm') || hi.includes('shoulder') ? acc : ink), L(f.e, f.w, 9, hi.includes('arm') ? acc : ink));
+    out.push(B(f.s, f.e, 10, hi.includes('arm') || hi.includes('shoulder') ? acc : ink, C && (C.F ? C.skin : C.top), hi.includes('arm') || hi.includes('shoulder')), B(f.e, f.w, 9, hi.includes('arm') ? acc : ink, C && C.skin, hi.includes('arm')));
     // greutăți
     if (pat.eq === 'bar') out.push(`<circle cx="${f.w[0]}" cy="${f.w[1]}" r="15" fill="#3A3A44" stroke="#6A6A75" stroke-width="3"/><circle cx="${f.w[0]}" cy="${f.w[1]}" r="4" fill="#9A9AA8"/>`);
     if (pat.eq === 'bar-hip') out.push(`<circle cx="${f.p[0]}" cy="${f.p[1] - 14}" r="15" fill="#3A3A44" stroke="#6A6A75" stroke-width="3"/>`);
@@ -182,20 +189,21 @@
       if (!a.el.isConnected) { live.delete(a); continue; }
       const ph = ((ts - a.t0) / a.period) % 1, t = a.pat.cyc ? (1 - Math.cos(ph * 2 * Math.PI)) / 2 : ph < 0.45 ? (1 - Math.cos((ph / 0.45) * Math.PI)) / 2 : ph < 0.55 ? 1 : (1 + Math.cos(((ph - 0.55) / 0.45) * Math.PI)) / 2;
       a.g.innerHTML = drawFig(a.pat, t);
+      if (a.hd) { const h = lerp(a.pat.A.h, a.pat.B.h || a.pat.A.h, t); a.hd.setAttribute('transform', `translate(${(h[0] - HEAD / 2).toFixed(1)} ${(h[1] - HEAD * 0.5).toFixed(1)})`); }
     }
     if (live.size) raf = requestAnimationFrame(loop);
   }
   function figure(ex, o = {}) {
     const pat = patFor(ex), id = 'f' + Math.random().toString(36).slice(2, 8);
-    return `<svg class="fig${o.still ? ' still' : ''}" viewBox="0 0 200 200" data-fig="${id}" data-pat="${EXPAT[ex.id] || ''}" role="img" aria-label="Animație: ${String(ex.name || '').replace(/"/g, '')}" style="${o.style || ''}"><defs><linearGradient id="fg" x1="0" x2="1"><stop offset="0" stop-color="var(--acc)"/><stop offset="1" stop-color="var(--fig, #EDEDF2)"/></linearGradient></defs><g>${drawFig(pat, 0.35)}</g></svg>`;
+    return `<svg class="fig${o.still ? ' still' : ''}" viewBox="0 0 200 200" data-fig="${id}" data-pat="${EXPAT[ex.id] || ''}" role="img" aria-label="Animație: ${String(ex.name || '').replace(/"/g, '')}" style="${o.style || ''}"><defs><linearGradient id="fg" x1="0" x2="1"><stop offset="0" stop-color="var(--acc)"/><stop offset="1" stop-color="var(--fig, #EDEDF2)"/></linearGradient></defs><g>${drawFig(pat, 0.35)}</g>${headEl(frame(pat, 0.35).h)}</svg>`;
   }
   // pornește animațiile pentru toate siluetele din element
   function animate(rootEl, exFind) {
     (rootEl || document).querySelectorAll('svg.fig[data-fig]:not(.still)').forEach((el) => {
       if (el._on) return; el._on = 1;
       const pat = PAT[el.dataset.pat] || (exFind && patFor(exFind(el))) || PAT.squat;
-      if (reduce()) { el.querySelector('g').innerHTML = drawFig(pat, 0.5); return; }
-      live.add({ el, g: el.querySelector('g'), pat, t0: performance.now() - Math.random() * 500, period: pat.cyc ? 1100 : 2600 });
+      if (reduce()) { el.querySelector('g').innerHTML = drawFig(pat, 0.5); const hd0 = el.querySelector('.fhd'); if (hd0) { const h = frame(pat, 0.5).h; hd0.setAttribute('transform', `translate(${(h[0] - HEAD / 2).toFixed(1)} ${(h[1] - HEAD * 0.5).toFixed(1)})`); } return; }
+      live.add({ el, g: el.querySelector('g'), hd: el.querySelector('.fhd'), pat, t0: performance.now() - Math.random() * 500, period: pat.cyc ? 1100 : 2600 });
     });
     if (live.size && !raf) raf = requestAnimationFrame(loop);
   }
@@ -440,12 +448,49 @@
     for (const [z, key, B] of [['hair', 'avHair', 0.9], ['top', 'avTop', 0.82], ['bot', 'avBot', 0.82], ['shoe', 'avShoe', 0.85]]) { const c = pickC(AV_OPT[z], L[key]); if (c) zone(z, c, tintMatrix(c, a.avg[z], B)); }
     const [lx, ly, lw, lh] = a.logo, logo = `<image href="img/logo-${a.photo ? 'photo' : 'avatar'}-${a.k}.webp" x="${lx}" y="${ly}" width="${lw}" height="${lh}"/>`;
     const acc = avAcc(a, L.avAcc | 0, pickC(AV_OPT.top, L.avTop));
-    const vb = o.bust ? a.bust : `${-a.w * 0.06} ${-a.h * 0.03} ${a.w * 1.12} ${a.h * 1.06}`;
+    if (o.headOnly) { const hd = a.head, r = hd.fw; defs.push(`<clipPath id="${id}cl"><ellipse cx="${hd.cx}" cy="${(hd.top + r * 0.5).toFixed(1)}" rx="${(r * 0.62).toFixed(1)}" ry="${(r * 0.7).toFixed(1)}"/></clipPath>`); }
+    const crop = o.marks ? { 'avatar-m': [100, 420], 'photo-m': [92, 392] }[(a.photo ? 'photo-' : 'avatar-') + a.k] : null;
+    const vb = crop ? `${crop[0]} ${-a.h * 0.02} ${crop[1] - crop[0]} ${a.h * 1.04}` : o.headOnly ? `${(a.head.cx - a.head.fw * 0.68).toFixed(1)} ${(a.head.top - a.head.fw * 0.12).toFixed(1)} ${(a.head.fw * 1.36).toFixed(1)} ${(a.head.fw * 1.36).toFixed(1)}` : o.bust ? a.bust : `${-a.w * 0.06} ${-a.h * 0.03} ${a.w * 1.12} ${a.h * 1.06}`;
     const sh = o.bust ? '' : `<ellipse cx="${a.w / 2}" cy="${a.h - 4}" rx="${a.w * 0.36}" ry="${a.h * 0.018}" fill="#000" opacity=".35"/>`;
     const bs = Math.min(a.w * 0.2, a.h * 0.12), badge = !o.bust && r > 0 ? `<g transform="translate(${a.w - bs} ${a.h * 0.02}) scale(${(bs / 100).toFixed(3)})">${rankBadge(r, 100).replace('<svg ', '<svg x="0" y="0" ')}</g>` : '';
     const h = o.size ? (o.bust ? o.size : Math.round(o.size * 154 / 120)) : 0;
-    return `<svg class="hero av${o.still ? ' still' : ''}" viewBox="${vb}" ${o.size ? `width="${o.size}" height="${h}"` : ''} preserveAspectRatio="xMidYMax meet" role="img" aria-label="${o.label || 'Avatarul tău'}" ${o.style ? `style="${o.style}"` : ''}><defs>${defs.join('')}</defs>${sh}<g class="avb"><image href="${base}" width="${a.w}" height="${a.h}"/>${layers.join('')}${logo}${acc}</g>${badge}</svg>`;
+    return `<svg class="hero av${o.still ? ' still' : ''}" viewBox="${vb}" ${o.size ? `width="${o.size}" height="${h}"` : ''} preserveAspectRatio="xMidYMax meet" role="img" aria-label="${o.label || 'Avatarul tău'}" ${o.style ? `style="${o.style}"` : ''}><defs>${defs.join('')}</defs>${sh}<g class="avb"${o.headOnly ? ` clip-path="url(#${id}cl)"` : ''}><image href="${base}" width="${a.w}" height="${a.h}"/>${layers.join('')}${o.headOnly ? '' : logo}${o.headOnly ? '' : acc}</g>${o.headOnly ? '' : badge}${o.marks ? measMarks(a, o.marks, crop ? crop[1] - crop[0] : a.w) : ''}</svg>`;
   }
+  /* ───────── măsurătorile: unde pui banda, desenat pe figurina membrului ───────── */
+  // [cx, cy, rx] în pixelii imaginii, pentru fiecare figurină
+  const MEAS_AT = {
+    'avatar-m': { chest: [250, 188, 98], arm: [334, 248, 24], waist: [238, 302, 72], hips: [232, 362, 88], thigh: [205, 458, 41], calf: [196, 560, 27] },
+    'avatar-f': { chest: [135, 228, 52], arm: [61, 262, 17], waist: [131, 316, 41], hips: [130, 376, 58], thigh: [104, 455, 29], calf: [90, 575, 19] },
+    'photo-m': { chest: [232, 205, 98], arm: [330, 262, 24], waist: [225, 322, 72], hips: [222, 378, 85], thigh: [186, 468, 37], calf: [180, 588, 25] },
+    'photo-f': { chest: [130, 216, 52], arm: [47, 262, 16], waist: [128, 292, 40], hips: [125, 342, 57], thigh: [96, 420, 29], calf: [80, 545, 18] },
+  };
+  const MEAS_ORDER = ['chest', 'arm', 'waist', 'hips', 'thigh', 'calf'];
+  function measMarks(a, active, vw) {
+    const P = MEAS_AT[(a.photo ? 'photo-' : 'avatar-') + a.k], u = (vw || a.w) / 260, out = [];
+    MEAS_ORDER.forEach((k, i) => {
+      const [cx, cy, rx] = P[k], on = k === active, ry = Math.max(5, rx * 0.22), lw = (on ? 4.2 : 2.4) * Math.max(1, u * 0.9);
+      out.push(`<g class="mk${on ? ' on' : ''}" data-mk="${k}" style="cursor:pointer">
+        <path d="M${cx - rx} ${cy}A${rx} ${ry} 0 0 0 ${cx + rx} ${cy}" fill="none" stroke="${on ? 'var(--acc, #C8F03C)' : '#fff'}" stroke-width="${lw}" stroke-dasharray="${on ? '' : `${6 * u} ${4 * u}`}" opacity="${on ? 1 : 0.75}"/>
+        <path d="M${cx - rx} ${cy}A${rx} ${ry} 0 0 1 ${cx + rx} ${cy}" fill="none" stroke="${on ? 'var(--acc, #C8F03C)' : '#fff'}" stroke-width="${lw * 0.8}" opacity="${on ? 0.55 : 0.3}"/>
+        <circle cx="${cx + rx + 13 * u}" cy="${cy}" r="${11 * u}" fill="${on ? 'var(--acc, #C8F03C)' : '#0A0A0C'}" stroke="${on ? '#0A0A0C' : '#fff'}" stroke-width="${1.6 * u}"/>
+        <text x="${cx + rx + 13 * u}" y="${cy + 4.2 * u}" text-anchor="middle" font-size="${12 * u}" font-weight="800" font-family="Inter,system-ui,sans-serif" fill="${on ? '#0A0A0C' : '#fff'}">${i + 1}</text></g>`);
+    });
+    return out.join('');
+  }
+  function measureFig(L, rank, active, o = {}) { L = L || {}; return heroAvatar(L, rank, { ...o, marks: active || 'none', label: 'Unde măsori' }, (L.style | 0) === 3); }
+
+  /* ───────── caracterul membrului în animațiile exercițiilor ───────── */
+  let CH = null;
+  const hx = (c) => '#' + c.map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
+  function setLook(L) {
+    if (!L) { CH = null; return; }
+    const photo = (L.style | 0) === 3, F = L.body === 'F', a = (photo ? AVP : AV)[F ? 'F' : 'M'], pc = (arr, i) => arr[i | 0] || null;
+    const skin = pc(AV_OPT.skin, L.avSkin) || shade(hx(a.skin), photo ? 0.32 : 0.12);
+    CH = { L, F, skin, top: pc(AV_OPT.top, L.avTop) || '#2A2C33', bot: pc(AV_OPT.bot, L.avBot) || (F ? '#24262C' : '#4A4F59'), shoe: pc(AV_OPT.shoe, L.avShoe) || '#3A3F4B', trim: F ? '#1FB5A8' : '#1FB5A8' };
+  }
+  const HEAD = 36;
+  function headEl(pos) { if (!CH) return ''; return `<g class="fhd" transform="translate(${(pos[0] - HEAD / 2).toFixed(1)} ${(pos[1] - HEAD * 0.5).toFixed(1)})">${heroAvatar(CH.L, 0, { headOnly: true, size: HEAD, still: true }, (CH.L.style | 0) === 3).replace('class="hero av still"', 'class="fhead"').replace(/ height="\d+"/, ` height="${HEAD}"`)}</g>`; }
+
   function hero(L, rank, o = {}) {
     L = L || {}; o = o || {};
     return heroAvatar(L, rank, o, (L.style | 0) === 3);
@@ -563,5 +608,5 @@
         <circle cx="60" cy="104" r="6.5" fill="var(--acc, #C8F03C)" opacity=".9"/><circle cx="60" cy="104" r="11" fill="var(--acc, #C8F03C)" opacity=".18"/>
       </g></svg>`;
   }
-  root.GymFig = { hero, robot, LOOK_OPT, AV_OPT, rankBadge, drawFig: (k, t) => drawFig(PAT[k], t), PATS: Object.keys(PAT), icon, figure, animate, muscleMap, musclesOf, MNAME, patFor };
+  root.GymFig = { setLook, measureFig, MEAS_ORDER, hero, robot, LOOK_OPT, AV_OPT, rankBadge, drawFig: (k, t) => drawFig(PAT[k], t), PATS: Object.keys(PAT), icon, figure, animate, muscleMap, musclesOf, MNAME, patFor };
 })(this);

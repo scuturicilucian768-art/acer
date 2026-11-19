@@ -244,6 +244,28 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .photos .add{aspect-ratio:3/4;border-radius:14px;border:2px dashed var(--line2);display:grid;place-content:center;justify-items:center;gap:6px;cursor:pointer;text-align:center;color:var(--muted);font-weight:800;font-size:.84rem}
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .cmp img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:14px}
+.msr{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:12px;align-items:start}
+.msr-fig{background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--acc) 12%,transparent),transparent 70%);border-radius:18px;padding:4px;position:sticky;top:0}
+.msr-fig svg{width:100%;height:auto;max-height:380px;display:block}
+.msr-fig .mk{transition:opacity .2s}
+.msr-f{display:grid;gap:7px}
+.mf{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 10px;border-radius:14px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:700;font-size:.9rem}
+.mf .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:800;background:var(--line);flex:none}
+.mf.on{border-color:var(--acc)}.mf.on .n{background:var(--acc);color:#0A0A0C}
+.mf .input{width:74px;padding:9px 8px;text-align:center;font-weight:800}
+.msr-hint{margin-top:12px}
+.msr-empty{display:flex;gap:14px;align-items:center}.msr-mini{width:92px;flex:none}.msr-mini svg{width:100%;height:auto;display:block}
+.fig .fhead{overflow:visible}
+.wtools{display:flex;gap:6px;overflow-x:auto;margin:8px 0 2px;scrollbar-width:none}.wtools::-webkit-scrollbar{display:none}
+.wtools button{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 11px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.wtools button:active{transform:scale(.96)}
+.wswap{font-size:.78rem;color:var(--acc);margin:4px 0 0;font-weight:700}
+.wskip{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--card);border:1px dashed var(--line);font-size:.86rem;color:var(--muted)}.wskip button{background:none;border:0;color:var(--acc);font-weight:800;cursor:pointer}
+.wtsh{display:flex;gap:10px;align-items:center;padding-right:40px}.wtsh .k{display:block;font-size:.66rem;font-weight:800;letter-spacing:.16em;color:var(--acc);text-transform:uppercase}.robo-mini{flex:none}
+.day.alt .th{width:52px;height:52px;flex:none;border-radius:12px;overflow:hidden;display:grid;place-items:center;background:var(--bg)}.day.alt .th img{width:100%;height:100%;object-fit:cover}.day.alt .th svg{width:100%;height:100%}
+.day.alt small,.day.pd small{display:block;font-weight:500;margin-top:2px}.day.pd{text-align:left}
+.lastw{padding:12px 14px;border-radius:14px;border:1px solid var(--line);margin-top:8px}.lastw.first{border-color:var(--acc)}.lsets{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.lsets span{padding:5px 9px;border-radius:10px;background:var(--card);font-size:.86rem}
+.painz{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.painz button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer}.painz button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 15%,var(--card))}
 .mtab{width:100%;border-collapse:collapse;font-size:.9rem}
 .mtab th,.mtab td{padding:9px 6px;text-align:center;border-bottom:1px solid var(--line)}
 .mtab th{color:var(--faint);font-size:.72rem;font-weight:800}
@@ -615,13 +637,13 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
   <button class="fab" id="fabMeal" type="button" aria-label="Ce mănânc? Sugestie de masă"><span aria-hidden="true">🍽️</span><b>Ce mănânc?</b></button>
 </div>
 <script src="robo-kb.75d77752.js"></script>
-<script src="robo.dd82a5df.js"></script>
+<script src="robo.06a1ec53.js"></script>
 <script src="diet.7d846a6d.js"></script>
-<script src="core.966749fe.js"></script>
+<script src="core.25b9e892.js"></script>
 <script src="seed.797f4e4c.js"></script>
 <script src="env.d6392d2f.js"></script>
 <script src="common.e54266c5.js"></script>
-<script src="fig.2acb4ad9.js"></script>
+<script src="fig.ccd8fff3.js"></script>
 <script src="vision.cb2683f3.js"></script>
 <script src="qr.40840928.js"></script>
 <script>
@@ -766,7 +788,9 @@ function go(t) {
 $$('.tabs button').forEach((b) => (b.onclick = () => go(b.dataset.t)));
 addEventListener('hashchange', () => { const h = location.hash.slice(1); if (!H) return; if (/^ci-(\d{4}|[A-Z0-9]{6})$/i.test(h)) return doCheckin(h.slice(3)); if (h === 'chat') return openChat(); if (/^ex-\w+$/.test(h)) return openExFromQR(h.slice(3)); if (/^ap-\w+$/.test(h)) return openMachFromQR(h.slice(3)); if (h === 'clan' || /^clan-[A-Za-z0-9]{6}$/.test(h)) { history.replaceState(null, '', '#' + tab); return openClan(h.slice(5)); } if (TABS.includes(h) && h !== tab) go(h); });
 $('#bell').onclick = openNotifs; $('#chatB').onclick = () => openChat();
+const myLook = () => ({ body: H.me.sex === 'F' ? 'F' : 'M', ...(H.me.look || {}) });
 function render(anim) {
+  GymFig.setLook(myLook());
   const v = $('#view'); v.className = 'wrap' + (anim ? ' stagger' : '');
   ({ home: vHome, train: vTrain, progress: vProgress, food: vFood, me: vMe })[tab](v);
   const n = H.unread, c = 0;
@@ -1135,6 +1159,8 @@ async function openChat(prefill, mode, autoSend) {
     if (k === 'diet') return openFoodQuiz();
     if (k === 'vision') return openVision(v && v !== 'vision' ? v : undefined);
     if (k === 'start') { if (H.program) return startWorkout(H.program, H.nextDay); return go('train'); }
+    if (k === 'mach') return setTimeout(() => openMachine(v), 200);
+    if (k === 'meal') return setTimeout(() => openMealIdea(v), 200);
     if (k === 'checkin') return H.checkedInToday ? toast('Ai făcut deja check-in azi. Spor!') : openCheckin();
     if (k === 'board') return openBoard();
     if (k === 'sub') return openSub();
@@ -1766,10 +1792,67 @@ function openGen() {
 
 /* ── ecranul de antrenament activ ── */
 let WO = null;
+/* ── ajutor între serii: aparatul, aparat ocupat, data trecută, durere ── */
+function redrawWO() { const el = $('#wo'); if (!el) return; const y = el.scrollTop; drawWO(); el.scrollTop = y; }
+function altsFor(exId) {
+  const M = GymCore.EXMETA || {}, me0 = M[exId], x = exById(exId), used = new Set(WO ? WO.ex.map((e) => e.it.ex) : []), have = new Set(MACH.map((m) => m.ex).filter(Boolean));
+  const ok = (e) => e.id !== exId && !used.has(e.id) && !e.free && e.muscle !== 'Recuperare' && (e.equipment !== 'Aparat' || !MACH.length || have.has(e.id) || e.muscle === 'Cardio');
+  if (x.muscle === 'Cardio') return EX.filter((e) => e.muscle === 'Cardio' && ok(e)).slice(0, 4);
+  const same = EX.filter((e) => ok(e) && me0 && M[e.id] && M[e.id][0] === me0[0]);
+  const grp = EX.filter((e) => ok(e) && !same.includes(e) && (me0 && M[e.id] ? M[e.id][1] === me0[1] : e.muscle === x.muscle));
+  return [...same, ...grp].slice(0, 5);
+}
+function swapWO(i, newId) {
+  const e = WO.ex[i], prev = lastFor(newId), nx = exById(newId);
+  if (!e.from) e.from = e.it.ex;
+  if (e.from === newId) delete e.from;
+  e.it = { ...e.it, ex: newId, kg: '', kgTxt: '' };
+  if (nx.muscle === 'Cardio') { e.cardio = true; e.sets = [{ kg: '', reps: '', done: e.sets.some((s) => s.done) }]; }
+  else e.sets.forEach((s, k) => { if (!s.done) { s.kg = prev && prev[k] ? prev[k].kg : ''; if (prev && prev[k]) s.reps = prev[k].reps; } });
+  redrawWO(); toast(`Ai trecut pe ${nx.name}. Programul tău rămâne la fel pentru data viitoare.`);
+}
+function woTool(kind, i) {
+  const e = WO.ex[i], x = exById(e.it.ex);
+  if (kind === 'mach') { const m = machFor(x.id); if (m) openMachine(m.id); return; }
+  if (kind === 'busy' || kind === 'soft') {
+    const alts = altsFor(x.id);
+    const el = sheet(`<div class="wtsh"><div class="robo-mini">${GymFig.robot(46)}</div><div><span class="k">Robo</span><b>${kind === 'soft' ? 'Hai să-l înlocuim cu ceva mai blând' : 'Nu-i bai, facem altceva pentru aceiași mușchi'}</b></div></div>
+      ${alts.length ? `<p class="muted small" style="margin:10px 0">${kind === 'soft' ? 'Alege o variantă care nu te doare. Dacă te doare și la ea, sari peste.' : `În loc de ${esc(x.name)}, poți face:`}</p><div class="list">${alts.map((a) => { const m = machFor(a.id); return `<button class="day alt" data-alt="${a.id}"><span class="th">${m && m.photo ? `<img src="${esc(galUrl(m.photo))}" alt="">` : thumb(a)}</span><span class="grow"><b>${esc(a.name)}</b><small class="muted">${m ? esc(m.short || m.name) : esc(a.equipment)} · ${esc(a.muscle)}</small></span>${IC('chev', 18)}</button>`; }).join('')}</div>
+      <p class="muted small" style="margin:10px 0 0">Schimbarea e doar pentru azi. Data viitoare primești tot exercițiul din plan.</p>` : '<p class="muted">Nu am găsit altă variantă în sală pentru aceiași mușchi. Poți face mai întâi următorul exercițiu și te întorci la ăsta după.</p>'}
+      ${kind === 'busy' && i < WO.ex.length - 1 ? '<button class="btn btn-ghost btn-block" id="wLater" style="margin-top:10px">⏬ Îl fac mai târziu (îl mut la final)</button>' : ''}`);
+    $$('[data-alt]', el).forEach((b) => (b.onclick = () => { closeSheet(); swapWO(i, b.dataset.alt); }));
+    if ($('#wLater', el)) $('#wLater', el).onclick = () => { closeSheet(); const [m] = WO.ex.splice(i, 1); WO.ex.push(m); redrawWO(); toast('L-am mutat la final. Treci la următorul.'); };
+    GymFig.animate(el); return;
+  }
+  if (kind === 'last') {
+    const hist = []; for (const w of (H.me.workouts || []).slice().reverse()) { const s = (w.sets || []).filter((z) => z.ex === x.id); if (s.length) hist.push({ date: w.date, s }); if (hist.length >= 3) break; }
+    const el = sheet(`<h2>🕘 ${esc(x.name)}</h2>${hist.length ? `<p class="muted small" style="margin:4px 0 12px">Ce ai făcut ultimele ${hist.length === 1 ? 'dată' : hist.length + ' ori'}:</p>${hist.map((h, k) => `<div class="lastw${k ? '' : ' first'}"><b>${k ? fdate(h.date, true) : `Data trecută · ${fdate(h.date, true)}`}</b><div class="lsets">${h.s.map((z) => `<span>${z.kg ? `<b>${z.kg}</b> kg × ` : ''}<b>${z.reps}</b></span>`).join('')}</div></div>`).join('')}
+      <p class="muted small" style="margin:10px 0">💡 Dacă data trecută ai terminat toate repetările ușor, pune 2,5 kg în plus azi.</p>
+      <button class="btn btn-acc btn-block" id="lUse">Pune valorile de data trecută</button>` : '<p class="muted">Încă nu ai făcut exercițiul ăsta în aplicație. Începe cu o greutate cu care faci toate repetările curat și notează-o. Data viitoare ți-o arăt aici.</p>'}`);
+    if ($('#lUse', el)) $('#lUse', el).onclick = () => { const p = hist[0].s; e.sets.forEach((s, k) => { if (!s.done && p[k]) { s.kg = p[k].kg; s.reps = p[k].reps; } }); closeSheet(); redrawWO(); toast('Am pus greutățile de data trecută'); };
+    return;
+  }
+  if (kind === 'pain') {
+    const Z = [['genunchiul', '🦵'], ['spatele', '🔙'], ['umărul', '💪'], ['cotul', '🤚'], ['gâtul', '🧣'], ['altceva', '❓']];
+    const el = sheet(`<div class="wtsh"><div class="robo-mini">${GymFig.robot(46)}</div><div><span class="k">Robo</span><b>Îmi pare rău. Ce te doare la ${esc(x.name.toLowerCase())}?</b></div></div>
+      <div class="painz">${Z.map(([z, ic]) => `<button data-pz="${z}">${ic} ${z === 'altceva' ? 'Altceva' : z.charAt(0).toUpperCase() + z.slice(1)}</button>`).join('')}</div>
+      <div class="tip" style="margin-top:12px">${IC('info', 18)} Regula de aur: durerea nu trebuie să crească în timpul exercițiului. Dacă e ascuțită, te oprești. Dacă simți amorțeală sau înțepături care coboară în mână sau picior, mergi la medic.</div>
+      <div class="list" style="margin-top:12px">
+        <button class="day pd" id="pSkip"><span class="grow"><b>⏭️ Sar peste el azi</b><small class="muted">Treci la următorul exercițiu</small></span></button>
+        <button class="day pd" id="pSoft"><span class="grow"><b>🔄 Îl înlocuiesc cu ceva mai blând</b><small class="muted">Aceiași mușchi, altă mișcare</small></span></button>
+        <button class="day pd" id="pRobo"><span class="grow"><b>🤖 Întreabă-l pe Robo ce să faci</b><small class="muted">Îți spune ce merge și ce să eviți</small></span></button>
+      </div>`);
+    let zone = '';
+    $$('[data-pz]', el).forEach((b) => (b.onclick = () => { zone = b.dataset.pz; $$('[data-pz]', el).forEach((y) => y.classList.toggle('on', y === b)); }));
+    $('#pSkip', el).onclick = () => { e.skip = 'pain'; closeSheet(); redrawWO(); toast('Am sărit exercițiul. Dacă durerea ține, spune-le celor de la sală.'); };
+    $('#pSoft', el).onclick = () => { closeSheet(); setTimeout(() => woTool('soft', i), 260); };
+    $('#pRobo', el).onclick = () => { closeSheet(); setTimeout(() => openChat(`Mă doare ${zone && zone !== 'altceva' ? zone : ''} la ${x.name.toLowerCase()}. Ce fac?`.replace(/\s+/g, ' '), 'robo', true), 260); };
+  }
+}
 function lastFor(exId) { const ws = (H.me.workouts || []).slice().reverse(); for (const w of ws) { const s = (w.sets || []).filter((x) => x.ex === exId); if (s.length) return s; } return null; }
 function startWorkout(prog, dayIdx) {
   const day = prog.days[dayIdx];
-  WO = { prog, dayIdx, day, start: Date.now(), ex: day.items.map((it) => { const prev = lastFor(it.ex), cardio = /min/.test(it.reps); return { it, cardio, sets: Array.from({ length: cardio ? 1 : it.sets }, (_, k) => ({ kg: prev && prev[k] ? prev[k].kg : it.kg || '', reps: prev && prev[k] ? prev[k].reps : parseInt(it.reps) || '', done: false })) }; }) };
+  WO = { prog, dayIdx, day, start: Date.now(), ex: day.items.map((it, k0) => { const prev = lastFor(it.ex), cardio = /min/.test(it.reps); return { k: k0, it, cardio, sets: Array.from({ length: cardio ? 1 : it.sets }, (_, k) => ({ kg: prev && prev[k] ? prev[k].kg : it.kg || '', reps: prev && prev[k] ? prev[k].reps : parseInt(it.reps) || '', done: false })) }; }) };
   const el = document.createElement('div'); el.className = 'wo'; el.id = 'wo'; document.body.appendChild(el); document.body.classList.add('noscroll');
   drawWO(); WO.tick = setInterval(woClock, 1000);
   api('/api/me/workout/start', { method: 'POST', body: { programId: prog.id, dayIdx } }).then((r) => { if (!WO) return; WO.ws = r.wo; WO.start = Date.now() - r.wo.elapsed * 1000; drawWO(); }).catch(() => toast('Nu am putut porni cronometrul pe server. Verifică internetul.', 'bad'));
@@ -1780,23 +1863,26 @@ function woClock() {
 }
 const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 function drawWO() {
-  const el = $('#wo'), doneSets = WO.ex.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0), all = WO.ex.reduce((a, e) => a + e.sets.length, 0);
+  const el = $('#wo'), doneSets = WO.ex.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0), all = Math.max(1, WO.ex.reduce((a, e) => a + (e.skip ? 0 : e.sets.length), 0));
   el.innerHTML = `<div class="wo-top"><button class="iconbtn" id="wx" aria-label="Închide">${IC('x', 20)}</button><div class="grow"><b>${esc(WO.day.name)}</b><div class="muted" style="font-size:.8rem">${doneSets}/${all} serii</div></div><span class="tm" id="wtm">${mmss((Date.now() - WO.start) / 1000)}</span></div>
     <div style="padding:0 16px"><div class="bar-p" style="margin-top:12px"><i style="width:${(doneSets / all) * 100}%"></i></div>
       ${WO.ws ? `<div class="wrules"><div id="wgoal" class="wg">⏱️ Punctele vin după ${mmss(WO.ws.minSec)}</div><div class="bar-p thin"><i id="wgbar" style="width:0"></i></div><small class="muted">Bifezi seria după ce o faci (minim ${WO.ws.gap} s între serii) · ${WO.ws.needTicks} serii bifate pentru puncte${WO.ws.needCheckin ? '' : ' · ✅ check-in făcut'}</small>${WO.ws.needCheckin ? '<button class="wci" id="wci">📍 Fă check-in la sală ca să primești puncte</button>' : ''}</div>` : ''}</div>
     ${WO.ex.map((e, i) => { const x = exById(e.it.ex), allDone = e.sets.every((s) => s.done); return `<div class="wex ${allDone ? 'all' : ''}"><div class="row"><span class="th">${thumb(x)}</span><div class="grow"><b>${esc(x.name)}</b><div class="muted" style="font-size:.82rem">Țintă: ${e.it.sets} × ${esc(e.it.reps)}${e.it.kg ? ` · ${e.it.kg} kg` : e.it.kgTxt ? ` · ${esc(e.it.kgTxt)}` : ''}${e.it.rest ? ` · pauză ${e.it.rest}s` : ''}</div>${e.it.note ? `<div style="font-size:.8rem;color:var(--acc);margin-top:2px">📝 ${esc(e.it.note)}</div>` : ''}</div>${x.free ? '' : `<button class="btn btn-sm btn-ghost" data-how="${x.id}">Cum?</button>`}</div>
-      <div class="sets">${e.cardio ? `<div class="set ${e.sets[0].done ? 'done' : ''}" style="grid-template-columns:1fr 48px"><span class="muted">${esc(e.it.reps)}</span><button class="ck" data-e="${i}" data-s="0" aria-label="Făcut">${IC('check', 22)}</button></div>` : `<div class="set"><span></span><span class="lb">KG</span><span class="lb">REPETĂRI</span><span></span></div>` + e.sets.map((s, k) => `<div class="set ${s.done ? 'done' : ''}"><span class="no">${k + 1}</span><input inputmode="decimal" value="${s.kg}" data-e="${i}" data-s="${k}" data-f="kg" aria-label="Kilograme seria ${k + 1}"><input inputmode="numeric" value="${s.reps}" data-e="${i}" data-s="${k}" data-f="reps" aria-label="Repetări seria ${k + 1}"><button class="ck" data-e="${i}" data-s="${k}" aria-label="Serie făcută">${IC('check', 22)}</button></div>`).join('')}</div></div>`; }).join('')}
+      ${e.skip ? `<div class="wskip">⏭️ Sărit azi${e.skip === 'pain' ? ' din cauza durerii' : ''}. <button data-unskip="${i}">Anulează</button></div></div>` : `${x.free ? '' : `<div class="wtools">${machFor(x.id) ? `<button data-wt="mach" data-i="${i}">📷 Aparatul</button>` : ''}<button data-wt="busy" data-i="${i}">🔄 E ocupat</button>${e.cardio ? '' : `<button data-wt="last" data-i="${i}">🕘 Data trecută</button>`}<button data-wt="pain" data-i="${i}">🩹 Mă doare</button></div>`}${e.from ? `<div class="wswap">🔄 În loc de ${esc(exById(e.from).name)}, doar azi</div>` : ''}
+      <div class="sets">${e.cardio ? `<div class="set ${e.sets[0].done ? 'done' : ''}" style="grid-template-columns:1fr 48px"><span class="muted">${esc(e.it.reps)}</span><button class="ck" data-e="${i}" data-s="0" aria-label="Făcut">${IC('check', 22)}</button></div>` : `<div class="set"><span></span><span class="lb">KG</span><span class="lb">REPETĂRI</span><span></span></div>` + e.sets.map((s, k) => `<div class="set ${s.done ? 'done' : ''}"><span class="no">${k + 1}</span><input inputmode="decimal" value="${s.kg}" data-e="${i}" data-s="${k}" data-f="kg" aria-label="Kilograme seria ${k + 1}"><input inputmode="numeric" value="${s.reps}" data-e="${i}" data-s="${k}" data-f="reps" aria-label="Repetări seria ${k + 1}"><button class="ck" data-e="${i}" data-s="${k}" aria-label="Serie făcută">${IC('check', 22)}</button></div>`).join('')}</div></div>`}`; }).join('')}
     <div class="wo-end"><button class="btn btn-acc btn-block" id="wfin" style="padding:16px;font-size:1.05rem">${IC('trophy', 20)} Termină antrenamentul</button></div>`;
   $('#wx').onclick = async () => { if (doneSets && !(await ask('Ieși din antrenament?', 'Seriile bifate nu se salvează.', 'Ieși', { danger: true, icon: 'x' }))) return; endWO(); };
   $$('[data-how]', el).forEach((b) => (b.onclick = () => { if (/^free:/.test(b.dataset.how)) { toast('Exercițiu scris de tine: nu are ghid în aplicație.'); return; } openEx(b.dataset.how); }));
   $$('input[data-f]', el).forEach((inp) => (inp.onchange = () => { WO.ex[inp.dataset.e].sets[inp.dataset.s][inp.dataset.f] = inp.value; }));
   $$('.ck', el).forEach((b) => (b.onclick = async () => {
-    const e = WO.ex[b.dataset.e], s = e.sets[b.dataset.s], key = b.dataset.e + '-' + b.dataset.s, want = !s.done;
+    const e = WO.ex[b.dataset.e], s = e.sets[b.dataset.s], key = (e.k !== undefined ? e.k : b.dataset.e) + '-' + b.dataset.s, want = !s.done;
     if (want && !e.cardio && !(parseInt(s.reps) > 0)) return toast('Scrie câte repetări ai făcut, apoi bifează seria.', 'bad');
     if (WO.ws) { if (b.disabled) return; b.disabled = true; try { const r = await api('/api/me/workout/tick', { method: 'POST', body: { woId: WO.ws.id, key, done: want, reps: s.reps, cardioMin: e.cardio ? parseInt(e.it.reps) || 0 : 0 } }); WO.ws = r.wo; } catch (er) { b.disabled = false; return toast(er.message, 'bad'); } }
     s.done = want; if (s.done && navigator.vibrate) navigator.vibrate(30); if (s.done && e.it.rest && !e.cardio) restTimer(e.it.rest); const y = el.scrollTop; drawWO(); el.scrollTop = y; woClock();
   }));
   if ($('#wci', el)) $('#wci', el).onclick = () => openCheckin();
+  $$('[data-wt]', el).forEach((b) => (b.onclick = () => woTool(b.dataset.wt, +b.dataset.i)));
+  $$('[data-unskip]', el).forEach((b) => (b.onclick = () => { delete WO.ex[+b.dataset.unskip].skip; redrawWO(); }));
   $('#wfin').onclick = finishWO;
 }
 function restTimer(sec) {
@@ -1826,6 +1912,35 @@ async function finishWO() {
     ${R.woValid === false ? `<div class="wnop">Salvat în istoric, <b>fără puncte</b>: ${esc(R.woWhy)}</div>` : `<p><b class="acc">+10 puncte</b> · ${IC('flame', 16)} ${H.me.streak} ${H.me.streak === 1 ? 'zi' : 'zile'} la rând</p>`}<button class="btn btn-acc btn-block" onclick="closeSheet()">${R.woValid === false ? 'Am înțeles' : 'Super!'}</button></div>`);
 }
 
+/* ───────── MĂSURĂTORI: figurina membrului arată unde se pune banda ───────── */
+const MEAS = [
+  ['chest', 'Piept', 'Pe linia sfârcurilor, cu banda orizontală pe la spate. Măsori după o expirație normală, fără să umfli pieptul.'],
+  ['arm', 'Brațe', 'La mijlocul brațului, între umăr și cot, cu brațul relaxat pe lângă corp. Măsori mereu același braț.'],
+  ['waist', 'Talie', 'La nivelul buricului, cu burta relaxată (nu o sugi). Dimineața, înainte să mănânci, iese cel mai corect.'],
+  ['hips', 'Șolduri', 'În partea cea mai lată a fesierilor, cu picioarele lipite și banda paralelă cu podeaua.'],
+  ['thigh', 'Coapse', 'La jumătatea coapsei, între șold și genunchi, cu piciorul relaxat și greutatea pe ambele picioare.'],
+  ['calf', 'Gambe', 'În partea cea mai groasă a gambei, stând în picioare, cu greutatea pe ambele picioare.'],
+];
+function openMeasure() {
+  const last = (H.me.measures || []).slice(-1)[0] || {}, L = myLook(), rk = H.me.rank.idx; let cur = 'chest';
+  const el = sheet(`<h2>Măsurători (cm)</h2><p class="muted small" style="margin:2px 0 12px">Atinge o zonă și îți arăt pe figurina ta unde pui banda. Completezi doar ce vrei.</p>
+    <div class="msr"><div class="msr-fig" id="mfig"></div><div class="msr-f">${MEAS.map(([k, l], i) => `<label class="mf" data-mf="${k}"><span class="n">${i + 1}</span><span class="grow">${l}</span><input class="input" inputmode="decimal" id="m_${k}" data-k="${k}" placeholder="${last[k] || 'cm'}" aria-label="${l} în centimetri"></label>`).join('')}</div></div>
+    <div class="tip msr-hint" id="mhint"></div>
+    <div class="field" style="margin-top:10px"><label for="m_bodyFat">Grăsime % (opțional, dacă ai cântar care o arată)</label><input class="input" inputmode="decimal" id="m_bodyFat" data-k="bodyFat" placeholder="${last.bodyFat || '%'}"></div>
+    <p class="err" id="me2"></p><button class="btn btn-acc btn-block" id="ms">Salvează</button>`);
+  const show = (k) => {
+    cur = k; const i = MEAS.findIndex((x) => x[0] === k), m = MEAS[i];
+    $('#mfig', el).innerHTML = GymFig.measureFig(L, rk, k, { still: true });
+    $('#mhint', el).innerHTML = `<b>${i + 1}. ${m[1]}</b> ${esc(m[2])}`;
+    $$('[data-mf]', el).forEach((x) => x.classList.toggle('on', x.dataset.mf === k));
+    $$('[data-mk]', $('#mfig', el)).forEach((g) => (g.onclick = () => { show(g.dataset.mk); $('#m_' + g.dataset.mk, el).focus({ preventScroll: true }); }));
+  };
+  $$('[data-k]', el).forEach((i) => { if (MEAS.some((x) => x[0] === i.dataset.k)) i.onfocus = () => show(i.dataset.k); });
+  $$('[data-mf]', el).forEach((x) => (x.onclick = () => show(x.dataset.mf)));
+  show(cur);
+  $('#ms', el).onclick = async () => { const body = {}; $$('[data-k]', el).forEach((i) => { const v = String(i.value).trim().replace(',', '.'); if (v) body[i.dataset.k] = v; }); try { H = await api('/api/me/measure', { method: 'POST', body }); closeSheet(); toast('Salvat'); render(); } catch (e) { $('#me2', el).textContent = e.message; } };
+}
+
 /* ───────── PROGRES ───────── */
 let calMonth = null;
 function vProgress(v) {
@@ -1848,7 +1963,7 @@ function vProgress(v) {
     <div class="sec"><h2>Volum pe săptămâni</h2><small class="muted">tone</small></div>
     <div class="card">${barChart(weeks, { h: 180, label: 'Volum săptămânal', fmt: (x) => (x ? x.toLocaleString('ro-RO') : '') })}</div>
     <div class="sec"><h2>Măsurători</h2><button id="am">+ Adaugă</button></div>
-    <div class="card">${ms.length ? `${(me.measures || []).length > 1 ? lineChart((me.measures || []).filter((x) => x.waist).map((x) => ({ v: x.waist, l: fdate(x.date) })), { h: 150, label: 'Talie' }) + '<p class="muted small" style="margin:4px 0 10px">Talia în centimetri</p>' : ''}<div style="overflow-x:auto"><table class="mtab"><tr><th>Data</th><th>Talie</th><th>Piept</th><th>Șold</th><th>Braț</th><th>Coapsă</th></tr>${ms.map((x) => `<tr><td>${fdate(x.date)}</td><td>${x.waist || '–'}</td><td>${x.chest || '–'}</td><td>${x.hips || '–'}</td><td>${x.arm || '–'}</td><td>${x.thigh || '–'}</td></tr>`).join('')}</table></div>` : '<p class="muted" style="margin:0">Notează-ți măsurătorile o dată la 2–4 săptămâni. Uneori centimetrii scad înainte de kilograme.</p>'}</div>
+    <div class="card">${ms.length ? `${(me.measures || []).length > 1 ? lineChart((me.measures || []).filter((x) => x.waist).map((x) => ({ v: x.waist, l: fdate(x.date) })), { h: 150, label: 'Talie' }) + '<p class="muted small" style="margin:4px 0 10px">Talia în centimetri</p>' : ''}<div style="overflow-x:auto"><table class="mtab"><tr><th>Data</th>${MEAS.map(([, s]) => `<th>${s}</th>`).join('')}</tr>${ms.map((x) => `<tr><td>${fdate(x.date)}</td>${MEAS.map(([k]) => `<td>${x[k] || '–'}</td>`).join('')}</tr>`).join('')}</table></div>` : `<div class="msr-empty"><div class="msr-mini">${GymFig.measureFig(myLook(), me.rank.idx, 'none', { still: true })}</div><div><p style="margin:0 0 6px"><b>Piept, brațe, talie, șolduri, coapse și gambe.</b></p><p class="muted small" style="margin:0">Notează-le o dată la 2–4 săptămâni. Uneori centimetrii scad înainte de kilograme. Îți arăt pe figurina ta unde pui banda.</p></div></div>`}</div>
     <div class="sec"><h2>Poze de progres</h2>${(me.photos || []).length > 1 ? '<button id="cmp">Compară</button>' : ''}</div>
     <p class="muted small" style="margin:-4px 0 10px">${IC('lock', 14)} Private. Le vezi doar tu.</p>
     <div class="photos">${(me.photos || []).slice().reverse().map((p) => `<button data-ph="${p.id}"><img src="${esc(photoUrl(p.file))}" alt="Progres ${fdate(p.date)}" loading="lazy"><small>${fdate(p.date)}</small></button>`).join('')}<label class="add">${IC('camera', 26)}Adaugă<input type="file" accept="image/*" id="phf" hidden></label></div>
@@ -1867,7 +1982,7 @@ function vProgress(v) {
   $$('[data-ex]', v).forEach((b) => (b.onclick = () => openEx(b.dataset.ex)));
   $('#lb2').onclick = openBoard;
   $('#aw').onclick = () => { const el = sheet(`<h2>Greutatea de azi</h2><div class="field" style="margin-top:14px"><label for="kg">Kilograme</label><input class="input" id="kg" inputmode="decimal" placeholder="ex: 78,5" style="font-size:1.4rem;font-weight:800"></div><p class="muted" style="font-size:.86rem">Sfat: cântărește-te dimineața, înainte de micul dejun.</p><p class="err" id="we"></p><button class="btn btn-acc btn-block" id="ws">Salvează</button>`); $('#kg', el).focus(); $('#ws', el).onclick = async () => { try { H = await api('/api/me/weight', { method: 'POST', body: { kg: $('#kg', el).value } }); closeSheet(); toast('Salvat'); render(); } catch (e) { $('#we', el).textContent = e.message; } }; };
-  $('#am').onclick = () => { const f = [['waist', 'Talie'], ['chest', 'Piept'], ['hips', 'Șold'], ['arm', 'Braț'], ['thigh', 'Coapsă'], ['bodyFat', 'Grăsime %']]; const el = sheet(`<h2>Măsurători (cm)</h2><div class="g2" style="margin-top:14px">${f.map(([k, l]) => `<div class="field"><label for="m_${k}">${l}</label><input class="input" inputmode="decimal" id="m_${k}" data-k="${k}"></div>`).join('')}</div><p class="err" id="me2"></p><button class="btn btn-acc btn-block" id="ms">Salvează</button>`); $('#ms', el).onclick = async () => { const body = {}; $$('[data-k]', el).forEach((i) => (body[i.dataset.k] = i.value)); try { H = await api('/api/me/measure', { method: 'POST', body }); closeSheet(); toast('Salvat'); render(); } catch (e) { $('#me2', el).textContent = e.message; } }; };
+  $('#am').onclick = openMeasure;
   $('#phf').onchange = uploadPhoto;
   $$('[data-ph]', v).forEach((b) => (b.onclick = () => { const p = me.photos.find((x) => x.id === b.dataset.ph); const el = sheet(`<h2>${fdate(p.date, true)}</h2><img src="${esc(photoUrl(p.file))}" alt="" style="width:100%;border-radius:16px;margin-top:10px"><button class="btn btn-red btn-block" id="phd" style="margin-top:12px">${IC('trash', 18)} Șterge poza</button>`); $('#phd', el).onclick = async () => { if (!(await ask('Ștergi poza?', 'Nu o mai poți recupera.', 'Șterge', { danger: true }))) return; H = await api('/api/me/photo/' + p.id, { method: 'DELETE', body: {} }); render(); }; }));
   if ($('#cmp')) $('#cmp').onclick = () => { const ph = me.photos; sheet(`<h2>Înainte și acum</h2><div class="cmp" style="margin-top:12px"><div><img src="${esc(photoUrl(ph[0].file))}" alt=""><p class="muted" style="text-align:center">${fdate(ph[0].date, true)}</p></div><div><img src="${esc(photoUrl(ph[ph.length - 1].file))}" alt=""><p class="muted" style="text-align:center">${fdate(ph[ph.length - 1].date, true)}</p></div></div>`); };
@@ -2008,7 +2123,7 @@ const DOTS_IC = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentCo
 /* ───────── butonul „Ce mănânc?” ───────── */
 const MOM = [['bf', '🍳', 'Mic dejun', 'dimineața'], ['pranz', '🍽️', 'Prânz', 'la amiază'], ['pre', '⚡', 'Înainte de sală', 'cu 1–2 ore înainte'], ['post', '💪', 'După antrenament', 'în 1–2 ore după'], ['cina', '🌙', 'Cină', 'seara'], ['gustare', '🍎', 'Gustare', 'între mese']];
 function momentNow() { const h = new Date().getHours(); return h < 11 ? 'bf' : h < 15 ? 'pranz' : h < 18 ? 'gustare' : 'cina'; }
-function openMealIdea() {
+function openMealIdea(mom) {
   const el = sheet('<div id="mm"></div>'), root = $('#mm', el), now = momentNow();
   const P = (H.me && H.me.food) || {}, n = H.nutrition, w = (H.weights || []).slice(-1)[0];
   const info = { sex: H.me.sex, kcal: n && n.kcal ? n.kcal : 0, kg: w ? w.kg : null };
@@ -2035,7 +2150,7 @@ function openMealIdea() {
     $('#mmB', root).onclick = pick;
     $('#mmA', root).onclick = () => { avoid = [...new Set([...avoid, ...(m.k || [])])]; seed += 1; show(); };
   };
-  pick();
+  if (typeof mom === 'string' && MOM.some((x) => x[0] === mom)) { cur = mom; show(); } else pick();
 }
 function openInstallGuide(force) {
   const ua = navigator.userAgent, ios = /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document);
