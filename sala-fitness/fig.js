@@ -119,7 +119,7 @@
   const L = (a, b, w, c, extra = '') => `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`;
   function drawFig(pat, t) {
     const f = frame(pat, t), ink = 'var(--fig, #EDEDF2)', far = 'var(--fig2, #55555F)', acc = 'var(--acc)', hi = pat.hi;
-    const cl = (part) => (hi.includes(part) ? acc : ink), out = [], C = pat.plain ? null : CH;
+    const cl = (part) => (hi.includes(part) ? acc : ink), out = [], C = CH && CH.fig ? CH : null;
     // segment de corp: simplu (siluetă) sau „caracter” cu contur și haine; mușchii lucrați primesc o aură verde
     const B = (a, b, w, col, cc, on) => (C ? (on ? L(a, b, w + 7, acc, 'opacity=".5"') : '') + L(a, b, w + 3, '#101014') + L(a, b, w, cc) : L(a, b, w, col));
     const dk = (c) => shade(c, -0.38);
@@ -193,7 +193,14 @@
     }
     if (live.size) raf = requestAnimationFrame(loop);
   }
+  // imagini desenate cu AI: caracterul aplicației, poziția de start (stânga) și de final (dreapta)
+  const EXIMG = {
+    ex_latpull: { m: 'https://d8j0ntlcm91z4.cloudfront.net/user_3M1MBjmoHMu9SEKdAZouFyk7UeN/hf_20261119_210242_374ba6e2-a48f-493b-ab2d-0fc1e2e89dc0.png' },
+  };
+  function exImg(ex) { const x = EXIMG[ex.id]; if (!x) return ''; return (CH && CH.F ? x.f || x.m : x.m || x.f) || ''; }
   function figure(ex, o = {}) {
+    const im = exImg(ex);
+    if (im) return `<div class="fig exai${o.still ? ' still' : ''}" role="img" aria-label="Exemplu: ${String(ex.name || '').replace(/"/g, '')}" style="--u:url('${im}');${o.style || ''}"><i class="a"></i><i class="b"></i></div>`;
     const pat = patFor(ex), id = 'f' + Math.random().toString(36).slice(2, 8);
     return `<svg class="fig${o.still ? ' still' : ''}" viewBox="0 0 200 200" data-fig="${id}" data-pat="${EXPAT[ex.id] || ''}" role="img" aria-label="Animație: ${String(ex.name || '').replace(/"/g, '')}" style="${o.style || ''}"><defs><linearGradient id="fg" x1="0" x2="1"><stop offset="0" stop-color="var(--acc)"/><stop offset="1" stop-color="var(--fig, #EDEDF2)"/></linearGradient></defs><g>${drawFig(pat, 0.35)}</g>${headEl(frame(pat, 0.35).h)}</svg>`;
   }
@@ -489,7 +496,7 @@
     CH = { L, F, skin, top: pc(AV_OPT.top, L.avTop) || '#2A2C33', bot: pc(AV_OPT.bot, L.avBot) || (F ? '#24262C' : '#4A4F59'), shoe: pc(AV_OPT.shoe, L.avShoe) || '#3A3F4B', trim: F ? '#1FB5A8' : '#1FB5A8' };
   }
   const HEAD = 36;
-  function headEl(pos) { if (!CH) return ''; return `<g class="fhd" transform="translate(${(pos[0] - HEAD / 2).toFixed(1)} ${(pos[1] - HEAD * 0.5).toFixed(1)})">${heroAvatar(CH.L, 0, { headOnly: true, size: HEAD, still: true }, (CH.L.style | 0) === 3).replace('class="hero av still"', 'class="fhead"').replace(/ height="\d+"/, ` height="${HEAD}"`)}</g>`; }
+  function headEl(pos) { if (!CH || !CH.fig) return ''; return `<g class="fhd" transform="translate(${(pos[0] - HEAD / 2).toFixed(1)} ${(pos[1] - HEAD * 0.5).toFixed(1)})">${heroAvatar(CH.L, 0, { headOnly: true, size: HEAD, still: true }, (CH.L.style | 0) === 3).replace('class="hero av still"', 'class="fhead"').replace(/ height="\d+"/, ` height="${HEAD}"`)}</g>`; }
 
   function hero(L, rank, o = {}) {
     L = L || {}; o = o || {};
@@ -608,5 +615,5 @@
         <circle cx="60" cy="104" r="6.5" fill="var(--acc, #C8F03C)" opacity=".9"/><circle cx="60" cy="104" r="11" fill="var(--acc, #C8F03C)" opacity=".18"/>
       </g></svg>`;
   }
-  root.GymFig = { setLook, measureFig, MEAS_ORDER, hero, robot, LOOK_OPT, AV_OPT, rankBadge, drawFig: (k, t) => drawFig(PAT[k], t), PATS: Object.keys(PAT), icon, figure, animate, muscleMap, musclesOf, MNAME, patFor };
+  root.GymFig = { exImg, setLook, measureFig, MEAS_ORDER, hero, robot, LOOK_OPT, AV_OPT, rankBadge, drawFig: (k, t) => drawFig(PAT[k], t), PATS: Object.keys(PAT), icon, figure, animate, muscleMap, musclesOf, MNAME, patFor };
 })(this);

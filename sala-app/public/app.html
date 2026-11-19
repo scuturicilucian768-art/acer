@@ -266,6 +266,14 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 .day.alt small,.day.pd small{display:block;font-weight:500;margin-top:2px}.day.pd{text-align:left}
 .lastw{padding:12px 14px;border-radius:14px;border:1px solid var(--line);margin-top:8px}.lastw.first{border-color:var(--acc)}.lsets{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.lsets span{padding:5px 9px;border-radius:10px;background:var(--card);font-size:.86rem}
 .painz{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.painz button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 12px;font-weight:700;cursor:pointer}.painz button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 15%,var(--card))}
+.fig.exai{position:relative;display:block;aspect-ratio:3/4;max-height:300px;margin:0 auto;border-radius:16px;overflow:hidden;background:#fff}
+.stage .fig.exai{height:min(320px,96vw);width:auto;max-height:none}
+.fig.exai i{position:absolute;inset:0;background:var(--u) no-repeat;background-size:200% 100%}
+.fig.exai .a{background-position:0 0}.fig.exai .b{background-position:100% 0;animation:exaiB 2.8s ease-in-out infinite}
+.fig.exai.still .b{display:none}
+@keyframes exaiB{0%,30%{opacity:0}45%,80%{opacity:1}95%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.fig.exai .b{animation:none;opacity:0}}
+.th .fig.exai{height:100%;width:auto;aspect-ratio:3/4;border-radius:10px}.exg .fig.exai{width:75%;aspect-ratio:3/4}
 .mtab{width:100%;border-collapse:collapse;font-size:.9rem}
 .mtab th,.mtab td{padding:9px 6px;text-align:center;border-bottom:1px solid var(--line)}
 .mtab th{color:var(--faint);font-size:.72rem;font-weight:800}
@@ -643,7 +651,7 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 <script src="seed.js?v=14"></script>
 <script src="env.js?v=14"></script>
 <script src="common.js?v=14"></script>
-<script src="fig.js?v=15"></script>
+<script src="fig.js?v=16"></script>
 <script src="vision.js?v=14"></script>
 <script src="qr.js?v=14"></script>
 <script>
