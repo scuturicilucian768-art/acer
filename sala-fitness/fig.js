@@ -194,10 +194,7 @@
     if (live.size) raf = requestAnimationFrame(loop);
   }
   // imagini desenate cu AI: caracterul aplicației, poziția de start (stânga) și de final (dreapta)
-  const EXIMG = {
-    ex_treadmill: { m: ['img/ex/treadmill-m-a.webp', 'img/ex/treadmill-m-b.webp'] },
-    ex_latpull: { m: 'https://d8j0ntlcm91z4.cloudfront.net/user_3M1MBjmoHMu9SEKdAZouFyk7UeN/hf_20261119_210242_374ba6e2-a48f-493b-ab2d-0fc1e2e89dc0.png' },
-  };
+  const EXIMG = {}; // gol: exercițiile folosesc omulețul simplu
   function exImg(ex) { const x = EXIMG[ex.id]; if (!x) return ''; return (CH && CH.F ? x.f || x.m : x.m || x.f) || ''; }
   function figure(ex, o = {}) {
     const im = exImg(ex);
