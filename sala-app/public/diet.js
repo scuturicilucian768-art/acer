@@ -78,6 +78,7 @@
     }
     out.p = Math.round(out.p); out.c = Math.round(out.c); out.f = Math.round(out.f); out.kcal = Math.round(out.p * 4 + out.c * 4 + out.f * 9);
     out._parts = parts.filter(([k, g]) => k && g > 0);
+    out.pt = out._parts.map(([k, g]) => [k, qty(k, g).g]);
     out.items = txt.map((s, i) => (i ? s : s.charAt(0).toUpperCase() + s.slice(1))).join(', ');
     return out;
   }
@@ -143,6 +144,48 @@
     return mealFrom([[pr, gp], [cb, gc], ['legume', 200], ['ulei', fat > 3 ? Math.min(20, fat) : 0]], name, time);
   }
   function withName(m, fn) { m.items = fn(m.items); return m; }
+
+  /* ---------- un singur aliment dintr-o masă ---------- */
+  // alimentele mesei cu gramele lor: din pt (mesele noi) sau citite din text (mesele vechi)
+  function partsOf(m) {
+    if (Array.isArray(m.pt) && m.pt.length) return m.pt.map(([k, g]) => [k, g]);
+    const segs = String(m.items || '').replace(/^Terci:\s*/i, '').split(/,\s(?![^(]*\))/), keys = Object.keys(F).sort((a, b) => F[b].n.length - F[a].n.length), out = [];
+    for (const s0 of segs) {
+      const s = s0.toLowerCase(), k = keys.find((x) => s.includes(F[x].n.toLowerCase()));
+      if (!k || out.some((o) => o[0] === k)) continue;
+      const x = F[k], nn = (/(\d+(?:[.,]\d+)?)/.exec(s) || [])[1], v = nn ? parseFloat(nn.replace(',', '.')) : 0;
+      if (!v) continue;
+      out.push([k, x.u && !/\d\s*(g|ml)\b/.test(s) ? v * x.u[0] : v]);
+    }
+    return out;
+  }
+  const MAC = { pr: 'p', plant: 'p', dairy: 'p', cb: 'c', fr: 'c', fat: 'f', veg: '' };
+  const SAMEGRP = { pr: ['pr', 'plant'], plant: ['plant', 'pr'], dairy: ['dairy'], cb: ['cb'], fr: ['fr'], fat: ['fat'], veg: ['veg'] };
+  const label = (k, g) => { const x = F[k], q = qty(k, g); return x.u ? q.txt : k === 'lapte' ? `lapte ${q.g} ml` : `${x.n} ${q.txt}`; };
+  function itemAlts(m, k, P) {
+    const parts = partsOf(m), cur = parts.find((x) => x[0] === k); if (!cur) return [];
+    const x = F[k], mac = MAC[x.g], have = new Set(parts.map((p) => p[0]));
+    const liq = (c) => c === 'lapte' || c === 'whey'; if (liq(k)) return [];
+    const cands = Object.keys(F).filter((c) => c !== k && !have.has(c) && SAMEGRP[x.g].includes(F[c].g) && allowed(c, P || {}) && liq(c) === liq(k));
+    const k0 = (F[k].p * cur[1] * 4 + F[k].c * cur[1] * 4 + F[k].f * cur[1] * 9) / 100;
+    return cands.map((c) => {
+      let g = mac && F[c][mac] ? (cur[1] * x[mac]) / F[c][mac] : cur[1];
+      g = Math.max(cur[1] * 0.3, Math.min(cur[1] * 3.5, g)); const q = qty(c, g);
+      const kcal = Math.round((F[c].p * q.g * 4 + F[c].c * q.g * 4 + F[c].f * q.g * 9) / 100);
+      return { k: c, g: q.g, txt: label(c, q.g), kcal, like: (P && (P.likes || []).includes(F[c].like)) ? 1 : 0 };
+    }).filter((a) => Math.abs(a.kcal - k0) <= Math.max(90, k0 * 0.6)).map((a) => ({ ...a, sc: a.like * 3 + (F[a.k].g === x.g ? 2 : 0) + ((F[a.k].at || []).some((t) => (x.at || []).includes(t)) ? 1.5 : 0) - F[a.k].$ * 0.2 }))
+      .sort((a, b) => b.sc - a.sc).slice(0, 8).map(({ sc, ...a }) => a);
+  }
+  function swapItem(m, k, to, P) {
+    const alt = itemAlts(m, k, P).find((a) => a.k === to); if (!alt) return null;
+    const parts = partsOf(m).map(([kk, g]) => (kk === k ? [to, alt.g] : [kk, g]));
+    const nm = mealFrom(parts, m.name, m.time); delete nm._parts;
+    if (parts[0][0] === 'ovaz') nm.items = 'Terci: ' + nm.items.charAt(0).toLowerCase() + nm.items.slice(1);
+    else if (parts[0][0] === 'oua') nm.items = nm.items.replace(/^(\d+ ou\S*)/, 'Omletă din $1');
+    nm.k = parts.map((p) => p[0]); if (m.prev) nm.prev = m.prev; if (m.tip) nm.tip = m.tip;
+    return nm;
+  }
+  function itemsOf(m) { return partsOf(m).map(([k, g]) => ({ k, g, txt: label(k, g), name: F[k].n })); }
 
   /* ținta de calorii: din profil (dacă îl avem) sau după sex și obiectiv */
   function target(P, info) {
@@ -226,5 +269,5 @@
     best.k = (best._parts || []).map((x) => x[0]); delete best._parts; best.tip = M.tip; best.moment = moment;
     return best;
   }
-  return { generate, target, swapMeal, suggest, MOMENTS, KCALS, LIKES, DIETS, ALLERGIES, FOODS: F };
+  return { itemsOf, itemAlts, swapItem, generate, target, swapMeal, suggest, MOMENTS, KCALS, LIKES, DIETS, ALLERGIES, FOODS: F };
 });

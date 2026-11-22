@@ -164,8 +164,9 @@
   const rehabItem = (db, id) => { if (!db.exercises.some((e) => e.id === id)) return null; const [sets, reps, rest] = REHAB_REPS[id] || ['2', '10', 30]; return { ex: id, sets: +sets, reps, kg: 0, rest, rehab: true }; };
   function generateProgram(db, me, b) {
     const goal = ['slabire', 'masa', 'forta', 'tonifiere', 'sanatate', 'recuperare'].includes(b.goal) ? b.goal : 'tonifiere';
-    const pains = (Array.isArray(b.pains) ? b.pains : []).filter((p) => PAIN[p]), strong = b.painLevel === 'puternica', moderate = b.painLevel === 'moderata';
-    const banned = new Set(pains.flatMap((p) => [...PAIN[p].avoid, ...(moderate || strong || goal === 'recuperare' ? PAIN[p].heavyAvoid : [])]));
+    const pf = me.prefs || {}, pains = [...new Set([...(Array.isArray(b.pains) ? b.pains : []), ...(pf.pains || [])])].filter((p) => PAIN[p]);
+    const lvl = b.painLevel || pf.painLevel, strong = lvl === 'puternica', moderate = lvl === 'moderata';
+    const banned = new Set([...pains.flatMap((p) => [...PAIN[p].avoid, ...(moderate || strong || goal === 'recuperare' ? PAIN[p].heavyAvoid : [])]), ...(pf.exNo || [])]);
     if (strong) for (const e of db.exercises) if (!REHAB_REPS[e.id] && e.muscle !== 'Cardio') banned.add(e.id);
     // doar aparatele care există în sală (exercițiile la aparat fără aparat în listă nu se dau)
     if (db.settings.onlyGym !== false && (db.machines || []).length) { const have = new Set(db.machines.map((x) => x.ex).filter(Boolean)); for (const e of db.exercises) if (e.equipment === 'Aparat' && e.muscle !== 'Cardio' && !have.has(e.id)) banned.add(e.id); }
@@ -215,7 +216,7 @@
   }
 
   const CONSENT_V = 1;
-  const HEALTH_PATHS = ['/api/me/weight', '/api/me/measure', '/api/me/photo', '/api/me/coach', '/api/me/food', '/api/me/generate', '/api/me/food/kcal', '/api/me/food/swap'];
+  const HEALTH_PATHS = ['/api/me/prefs', '/api/me/weight', '/api/me/measure', '/api/me/photo', '/api/me/coach', '/api/me/food', '/api/me/generate', '/api/me/food/kcal', '/api/me/food/swap'];
   /* ---------- Robo: definește scopul fiecărui membru ---------- */
   const GOAL_TXT = { slabire: 'Slăbire', tonifiere: 'Tonifiere', masa: 'Masă musculară', forta: 'Forță', sanatate: 'Sănătate și energie', recuperare: 'Fără dureri' };
   const GOAL_TITLE = { slabire: 'Mai ușor și mai plin de energie', tonifiere: 'Un corp ferm și definit', masa: 'Mai mult mușchi, pas cu pas', forta: 'Mai puternic la fiecare antrenament', sanatate: 'Sănătos și plin de energie', recuperare: 'Spate și articulații fără dureri' };
@@ -272,12 +273,12 @@
     const h = homeFor(db, m, t, ctx), w = (m.weights || []).slice(-1)[0];
     const exName = (id) => (db.exercises.find((e) => e.id === id) || { name: String(id).replace(/^free:/, '') }).name;
     return { me: h.me, first: String(m.name || '').split(' ')[0], S: db.settings, plans: db.plans.filter((x) => x.active), services: db.services, exercises: db.exercises, exName, program: h.program, nextDay: h.nextDay, crowd: h.crowd, board: h.board, kcal: h.kcal, kg: w ? w.kg : null, coach: m.coach || null, fdate: (d) => String(d).split('-').reverse().join('.'), seed: (m.robo || []).length,
-      machines: (db.machines || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0)), workouts: m.workouts || [], checkedIn: (m.checkins || []).includes(t), alts: (id) => roboAlts(db, id) };
+      machines: (db.machines || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0)), workouts: m.workouts || [], checkedIn: (m.checkins || []).includes(t), alts: (id) => roboAlts(db, id, (m.prefs || {}).exNo || []) };
   }
-  function roboAlts(db, id) {
+  function roboAlts(db, id, no = []) {
     const me0 = EXMETA[id], x = db.exercises.find((e) => e.id === id), have = new Set((db.machines || []).map((y) => y.ex).filter(Boolean));
     if (!x) return [];
-    const ok = (e) => e.id !== id && e.muscle !== 'Recuperare' && (e.equipment !== 'Aparat' || !have.size || have.has(e.id) || e.muscle === 'Cardio');
+    const ok = (e) => e.id !== id && e.muscle !== 'Recuperare' && !no.includes(e.id) && (e.equipment !== 'Aparat' || !have.size || have.has(e.id) || e.muscle === 'Cardio');
     if (x.muscle === 'Cardio') return db.exercises.filter((e) => e.muscle === 'Cardio' && ok(e)).slice(0, 3);
     const same = db.exercises.filter((e) => ok(e) && me0 && EXMETA[e.id] && EXMETA[e.id][0] === me0[0]);
     const grp = db.exercises.filter((e) => ok(e) && !same.includes(e) && (me0 && EXMETA[e.id] ? EXMETA[e.id][1] === me0[1] : e.muscle === x.muscle));
@@ -629,6 +630,48 @@
         const P = foodInput({ ...base, kcal: +body.kcal }); me.food = { ...P, at: ctx.nowISO() };
         const plan = dietLib().generate(P, dietInfo(me, t)); savePersonalDiet(db, me, plan, 'auto', ctx.nowISO());
         return ok({ ...homeFor(db, me, t, ctx), diet: true });
+      }
+      // un singur aliment dintr-o masă
+      if (p === '/api/me/food/item' && m === 'POST') {
+        const cur = db.nutrition.find((x) => x.id === me.nutritionId), i = num(body.i, 0, 9);
+        if (!cur || !cur.meals || !cur.meals[i]) return no(400, 'Nu am găsit masa.');
+        const nm = dietLib().swapItem(cur.meals[i], String(body.k || ''), String(body.to || ''), me.food || {}); if (!nm) return no(400, 'Nu pot face schimbul ăsta. Alege altă variantă.');
+        const plan = { ...cur, meals: cur.meals.map((x, j) => (j === i ? nm : { ...x })) }, own = cur.owner === me.id;
+        plan.kcal = plan.meals.reduce((a, x) => a + x.kcal, 0); ['p', 'c', 'f'].forEach((k) => (plan[k] = plan.meals.reduce((a, x) => a + x[k], 0)));
+        savePersonalDiet(db, me, { ...plan, name: own ? cur.name : cur.name + ' (al meu)', desc: cur.desc }, own ? cur.by || 'auto' : 'auto', own ? cur.at || ctx.nowISO() : ctx.nowISO());
+        return ok({ ...homeFor(db, me, t, ctx), swapped: i });
+      }
+      // ce nu-i place să mănânce: se salvează și se schimbă mesele care le conțin
+      if (p === '/api/me/food/prefs' && m === 'PUT') {
+        const D = dietLib(), keys = D.LIKES.map((x) => x[0]), dis = (Array.isArray(body.dislikes) ? body.dislikes : []).filter((x) => keys.includes(x)).slice(0, 25);
+        me.food = { ...(me.food || {}), dislikes: dis, likes: ((me.food || {}).likes || []).filter((x) => !dis.includes(x)), note: body.note !== undefined ? clean(body.note, 200) : (me.food || {}).note || '' };
+        const cur = db.nutrition.find((x) => x.id === me.nutritionId); let changed = 0;
+        if (cur && cur.owner === me.id && cur.meals) {
+          const plan = { ...cur, meals: cur.meals.map((x) => ({ ...x })) };
+          plan.meals.forEach((ml, i) => { const bad = D.itemsOf(ml).some((it) => dis.includes((D.FOODS[it.k] || {}).like)); if (!bad) return; const nm = D.swapMeal(plan, i, me.food); if (nm) { plan.meals[i] = nm; changed++; } });
+          if (changed) { plan.kcal = plan.meals.reduce((a, x) => a + x.kcal, 0); ['p', 'c', 'f'].forEach((k) => (plan[k] = plan.meals.reduce((a, x) => a + x[k], 0))); savePersonalDiet(db, me, plan, cur.by || 'auto', cur.at || ctx.nowISO()); }
+        }
+        return ok({ ...homeFor(db, me, t, ctx), changed });
+      }
+      // dureri și exerciții care nu-i plac (le vede și sala, se folosesc la programul nou)
+      if (p === '/api/me/prefs' && m === 'PUT') {
+        const ids = new Set(db.exercises.map((e) => e.id));
+        me.prefs = { pains: (Array.isArray(body.pains) ? body.pains : []).filter((x) => PAIN[x]).slice(0, 6), painLevel: ['usoara', 'moderata', 'puternica'].includes(body.painLevel) ? body.painLevel : '', exNo: [...new Set((Array.isArray(body.exNo) ? body.exNo : []).filter((x) => ids.has(x)))].slice(0, 40), note: clean(body.note, 300), at: ctx.nowISO() };
+        return ok(homeFor(db, me, t, ctx));
+      }
+      // schimbă un exercițiu în programul lui (pentru totdeauna, nu doar azi)
+      if (p === '/api/me/program/swap' && m === 'POST') {
+        const cur = db.programs.find((x) => x.id === me.programId); if (!cur) return no(400, 'Nu ai un program ales.');
+        const d = num(body.dayIdx, 0, 20), k = num(body.itemIdx, 0, 40), ex = db.exercises.find((e) => e.id === body.ex);
+        if (!ex || !cur.days[d] || !cur.days[d].items[k]) return no(400, 'Nu am găsit exercițiul în program.');
+        let prog = cur;
+        if (cur.owner !== me.id) { const id = 'pr_sw_' + me.id; prog = { ...JSON.parse(JSON.stringify(cur)), id, owner: me.id, name: cur.name + ' (al meu)', from: cur.id }; db.programs = db.programs.filter((x) => x.id !== id); db.programs.push(prog); me.programId = id; }
+        const it = prog.days[d].items[k], old = it.ex; if (old === ex.id) return ok(homeFor(db, me, t, ctx));
+        prog.days[d].items[k] = { ...it, ex: ex.id, kg: 0, kgTxt: '', swappedFrom: it.swappedFrom || old };
+        if (ex.muscle === 'Cardio' && !/min/.test(it.reps)) Object.assign(prog.days[d].items[k], { sets: 1, reps: '10 min', rest: 0 });
+        else if (ex.muscle !== 'Cardio' && (it.rehab || /\d\s*s\b|min/.test(it.reps))) Object.assign(prog.days[d].items[k], { sets: Math.max(3, +it.sets || 3), reps: '10–12', rest: it.rest || 60, rehab: false });
+        if (body.dislike) { me.prefs = { pains: [], exNo: [], ...(me.prefs || {}) }; if (!me.prefs.exNo.includes(old)) me.prefs.exNo.push(old); }
+        return ok({ ...homeFor(db, me, t, ctx), swappedEx: ex.id });
       }
       if (p === '/api/me/food/swap' && m === 'POST') {
         const cur = db.nutrition.find((x) => x.id === me.nutritionId), i = num(body.i, 0, 9);
@@ -1117,5 +1160,5 @@
     }
     return dirty;
   }
-  return { EXMETA, route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile, roboBrief, generateProgram, aiCharInfo, AI_STYLES };
+  return { EXMETA, PAIN, route, jobs, subOf, add, diff, phoneKey, dailyFor, RANKS, rankOf, CARD_THEMES, CARD_PATTERNS, coachProfile, roboBrief, generateProgram, aiCharInfo, AI_STYLES };
 });

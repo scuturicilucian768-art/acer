@@ -275,6 +275,19 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 @keyframes exaiB{0%,15%{opacity:0}85%,100%{opacity:1}}
 @media (prefers-reduced-motion:reduce){.fig.exai .b{animation:none;opacity:0}}
 .th .fig.exai{height:100%;width:auto;aspect-ratio:3/4;border-radius:10px}.exg .fig.exai{width:75%;aspect-ratio:3/4}
+.wobar{position:fixed;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:calc(86px + env(safe-area-inset-bottom));z-index:60;max-width:536px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);background:color-mix(in srgb,var(--card) 92%,var(--acc));color:var(--ink);box-shadow:0 10px 30px rgba(0,0,0,.45);cursor:pointer;text-align:left;font:inherit}
+.wobar b{display:block;font-size:.92rem}.wobar small{color:var(--muted);font-size:.78rem}.wobar .t{font-family:var(--fd);font-weight:900;font-size:1.15rem;color:var(--acc);font-variant-numeric:tabular-nums}.wobar .go{font-weight:800;font-size:.82rem;padding:7px 10px;border-radius:12px;background:var(--acc);color:#0A0A0C;white-space:nowrap}
+.wobar .pulse{width:10px;height:10px;border-radius:50%;background:var(--acc);flex:none;animation:wbp 1.4s ease-in-out infinite}@keyframes wbp{50%{opacity:.25;transform:scale(.7)}}
+body:has(.wobar) .fab{bottom:calc(160px + env(safe-area-inset-bottom))}
+.wo.hide{display:none}
+.prefc{display:flex;align-items:center;gap:12px;width:100%;margin:12px 0;padding:14px;border-radius:18px;border:1px solid var(--line);background:var(--card);color:var(--ink);text-align:left;font:inherit;cursor:pointer}.prefc .pi{font-size:1.5rem}.prefc b{display:block}.prefc small{color:var(--muted);font-size:.82rem}
+.lbl{font-size:.9rem}
+.xl{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.xchip{display:inline-flex;align-items:center;gap:4px;padding:6px 6px 6px 11px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:.85rem;font-weight:700}.xchip button{border:0;background:var(--line);color:var(--ink);width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:1rem;line-height:1}
+.chk{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:.88rem}
+.segs.swm{display:flex}.segs.swm button{flex:1}
+.swrow{display:flex;gap:6px}.swrow .swapb{flex:1}
+.itw{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--card)}.itr{display:flex;align-items:center;gap:10px;font-size:.92rem}
+.ialts{display:grid;gap:6px;margin-top:10px}.ialts button{display:flex;justify-content:space-between;gap:10px;align-items:center;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:.88rem;cursor:pointer}.ialts button small{color:var(--muted);white-space:nowrap}.ialts button:active{border-color:var(--acc)}
 .mtab{width:100%;border-collapse:collapse;font-size:.9rem}
 .mtab th,.mtab td{padding:9px 6px;text-align:center;border-bottom:1px solid var(--line)}
 .mtab th{color:var(--faint);font-size:.72rem;font-weight:800}
@@ -647,8 +660,8 @@ body{background:radial-gradient(120% 60% at 100% -10%,color-mix(in srgb,var(--ac
 </div>
 <script src="robo-kb.js?v=14"></script>
 <script src="robo.js?v=15"></script>
-<script src="diet.js?v=15"></script>
-<script src="core.js?v=15"></script>
+<script src="diet.js?v=16"></script>
+<script src="core.js?v=16"></script>
 <script src="seed.js?v=14"></script>
 <script src="env.js?v=14"></script>
 <script src="common.js?v=14"></script>
@@ -738,6 +751,7 @@ async function boot() {
   if (h === 'chat') openChat();
   if (/^ex-\w+$/.test(h)) openExFromQR(h.slice(3));
   if (/^ap-\w+$/.test(h)) openMachFromQR(h.slice(3));
+  restoreWO();
   if (h === 'clan' || /^clan-[A-Za-z0-9]{6}$/.test(h)) { history.replaceState(null, '', '#' + tab); openClan(h.slice(5)); }
   if (consentDue()) setTimeout(() => openConsent(false), 500);
 }
@@ -1624,6 +1638,7 @@ function vTrain(v) {
     <button class="rvcard bldcard" id="bldGo"><span class="rvi">✍️</span><span class="grow"><b>${prog && prog.custom ? 'Editează programul tău' : 'Scrie-ți singur programul'}</b><small>${prog && prog.custom ? 'Schimbă exercițiile, seriile, kilogramele sau adaugă zile.' : 'Alegi tu zilele, exercițiile, seriile și kilogramele.'}</small></span>${IC('chev', 18)}</button>
     <div class="ai" style="margin-top:14px"><div class="row" style="position:relative">${GymFig.robot(58)}<div class="grow"><b style="font-size:1.08rem">Robo, antrenorul tău virtual</b><div class="small" style="color:#C9BCFF">Te întreabă ce vrei să obții, dacă ai dureri (spate, gât, genunchi) și cât timp ai. Apoi îți face programul.</div></div></div><button class="btn btn-block" id="gen" style="margin-top:14px;background:#fff;color:#1A1240;position:relative">${IC('chat', 18)} ${prog && prog.owner ? 'Refă-mi programul cu Robo' : 'Vorbește cu Robo'}</button></div>
     <button class="rvcard" id="rvGo"><span class="rvi">📷</span><span class="grow"><b>Robo te vede <span class="chip acc" style="vertical-align:2px">NOU</span></b><small>Pune telefonul jos: Robo îți numără repetările și îți corectează forma, cu voce.</small></span>${IC('chev', 18)}</button>
+    ${prefCard()}
     ${machSection()}
     <div class="sec"><h2>Ghidul exercițiilor</h2><small class="muted">${EX.length} exerciții</small></div>
     <p class="muted small" style="margin:-6px 0 12px">Animație, mușchii lucrați, pașii și video pentru fiecare exercițiu.</p>
@@ -1635,6 +1650,7 @@ function vTrain(v) {
     <div class="list">${last.length ? last.map((w) => { const vol = (w.sets || []).reduce((a, s) => a + (s.kg || 0) * (s.reps || 0), 0); return `<div class="card row" style="padding:12px 14px"><span class="ico" style="color:var(--green)">${IC('check', 20)}</span><div class="grow"><b>${esc(w.title || (prog && prog.id === w.programId && prog.days[w.dayIdx] ? prog.days[w.dayIdx].name : 'Antrenament'))}</b><div class="muted" style="font-size:.84rem">${fday(w.date)}${w.duration ? ` · ${w.duration} min` : ''}${w.sets && w.sets.length ? ` · ${w.sets.length} serii` : ''}${vol ? ` · ${Math.round(vol).toLocaleString('ro-RO')} kg` : ''}</div></div></div>`; }).join('') : '<p class="muted">Primul antrenament te așteaptă.</p>'}</div>`;
   $$('.day', v).forEach((b) => (b.onclick = () => openDay(prog, +b.dataset.d)));
   $$('[data-mach]', v).forEach((b) => (b.onclick = () => openMachine(b.dataset.mach)));
+  $('#prefGo').onclick = openPrefs;
   $('#chP').onclick = chooseProgram; $('#bldGo').onclick = openBuilder; $('#gen').onclick = openRobo; $('#rvGo').onclick = () => openVision(); $('#scanEx').onclick = scanMachine;
   const drawEx = () => { const q = exQuery.toLowerCase(); $('#exl').innerHTML = EX.filter((e) => (exFilter === 'Toate' || e.muscle === exFilter) && (!q || e.name.toLowerCase().includes(q))).map((e) => `<button class="exg" data-ex="${e.id}">${thumb(e)}<b>${esc(e.name)}</b><small>${esc(e.muscle)} · ${esc(e.level)}</small></button>`).join('') || '<p class="muted">Niciun exercițiu găsit.</p>'; $$('[data-ex]', v).forEach((b) => (b.onclick = () => openEx(b.dataset.ex))); };
   drawEx();
@@ -1805,24 +1821,48 @@ let WO = null;
 function redrawWO() { const el = $('#wo'); if (!el) return; const y = el.scrollTop; drawWO(); el.scrollTop = y; }
 function altsFor(exId) {
   const M = GymCore.EXMETA || {}, me0 = M[exId], x = exById(exId), used = new Set(WO ? WO.ex.map((e) => e.it.ex) : []), have = new Set(MACH.map((m) => m.ex).filter(Boolean));
-  const ok = (e) => e.id !== exId && !used.has(e.id) && !e.free && e.muscle !== 'Recuperare' && (e.equipment !== 'Aparat' || !MACH.length || have.has(e.id) || e.muscle === 'Cardio');
+  const pf = H.me.prefs || {}, PN = GymCore.PAIN || {}, no = new Set([...(pf.exNo || []), ...(pf.pains || []).flatMap((p) => (PN[p] ? [...PN[p].avoid, ...(pf.painLevel && pf.painLevel !== 'usoara' ? PN[p].heavyAvoid : [])] : []))]);
+  const ok = (e) => e.id !== exId && !used.has(e.id) && !no.has(e.id) && !e.free && e.muscle !== 'Recuperare' && (e.equipment !== 'Aparat' || !MACH.length || have.has(e.id) || e.muscle === 'Cardio');
   if (x.muscle === 'Cardio') return EX.filter((e) => e.muscle === 'Cardio' && ok(e)).slice(0, 4);
   const same = EX.filter((e) => ok(e) && me0 && M[e.id] && M[e.id][0] === me0[0]);
   const grp = EX.filter((e) => ok(e) && !same.includes(e) && (me0 && M[e.id] ? M[e.id][1] === me0[1] : e.muscle === x.muscle));
   return [...same, ...grp].slice(0, 5);
 }
-function swapWO(i, newId) {
+function swapWO(i, newId, perm) {
   const e = WO.ex[i], prev = lastFor(newId), nx = exById(newId);
   if (!e.from) e.from = e.it.ex;
   if (e.from === newId) delete e.from;
+  e.perm = !!perm;
   e.it = { ...e.it, ex: newId, kg: '', kgTxt: '' };
+  if (nx.muscle !== 'Cardio' && (e.it.rehab || /\d\s*s\b|min/.test(e.it.reps))) { e.it.reps = '10–12'; e.it.rehab = false; if (!e.it.rest) e.it.rest = 60; e.sets.forEach((s) => { if (!s.done) s.reps = 10; }); }
   if (nx.muscle === 'Cardio') { e.cardio = true; e.sets = [{ kg: '', reps: '', done: e.sets.some((s) => s.done) }]; }
   else e.sets.forEach((s, k) => { if (!s.done) { s.kg = prev && prev[k] ? prev[k].kg : ''; if (prev && prev[k]) s.reps = prev[k].reps; } });
-  redrawWO(); toast(`Ai trecut pe ${nx.name}. Programul tău rămâne la fel pentru data viitoare.`);
+  redrawWO(); saveWO(); toast(perm ? `Gata! ${nx.name} rămâne în programul tău.` : `Ai trecut pe ${nx.name}. Programul tău rămâne la fel pentru data viitoare.`);
 }
 function woTool(kind, i) {
   const e = WO.ex[i], x = exById(e.it.ex);
   if (kind === 'mach') { const m = machFor(x.id); if (m) openMachine(m.id); return; }
+  if (kind === 'swap') {
+    const alts = altsFor(x.id), itemIdx = (WO.day.items || []).findIndex((it, k) => k === e.k);
+    const el = sheet(`<h2>🔁 Schimbă exercițiul</h2><p class="muted small" style="margin:4px 0 12px">În loc de <b>${esc(x.name)}</b>, alege un exercițiu pentru aceiași mușchi:</p>
+      <div class="segs swm" role="group"><button data-sm="perm" class="on">Pentru totdeauna</button><button data-sm="today">Doar azi</button></div>
+      <label class="chk"><input type="checkbox" id="swNo" checked> Nu-mi place ${esc(x.name.toLowerCase())}, nu mi-l mai pune în programe</label>
+      ${alts.length ? `<div class="list" style="margin-top:12px">${alts.map((a) => { const m = machFor(a.id); return `<button class="day alt" data-alt="${a.id}"><span class="th">${m && m.photo ? `<img src="${esc(galUrl(m.photo))}" alt="">` : thumb(a)}</span><span class="grow"><b>${esc(a.name)}</b><small class="muted">${m ? esc(m.short || m.name) : esc(a.equipment)} · ${esc(a.muscle)}</small></span>${IC('chev', 18)}</button>`; }).join('')}</div>` : '<p class="muted">Nu am găsit altă variantă în sală pentru aceiași mușchi.</p>'}
+      <p class="muted small" id="swTxt" style="margin:10px 0 0">Schimbarea rămâne în programul tău. Sala vede ce ai schimbat.</p>`);
+    let mode = 'perm';
+    $$('[data-sm]', el).forEach((b) => (b.onclick = () => { mode = b.dataset.sm; $$('[data-sm]', el).forEach((y) => y.classList.toggle('on', y === b)); $('#swTxt', el).textContent = mode === 'perm' ? 'Schimbarea rămâne în programul tău. Sala vede ce ai schimbat.' : 'Doar pentru azi. Data viitoare primești tot exercițiul din plan.'; }));
+    $$('[data-alt]', el).forEach((b) => (b.onclick = async () => {
+      const to = b.dataset.alt, no = $('#swNo', el).checked;
+      if (mode === 'today' && !no) { closeSheet(); return swapWO(i, to); }
+      b.disabled = true;
+      try {
+        if (mode === 'perm' && itemIdx >= 0) { H = await api('/api/me/program/swap', { method: 'POST', body: { dayIdx: WO.dayIdx, itemIdx, ex: to, dislike: no } }); WO.prog = H.program; WO.day = H.program.days[WO.dayIdx]; }
+        else if (no) { const pf = H.me.prefs || {}; H = await api('/api/me/prefs', { method: 'PUT', body: { ...pf, exNo: [...new Set([...(pf.exNo || []), x.id])] } }); }
+        closeSheet(); swapWO(i, to, mode === 'perm');
+      } catch (er) { b.disabled = false; toast(er.message, 'bad'); }
+    }));
+    GymFig.animate(el); return;
+  }
   if (kind === 'busy' || kind === 'soft') {
     const alts = altsFor(x.id);
     const el = sheet(`<div class="wtsh"><div class="robo-mini">${GymFig.robot(46)}</div><div><span class="k">Robo</span><b>${kind === 'soft' ? 'Hai să-l înlocuim cu ceva mai blând' : 'Nu-i bai, facem altceva pentru aceiași mușchi'}</b></div></div>
@@ -1860,27 +1900,47 @@ function woTool(kind, i) {
 }
 function lastFor(exId) { const ws = (H.me.workouts || []).slice().reverse(); for (const w of ws) { const s = (w.sets || []).filter((x) => x.ex === exId); if (s.length) return s; } return null; }
 function startWorkout(prog, dayIdx) {
+  if (WO) { openWO(); if (WO.prog.id !== prog.id || WO.dayIdx !== dayIdx) toast('Ai deja un antrenament pornit. Termină-l întâi.'); return; }
   const day = prog.days[dayIdx];
   WO = { prog, dayIdx, day, start: Date.now(), ex: day.items.map((it, k0) => { const prev = lastFor(it.ex), cardio = /min/.test(it.reps); return { k: k0, it, cardio, sets: Array.from({ length: cardio ? 1 : it.sets }, (_, k) => ({ kg: prev && prev[k] ? prev[k].kg : it.kg || '', reps: prev && prev[k] ? prev[k].reps : parseInt(it.reps) || '', done: false })) }; }) };
   const el = document.createElement('div'); el.className = 'wo'; el.id = 'wo'; document.body.appendChild(el); document.body.classList.add('noscroll');
-  drawWO(); WO.tick = setInterval(woClock, 1000);
-  api('/api/me/workout/start', { method: 'POST', body: { programId: prog.id, dayIdx } }).then((r) => { if (!WO) return; WO.ws = r.wo; WO.start = Date.now() - r.wo.elapsed * 1000; drawWO(); }).catch(() => toast('Nu am putut porni cronometrul pe server. Verifică internetul.', 'bad'));
+  drawWO(); WO.tick = setInterval(woClock, 1000); saveWO();
+  api('/api/me/workout/start', { method: 'POST', body: { programId: prog.id, dayIdx } }).then((r) => { if (!WO) return; WO.ws = r.wo; WO.start = Date.now() - r.wo.elapsed * 1000; redrawWO(); saveWO(); }).catch(() => toast('Nu am putut porni cronometrul pe server. Verifică internetul.', 'bad'));
+}
+/* ieși din antrenament fără să-l oprești: rămâne o bară jos, cu timpul, și te întorci când vrei */
+function saveWO() { if (!WO) return; const { tick, prog, day, ...w } = WO; LS.set('fetWO_' + H.me.id, JSON.stringify({ ...w, progId: prog.id, saved: Date.now() })); }
+function minWO() {
+  const el = $('#wo'); if (!el || !WO) return; saveWO(); el.classList.add('hide'); document.body.classList.remove('noscroll');
+  let b = $('#woBar'); if (!b) { b = document.createElement('button'); b.id = 'woBar'; b.className = 'wobar'; b.type = 'button'; document.body.appendChild(b); b.onclick = openWO; }
+  b.innerHTML = `<span class="pulse"></span><span class="grow"><b>Antrenament în curs</b><small>${esc(WO.day.name)}</small></span><span class="t" id="wbt">${mmss((Date.now() - WO.start) / 1000)}</span><span class="go">Continuă ›</span>`;
+  toast('Antrenamentul merge mai departe. Te întorci din bara de jos.');
+}
+function openWO() { const el = $('#wo'); if (!el) return; el.classList.remove('hide'); document.body.classList.add('noscroll'); const b = $('#woBar'); if (b) b.remove(); redrawWO(); }
+// după ce închizi aplicația și o deschizi din nou, antrenamentul pornit pe server revine cu seriile bifate
+function restoreWO() {
+  if (WO || !H.wo) return; let s = null; try { s = JSON.parse(LS.get('fetWO_' + H.me.id) || 'null'); } catch {}
+  const prog = H.program && s && s.progId === H.program.id ? H.program : null;
+  if (!s || !prog || !s.ws || s.ws.id !== H.wo.id || !prog.days[s.dayIdx]) { if (s && (!H.wo || (s.ws && s.ws.id !== H.wo.id))) LS.del('fetWO_' + H.me.id); return; }
+  WO = { ...s, prog, day: prog.days[s.dayIdx], ws: H.wo, start: Date.now() - H.wo.elapsed * 1000 }; delete WO.progId; delete WO.saved;
+  const el = document.createElement('div'); el.className = 'wo hide'; el.id = 'wo'; document.body.appendChild(el); drawWO(); WO.tick = setInterval(woClock, 1000); minWO();
 }
 function woClock() {
   if (!WO) return; const s = (Date.now() - WO.start) / 1000, t = $('#wtm'); if (t) t.textContent = mmss(s);
+  const wb = $('#wbt'); if (wb) wb.textContent = mmss(s); if (Math.floor(s) % 10 === 0) saveWO();
   const g = $('#wgoal'); if (g && WO.ws) { const min = WO.ws.minSec, okT = s >= min; g.innerHTML = okT ? '✅ Timpul minim atins' : `⏱️ Punctele vin după ${mmss(min)} · mai ai ${mmss(min - s)}`; g.classList.toggle('ok', okT); const bar = $('#wgbar'); if (bar) bar.style.width = Math.min(100, (s / Math.max(1, min)) * 100) + '%'; }
 }
 const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 function drawWO() {
   const el = $('#wo'), doneSets = WO.ex.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0), all = Math.max(1, WO.ex.reduce((a, e) => a + (e.skip ? 0 : e.sets.length), 0));
-  el.innerHTML = `<div class="wo-top"><button class="iconbtn" id="wx" aria-label="Închide">${IC('x', 20)}</button><div class="grow"><b>${esc(WO.day.name)}</b><div class="muted" style="font-size:.8rem">${doneSets}/${all} serii</div></div><span class="tm" id="wtm">${mmss((Date.now() - WO.start) / 1000)}</span></div>
+  el.innerHTML = `<div class="wo-top"><button class="iconbtn" id="wmin" aria-label="Ieși din antrenament fără să-l oprești" title="Ieși, antrenamentul continuă"><span style="display:inline-block;transform:rotate(90deg)">${IC('chev', 20)}</span></button><div class="grow"><b>${esc(WO.day.name)}</b><div class="muted" style="font-size:.8rem">${doneSets}/${all} serii</div></div><span class="tm" id="wtm">${mmss((Date.now() - WO.start) / 1000)}</span><button class="iconbtn" id="wx" aria-label="Renunță la antrenament" title="Renunță la antrenament">${IC('x', 20)}</button></div>
     <div style="padding:0 16px"><div class="bar-p" style="margin-top:12px"><i style="width:${(doneSets / all) * 100}%"></i></div>
       ${WO.ws ? `<div class="wrules"><div id="wgoal" class="wg">⏱️ Punctele vin după ${mmss(WO.ws.minSec)}</div><div class="bar-p thin"><i id="wgbar" style="width:0"></i></div><small class="muted">Bifezi seria după ce o faci (minim ${WO.ws.gap} s între serii) · ${WO.ws.needTicks} serii bifate pentru puncte${WO.ws.needCheckin ? '' : ' · ✅ check-in făcut'}</small>${WO.ws.needCheckin ? '<button class="wci" id="wci">📍 Fă check-in la sală ca să primești puncte</button>' : ''}</div>` : ''}</div>
     ${WO.ex.map((e, i) => { const x = exById(e.it.ex), allDone = e.sets.every((s) => s.done); return `<div class="wex ${allDone ? 'all' : ''}"><div class="row"><span class="th">${thumb(x)}</span><div class="grow"><b>${esc(x.name)}</b><div class="muted" style="font-size:.82rem">Țintă: ${e.it.sets} × ${esc(e.it.reps)}${e.it.kg ? ` · ${e.it.kg} kg` : e.it.kgTxt ? ` · ${esc(e.it.kgTxt)}` : ''}${e.it.rest ? ` · pauză ${e.it.rest}s` : ''}</div>${e.it.note ? `<div style="font-size:.8rem;color:var(--acc);margin-top:2px">📝 ${esc(e.it.note)}</div>` : ''}</div>${x.free ? '' : `<button class="btn btn-sm btn-ghost" data-how="${x.id}">Cum?</button>`}</div>
-      ${e.skip ? `<div class="wskip">⏭️ Sărit azi${e.skip === 'pain' ? ' din cauza durerii' : ''}. <button data-unskip="${i}">Anulează</button></div></div>` : `${x.free ? '' : `<div class="wtools">${machFor(x.id) ? `<button data-wt="mach" data-i="${i}">📷 Aparatul</button>` : ''}<button data-wt="busy" data-i="${i}">🔄 E ocupat</button>${e.cardio ? '' : `<button data-wt="last" data-i="${i}">🕘 Data trecută</button>`}<button data-wt="pain" data-i="${i}">🩹 Mă doare</button></div>`}${e.from ? `<div class="wswap">🔄 În loc de ${esc(exById(e.from).name)}, doar azi</div>` : ''}
+      ${e.skip ? `<div class="wskip">⏭️ Sărit azi${e.skip === 'pain' ? ' din cauza durerii' : ''}. <button data-unskip="${i}">Anulează</button></div></div>` : `${x.free ? '' : `<div class="wtools">${machFor(x.id) ? `<button data-wt="mach" data-i="${i}">📷 Aparatul</button>` : ''}<button data-wt="swap" data-i="${i}">🔁 Schimbă</button><button data-wt="busy" data-i="${i}">⏳ E ocupat</button>${e.cardio ? '' : `<button data-wt="last" data-i="${i}">🕘 Data trecută</button>`}<button data-wt="pain" data-i="${i}">🩹 Mă doare</button></div>`}${e.from ? `<div class="wswap">🔄 În loc de ${esc(exById(e.from).name)}${e.perm ? ', schimbat în programul tău' : ', doar azi'}</div>` : ''}
       <div class="sets">${e.cardio ? `<div class="set ${e.sets[0].done ? 'done' : ''}" style="grid-template-columns:1fr 48px"><span class="muted">${esc(e.it.reps)}</span><button class="ck" data-e="${i}" data-s="0" aria-label="Făcut">${IC('check', 22)}</button></div>` : `<div class="set"><span></span><span class="lb">KG</span><span class="lb">REPETĂRI</span><span></span></div>` + e.sets.map((s, k) => `<div class="set ${s.done ? 'done' : ''}"><span class="no">${k + 1}</span><input inputmode="decimal" value="${s.kg}" data-e="${i}" data-s="${k}" data-f="kg" aria-label="Kilograme seria ${k + 1}"><input inputmode="numeric" value="${s.reps}" data-e="${i}" data-s="${k}" data-f="reps" aria-label="Repetări seria ${k + 1}"><button class="ck" data-e="${i}" data-s="${k}" aria-label="Serie făcută">${IC('check', 22)}</button></div>`).join('')}</div></div>`}`; }).join('')}
     <div class="wo-end"><button class="btn btn-acc btn-block" id="wfin" style="padding:16px;font-size:1.05rem">${IC('trophy', 20)} Termină antrenamentul</button></div>`;
-  $('#wx').onclick = async () => { if (doneSets && !(await ask('Ieși din antrenament?', 'Seriile bifate nu se salvează.', 'Ieși', { danger: true, icon: 'x' }))) return; endWO(); };
+  $('#wmin').onclick = minWO;
+  $('#wx').onclick = async () => { if (!(await ask('Renunți la antrenament?', `Antrenamentul se oprește${doneSets ? ' și seriile bifate nu se salvează' : ''}. Dacă vrei doar să ieși puțin, apasă săgeata din stânga: antrenamentul continuă.`, 'Renunț', { danger: true, icon: 'x' }))) return; endWO(); };
   $$('[data-how]', el).forEach((b) => (b.onclick = () => { if (/^free:/.test(b.dataset.how)) { toast('Exercițiu scris de tine: nu are ghid în aplicație.'); return; } openEx(b.dataset.how); }));
   $$('input[data-f]', el).forEach((inp) => (inp.onchange = () => { WO.ex[inp.dataset.e].sets[inp.dataset.s][inp.dataset.f] = inp.value; }));
   $$('.ck', el).forEach((b) => (b.onclick = async () => {
@@ -1901,7 +1961,7 @@ function restTimer(sec) {
   const stop = () => { clearInterval(restTimer.h); r.remove(); };
   draw(); restTimer.h = setInterval(() => { left--; if (left <= 0) { stop(); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); toast('Gata pauza! Următoarea serie'); } else draw(); }, 1000);
 }
-function endWO() { clearInterval(WO.tick); clearInterval(restTimer.h); const r = $('#rest'); if (r) r.remove(); $('#wo').remove(); document.body.classList.remove('noscroll'); WO = null; }
+function endWO() { clearInterval(WO.tick); clearInterval(restTimer.h); const r = $('#rest'); if (r) r.remove(); $('#wo').remove(); const b = $('#woBar'); if (b) b.remove(); document.body.classList.remove('noscroll'); WO = null; LS.del('fetWO_' + H.me.id); }
 async function finishWO() {
   const sets = WO.ex.flatMap((e) => e.sets.map((s, k) => ({ ex: e.it.ex, set: k + 1, kg: s.kg, reps: s.reps, done: s.done })).filter((s) => s.done));
   if (!sets.length) return toast('Bifează cel puțin o serie făcută.', 'bad');
@@ -1919,6 +1979,36 @@ async function finishWO() {
     <div class="g3" style="margin:18px 0"><div class="st"><b>${minutes}</b><small>minute</small></div><div class="st"><b>${sets.length}</b><small>serii</small></div><div class="st"><b>${vol ? Math.round(vol).toLocaleString('ro-RO') : '–'}</b><small>kg ridicate</small></div></div>
     ${recs.length ? `<div class="pr" style="text-align:left;margin-bottom:14px"><span style="color:var(--amber)">${IC('medal', 28)}</span><div class="grow"><b>${recs.length === 1 ? 'Record nou!' : recs.length + ' recorduri noi!'}</b><div class="muted small">${recs.map(esc).join('<br>')}</div></div></div>` : ''}
     ${R.woValid === false ? `<div class="wnop">Salvat în istoric, <b>fără puncte</b>: ${esc(R.woWhy)}</div>` : `<p><b class="acc">+10 puncte</b> · ${IC('flame', 16)} ${H.me.streak} ${H.me.streak === 1 ? 'zi' : 'zile'} la rând</p>`}<button class="btn btn-acc btn-block" onclick="closeSheet()">${R.woValid === false ? 'Am înțeles' : 'Super!'}</button></div>`);
+}
+
+/* ───────── DURERI ȘI EXERCIȚII CARE NU-MI PLAC ───────── */
+const PAINS = [['spate', '🔙 Spate'], ['gat', '🧣 Gât'], ['umar', '💪 Umăr'], ['genunchi', '🦵 Genunchi']];
+const PLVL = [['usoara', 'Ușoară'], ['moderata', 'Moderată'], ['puternica', 'Puternică']];
+function prefCard() {
+  const pf = H.me.prefs || {}, pn = (pf.pains || []).map((k) => (PAINS.find((x) => x[0] === k) || [k, k])[1]), nx = (pf.exNo || []).map((id) => exById(id)).filter(Boolean);
+  return `<button class="prefc" id="prefGo"><span class="pi">🩹</span><span class="grow"><b>Dureri și exerciții care nu-ți plac</b><small>${pn.length || nx.length ? [pn.length ? 'Dureri: ' + pn.map((x) => x.replace(/^\S+ /, '')).join(', ').toLowerCase() : '', nx.length ? `Nu-ți plac: ${nx.length} ${nx.length === 1 ? 'exercițiu' : 'exerciții'}` : ''].filter(Boolean).join(' · ') : 'Spune-ne ce te doare și ce nu-ți place. Programul tău ține cont.'}</small></span>${IC('chev', 18)}</button>`;
+}
+function openPrefs() {
+  const pf = H.me.prefs || {}; let pains = [...(pf.pains || [])], lvl = pf.painLevel || '', exNo = [...(pf.exNo || [])];
+  const el = sheet(`<h2>🩹 Ce trebuie să știe antrenamentul tău</h2><p class="muted small" style="margin:4px 0 14px">Le vede și antrenorul de la sală. Programul nou nu-ți mai pune exercițiile care te dor sau care nu-ți plac.</p>
+    <b class="lbl">Unde te doare?</b><div class="painz" id="pP">${PAINS.map(([k, l]) => `<button data-pp="${k}" class="${pains.includes(k) ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <div id="pL" style="margin-top:10px"></div>
+    <b class="lbl" style="margin-top:16px;display:block">Exerciții care nu-ți plac</b><div id="pX" class="xl"></div>
+    <input class="input" id="pQ" placeholder="🔍 Caută un exercițiu ca să-l adaugi…" style="margin-top:8px"><div id="pR" class="list" style="margin-top:6px"></div>
+    <div class="field" style="margin-top:14px"><label for="pN">Altceva ce trebuie să știm (opțional)</label><textarea class="input" id="pN" rows="2" maxlength="300" placeholder="De ex.: operație la umăr acum 2 ani, mă doare încheietura la flotări…">${esc(pf.note || '')}</textarea></div>
+    <div class="tip" style="margin-top:10px">${IC('info', 18)} Dacă durerea e puternică, ascuțită sau ai amorțeli, mergi întâi la medic.</div>
+    <p class="err" id="pE"></p><button class="btn btn-acc btn-block" id="pS">Salvează</button>`);
+  const drawL = () => { $('#pL', el).innerHTML = pains.length ? `<small class="muted">Cât de tare?</small><div class="segs" style="margin-top:6px">${PLVL.map(([k, l]) => `<button data-pl="${k}" class="${lvl === k ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''; $$('[data-pl]', el).forEach((b) => (b.onclick = () => { lvl = b.dataset.pl; drawL(); })); };
+  const drawX = () => { $('#pX', el).innerHTML = exNo.length ? exNo.map((id) => `<span class="xchip">${esc((exById(id) || { name: id }).name)}<button data-rx="${id}" aria-label="Scoate">×</button></span>`).join('') : '<small class="muted">Niciunul încă. Poți adăuga și din antrenament, cu „🔁 Schimbă”.</small>'; $$('[data-rx]', el).forEach((b) => (b.onclick = () => { exNo = exNo.filter((x) => x !== b.dataset.rx); drawX(); })); };
+  const drawR = () => { const q = $('#pQ', el).value.trim().toLowerCase(); $('#pR', el).innerHTML = q.length < 2 ? '' : EX.filter((e) => !exNo.includes(e.id) && e.name.toLowerCase().includes(q)).slice(0, 6).map((e) => `<button class="day" data-ax="${e.id}"><span class="grow"><b>${esc(e.name)}</b><small class="muted" style="display:block">${esc(e.muscle)}</small></span><span class="chip">+ Adaugă</span></button>`).join(''); $$('[data-ax]', el).forEach((b) => (b.onclick = () => { exNo.push(b.dataset.ax); $('#pQ', el).value = ''; drawR(); drawX(); })); };
+  $$('[data-pp]', el).forEach((b) => (b.onclick = () => { const k = b.dataset.pp; pains = pains.includes(k) ? pains.filter((x) => x !== k) : [...pains, k]; b.classList.toggle('on'); if (!pains.length) lvl = ''; else if (!lvl) lvl = 'usoara'; drawL(); }));
+  $('#pQ', el).oninput = drawR; drawL(); drawX();
+  $('#pS', el).onclick = async () => {
+    try { H = await api('/api/me/prefs', { method: 'PUT', body: { pains, painLevel: lvl, exNo, note: $('#pN', el).value } }); } catch (e) { return ($('#pE', el).textContent = e.status === 403 ? 'Ca să salvezi durerile, dă-ți acordul pentru datele de sănătate din Profil.' : e.message); }
+    closeSheet(); render();
+    if (H.me.genA && H.program && H.program.owner === H.me.id && !H.program.byGym) { if (await ask('Refac programul?', 'Îți fac programul din nou, fără exercițiile care te dor sau care nu-ți plac. Greutățile notate rămân în istoric.', 'Da, refă-l', { icon: 'spark' })) { try { H = await api('/api/me/generate', { method: 'POST', body: { ...H.me.genA, pains, painLevel: lvl } }); toast('Gata! Programul tău e refăcut 💪'); render(); } catch (e) { toast(e.message, 'bad'); } } else toast('Salvat'); }
+    else toast(H.program && H.program.byGym ? 'Salvat. Antrenorul tău vede ce ai scris.' : 'Salvat. Programul nou va ține cont de asta.');
+  };
 }
 
 /* ───────── MĂSURĂTORI: figurina membrului arată unde se pune banda ───────── */
@@ -2033,7 +2123,7 @@ function vFood(v) {
   const KC = [1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000], ck = (H.me.food && H.me.food.kcal) || (n && n.owner ? KC.reduce((a, x) => (Math.abs(x - n.kcal) < Math.abs(a - n.kcal) ? x : a), KC[0]) : 0);
   const kpick = `<div class="sec" style="margin-top:14px"><h2>Câte calorii pe zi?</h2><small class="muted">alege și se reface dieta</small></div><div class="kcp" role="group" aria-label="Calorii pe zi">${KC.map((x) => `<button class="${x === ck ? 'on' : ''}" data-kc="${x}" aria-pressed="${x === ck}">${x}<small>kcal</small></button>`).join('')}</div>`;
   const bindK = () => $$('[data-kc]', v).forEach((b) => (b.onclick = async () => { const k = +b.dataset.kc; if (k === ck && n && n.owner) return; $$('[data-kc]', v).forEach((x) => x.classList.toggle('on', x === b)); b.classList.add('busy'); try { H = await api('/api/me/food/kcal', { method: 'POST', body: { kcal: k } }); toast(`Gata! Dieta ta are acum ~${k} kcal pe zi`); render(); } catch (e) { b.classList.remove('busy'); toast(e.status === 404 ? 'Aplicația s-a actualizat. Reîncarcă pagina.' : e.message); } }));
-  if (!n) { v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>Alege un plan</h1></div>${foodQ}${kpick}<p class="muted">Sau alege unul dintre planurile sălii:</p>${water}<div class="list" id="np" style="margin-top:12px"></div>`; drawPlans(); bindW(); bindK(); $('#fq', v).onclick = openFoodQuiz; return; }
+  if (!n) { v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>Alege un plan</h1></div>${foodQ}${foodNoCard()}${kpick}<p class="muted">Sau alege unul dintre planurile sălii:</p>${water}<div class="list" id="np" style="margin-top:12px"></div>`; drawPlans(); bindW(); bindK(); $('#fq', v).onclick = openFoodQuiz; $('#fnoGo', v).onclick = openFoodNo; return; }
   const kc = n.meals.reduce((a, x, i) => a + (eaten.has(i) ? x.kcal : 0), 0), mac = (k) => n.meals.reduce((a, x, i) => a + (eaten.has(i) ? x[k] : 0), 0);
   v.innerHTML = `<div class="hello"><small>Nutriție</small><h1>${esc(n.name)}</h1></div>${mine ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">${n.by === 'admin' ? `<span class="chip" style="background:rgba(61,220,151,.15);color:var(--green)">${IC('users', 13)} Ajustată de sală</span>` : `<span class="chip" style="background:rgba(139,108,255,.2);color:#C9BCFF">${IC('spark', 13)} Făcută pentru tine</span>`}${H.me.food ? `<span class="chip">${H.me.food.meals} mese pe zi</span>` : ''}</div>` : ''}<p class="muted" style="margin:8px 0 16px">${esc(n.desc || '')}</p>${mine ? '' : foodQ}
     <div class="card row" style="gap:18px">${ring(kc / n.kcal, `<span data-count="${kc}">0</span>`, `din ${n.kcal} kcal`, 130)}<div class="grow"><b>Azi</b><div class="muted" style="font-size:.88rem;margin:4px 0 10px">Bifează mesele pe care le-ai mâncat.</div>${mine ? `<span class="chip acc">Ținta ta: ~${n.kcal} kcal pe zi</span>` : H.kcal ? `<span class="chip acc">Recomandat pentru tine: ~${H.kcal} kcal</span>` : '<span class="chip">Completează greutatea, înălțimea și data nașterii pentru caloriile tale</span>'}</div></div>
@@ -2041,17 +2131,45 @@ function vFood(v) {
     ${kpick}
     ${water}
     <div class="sec"><h2>Mesele de azi</h2><small class="muted">nu-ți place ceva? 🔄</small></div>
-    <div class="list">${n.meals.map((x, i) => `<div class="mealw" id="mw${i}"><button class="meal ${eaten.has(i) ? 'done' : ''}" data-m="${i}"><span class="box">${IC('check', 18)}</span><span class="grow"><span class="row"><b class="grow">${esc(x.name)}</b><small class="muted">${esc(x.time)}</small></span><span class="muted" style="display:block;font-size:.9rem;margin:4px 0 6px">${esc(x.items)}</span><small><b>${x.kcal}</b> kcal · P ${x.p} g · C ${x.c} g · G ${x.f} g</small></span></button><button class="swapb" data-sw="${i}" aria-label="Altă variantă pentru ${esc(x.name)}">🔄 Altă variantă</button></div>`).join('')}</div>
+    <div class="list">${n.meals.map((x, i) => `<div class="mealw" id="mw${i}"><button class="meal ${eaten.has(i) ? 'done' : ''}" data-m="${i}"><span class="box">${IC('check', 18)}</span><span class="grow"><span class="row"><b class="grow">${esc(x.name)}</b><small class="muted">${esc(x.time)}</small></span><span class="muted" style="display:block;font-size:.9rem;margin:4px 0 6px">${esc(x.items)}</span><small><b>${x.kcal}</b> kcal · P ${x.p} g · C ${x.c} g · G ${x.f} g</small></span></button><div class="swrow"><button class="swapb" data-it="${i}" aria-label="Schimbă un aliment din ${esc(x.name)}">✏️ Schimbă un aliment</button><button class="swapb" data-sw="${i}" aria-label="Altă variantă pentru ${esc(x.name)}">🔄 Toată masa</button></div></div>`).join('')}</div>
+    ${foodNoCard()}
     <div class="sec"><h2>Alte planuri</h2></div><div class="list" id="np"></div>
     ${mine ? `<button class="btn btn-ghost btn-block" id="fq" style="margin-top:14px">${IC('edit', 16)} Schimbă ce-mi place și refă dieta</button>` : ''}
-    <div class="tip" style="margin-top:16px">${IC('info', 18)} ${mine ? 'Nu-ți place o masă? Apasă „Altă variantă” și primești alta cu aceleași calorii. Poți schimba oricând și caloriile de mai sus.' : 'Planurile sunt orientative. Pentru un plan făcut exact pentru tine, apasă „Fă-mi dieta”.'}</div>`;
+    <div class="tip" style="margin-top:16px">${IC('info', 18)} ${mine ? 'Nu-ți place ceva? Apasă „Schimbă un aliment” ca să schimbi doar un ingredient, sau „Toată masa” pentru o masă nouă, cu aceleași calorii. Poți schimba oricând și caloriile de mai sus.' : 'Planurile sunt orientative. Pentru un plan făcut exact pentru tine, apasă „Fă-mi dieta”.'}</div>`;
   if ($('#fq', v)) $('#fq', v).onclick = openFoodQuiz;
+  $$('[data-it]', v).forEach((b) => (b.onclick = () => openItemSwap(+b.dataset.it)));
+  if ($('#fnoGo', v)) $('#fnoGo', v).onclick = openFoodNo;
   $$('[data-m]', v).forEach((b) => (b.onclick = async () => { await act('/api/me/meal', { date: H.today, idx: +b.dataset.m, done: !eaten.has(+b.dataset.m) }); render(); }));
   drawPlans(); bindW(); bindK();
   $$('[data-sw]', v).forEach((b) => (b.onclick = async () => {
     const i = +b.dataset.sw, w = $('#mw' + i, v); b.disabled = true; b.textContent = '⏳ Caut altă variantă…'; if (w) w.classList.add('swapping');
     try { const [r] = await Promise.all([api('/api/me/food/swap', { method: 'POST', body: { i } }), wait(450)]); H = r; render(); const nw = $('#mw' + i); if (nw) { nw.classList.add('swapped'); nw.scrollIntoView({ block: 'nearest' }); } toast(`${n.meals[i].name}: ai o variantă nouă 🍽️`); }
-    catch (e) { b.disabled = false; b.textContent = '🔄 Altă variantă'; if (w) w.classList.remove('swapping'); toast(e.status === 404 ? 'Aplicația s-a actualizat. Reîncarcă pagina.' : e.message); }
+    catch (e) { b.disabled = false; b.textContent = '🔄 Toată masa'; if (w) w.classList.remove('swapping'); toast(e.status === 404 ? 'Aplicația s-a actualizat. Reîncarcă pagina.' : e.message); }
+  }));
+}
+function foodNoCard() {
+  const d = ((H.me.food || {}).dislikes || []).map((k) => (GymDiet.LIKES.find((x) => x[0] === k) || [k, k])[1]);
+  return `<button class="prefc" id="fnoGo" style="margin-top:14px"><span class="pi">🚫</span><span class="grow"><b>Ce nu-ți place să mănânci</b><small>${d.length ? esc(d.map((x) => x.replace(/^\S+\s/, '')).join(', ')) : 'Alege ce nu mănânci și nu-ți mai apare în mese.'}</small></span>${IC('chev', 18)}</button>`;
+}
+function openFoodNo() {
+  let dis = [...((H.me.food || {}).dislikes || [])];
+  const el = sheet(`<h2>🚫 Ce nu-ți place să mănânci</h2><p class="muted small" style="margin:4px 0 12px">Bifează ce nu mănânci. Mesele care le conțin se schimbă singure, cu aceleași calorii.</p>
+    <div class="painz">${GymDiet.LIKES.map(([k, l]) => `<button data-fd="${k}" class="${dis.includes(k) ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <p class="muted small" style="margin:12px 0 0">Ai o alergie? O treci la „Fă-mi dieta”, ca să nu primești nimic cu ea.</p>
+    <p class="err" id="fdE"></p><button class="btn btn-acc btn-block" id="fdS" style="margin-top:10px">Salvează</button>`);
+  $$('[data-fd]', el).forEach((b) => (b.onclick = () => { const k = b.dataset.fd; dis = dis.includes(k) ? dis.filter((x) => x !== k) : [...dis, k]; b.classList.toggle('on'); }));
+  $('#fdS', el).onclick = async () => { $('#fdS', el).disabled = true; try { const r = await api('/api/me/food/prefs', { method: 'PUT', body: { dislikes: dis } }); H = r; closeSheet(); render(); toast(r.changed ? `Salvat! Am schimbat ${r.changed} ${r.changed === 1 ? 'masă' : 'mese'} 🍽️` : 'Salvat'); } catch (e) { $('#fdS', el).disabled = false; $('#fdE', el).textContent = e.message; } };
+}
+function openItemSwap(i) {
+  const n = H.nutrition, ml = n && n.meals[i]; if (!ml) return; const P = H.me.food || {}, items = GymDiet.itemsOf(ml);
+  const el = sheet(`<h2>✏️ ${esc(ml.name)}</h2><p class="muted small" style="margin:4px 0 12px">Alege alimentul pe care vrei să-l schimbi. Restul mesei rămâne la fel.</p>
+    ${items.length ? `<div class="list">${items.map((it) => { const alts = GymDiet.itemAlts(ml, it.k, P); return `<div class="itw"><div class="itr"><b class="grow">${esc(it.txt.charAt(0).toUpperCase() + it.txt.slice(1))}</b>${alts.length ? `<button class="btn btn-sm btn-ghost" data-ik="${it.k}">Schimbă</button>` : '<small class="muted">rămâne</small>'}</div><div class="ialts" id="ia_${it.k}" hidden>${alts.map((a) => `<button data-to="${a.k}" data-from="${it.k}"><b>${esc(a.txt.charAt(0).toUpperCase() + a.txt.slice(1))}</b><small>${a.kcal} kcal</small></button>`).join('')}</div></div>`; }).join('')}</div>` : '<p class="muted">Masa asta nu poate fi schimbată pe bucăți. Folosește „Toată masa”.</p>'}
+    <p class="muted small" style="margin:12px 0 0">Cantitatea se potrivește ca să rămână cam aceleași proteine sau carbohidrați.</p>`);
+  $$('[data-ik]', el).forEach((b) => (b.onclick = () => { const box = $('#ia_' + b.dataset.ik, el); const open = box.hidden; $$('.ialts', el).forEach((x) => (x.hidden = true)); box.hidden = !open; }));
+  $$('[data-to]', el).forEach((b) => (b.onclick = async () => {
+    $$('[data-to]', el).forEach((x) => (x.disabled = true));
+    try { H = await api('/api/me/food/item', { method: 'POST', body: { i, k: b.dataset.from, to: b.dataset.to } }); closeSheet(); render(); const nw = $('#mw' + i); if (nw) { nw.classList.add('swapped'); nw.scrollIntoView({ block: 'nearest' }); } toast('Gata, am schimbat alimentul 🍽️'); }
+    catch (e) { $$('[data-to]', el).forEach((x) => (x.disabled = false)); toast(e.status === 404 ? 'Aplicația s-a actualizat. Reîncarcă pagina.' : e.message, 'bad'); }
   }));
 }
 function drawPlans() { $('#np').innerHTML = H.nutritionPlans.filter((p) => !H.nutrition || p.id !== H.nutrition.id).map((p) => `<button class="day" data-np="${p.id}" style="background:var(--card)"><span class="n" style="width:auto;padding:0 10px;font-size:.84rem">${p.kcal}</span><span class="grow"><b>${esc(p.name)}</b><br><small class="muted">${esc(p.goal)} · P ${p.p} g · C ${p.c} g · G ${p.f} g</small></span>${IC('chev', 18)}</button>`).join(''); $$('[data-np]').forEach((b) => (b.onclick = async () => { await act('/api/me/nutrition', { nutritionId: b.dataset.np }); toast('Plan schimbat'); render(); })); }
